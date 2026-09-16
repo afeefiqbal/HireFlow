@@ -34,8 +34,12 @@ class GroqProvider {
         const systemPrompt = `
 You are an AI Job Quality & Compatibility Analyzer. 
 You must output STRICT JSON.
-Never invent candidate facts.
-Candidate Profile Context:
+CRITICAL RULES:
+1. NEVER invent candidate facts, skills, experiences, or metrics.
+2. Only use the information explicitly provided in the Candidate Profile Context below.
+3. Be highly objective and critical.
+
+Candidate Profile Context (GROUND TRUTH):
 ${contextStr}
 
 SCHEMA REQUIRED:
@@ -61,7 +65,7 @@ SCHEMA REQUIRED:
         const completion = await this.client.chat.completions.create({
             messages: [
                 { role: 'system', content: systemPrompt },
-                { role: 'user', content: jobDescription }
+                { role: 'user', content: `Analyze the following job description.\n\nREMINDER: You are strictly forbidden from inventing metrics, responsibilities, or scale. Use ONLY the provided Ground Truth context to match the Job Description.\n\nJob Description: ${jobDescription}` }
             ],
             model: process.env.GROQ_FAST_MODEL || 'openai/gpt-oss-20b',
             response_format: { type: 'json_object' },
@@ -114,11 +118,12 @@ interface TailoredCvData {
     technologies: string[];
   }>;
 }
-Never invent qualifications.
-You may reorder, summarize, rephrase, or emphasize verified experience.
-You may NOT invent technologies, employers, projects, achievements, metrics, certifications, education, or responsibilities.
-If relevant evidence does not exist for a requirement, state the lack of evidence. Do NOT guess.
-Candidate Profile Context:
+CRITICAL RULES:
+1. NEVER invent facts, metrics, scale, users, achievements, responsibilities, or technologies.
+2. You are restricted ONLY to the facts explicitly provided in the Candidate Profile Context below.
+3. If a fact is not in the context, do NOT write about it. Do NOT guess or infer.
+
+Candidate Profile Context (GROUND TRUTH):
 ${contextStr}
 
 You MUST output ONLY valid JSON matching the schema. No markdown, no explanations.
@@ -126,7 +131,7 @@ You MUST output ONLY valid JSON matching the schema. No markdown, no explanation
         const completion = await this.client.chat.completions.create({
             messages: [
                 { role: 'system', content: systemPrompt },
-                { role: 'user', content: jobDescription }
+                { role: 'user', content: `Tailor the resume for the following job description.\n\nREMINDER: You are strictly forbidden from inventing metrics, responsibilities, or scale. Use ONLY the provided Ground Truth context to match the Job Description.\n\nJob Description: ${jobDescription}` }
             ],
             model: process.env.GROQ_SMART_MODEL || 'openai/gpt-oss-120b',
             response_format: { type: 'json_object' },
@@ -177,10 +182,19 @@ For each question, output an object:
 - "question": string
 - "requiresUserInput": boolean
 - "suggestedAnswer": string (empty if requiresUserInput=true)
-Candidate Profile Context:
+
+CRITICAL RULES:
+1. NEVER invent facts, metrics, projects, or responsibilities.
+2. Only use information explicitly present in the Candidate Profile Context below.
+3. If the context does not contain enough evidence to answer a question confidently, you MUST set "requiresUserInput" to true and leave "suggestedAnswer" empty. Do NOT guess.
+
+Candidate Profile Context (GROUND TRUTH):
 ${contextStr}
 `;
-        const userMessage = JSON.stringify({ questions });
+        const userMessage = JSON.stringify({
+            questions,
+            REMINDER: "Strictly adhere to the anti-hallucination rules. DO NOT INVENT METRICS OR RESPONSIBILITIES."
+        });
         const completion = await this.client.chat.completions.create({
             messages: [
                 { role: 'system', content: systemPrompt },

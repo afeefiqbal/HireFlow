@@ -6,15 +6,15 @@ Testing against 4 unique jobs.
 ### Job Matching Comparison
 | Feature | Before | After |
 | :--- | :--- | :--- |
-| Technical Score | 90 | 75 |
-| Missing Skills | Redis, WebSockets | Experience with WebSocket real‑time communication for 30k concurrent users, Deep performance tuning for 1.5 B requests per day, Advanced use of PHP 8+ features (e.g., union types, match expressions), Redis queue management for high‑throughput workloads, Designing event‑driven architecture for complex financial operations |
-| Recommendation | REVIEW | REVIEW |
+| Technical Score | 45 | 80 |
+| Missing Skills | Redis, ElasticSearch, Singlestore, WebSockets, Event-Driven Architecture, Microservices, Eloquent Optimization, Artisan Commands, High-traffic Experience | PHP 8+, WebSockets, Redis, Serverless, Event-driven architecture |
+| Recommendation | SKIP | REVIEW |
 
 ### Resume Generation Comparison
 | Feature | Before | After |
 | :--- | :--- | :--- |
-| Included Projects | DealCode, Artemyst, Samasta | DealCode, Artemyst, Samasta |
-| Timeline Dates Preserved | Yes | Yes, perfectly matches legacy |
+| Included Projects | DealCode, Artemyst, Samasta | N/A |
+| Timeline Dates Preserved | Yes | Modified |
 
 ---
 
@@ -22,15 +22,15 @@ Testing against 4 unique jobs.
 ### Job Matching Comparison
 | Feature | Before | After |
 | :--- | :--- | :--- |
-| Technical Score | 92 | 90 |
-| Missing Skills | Explicit schema migrations experience, Explicit async programming certification |  |
-| Recommendation | APPLY | APPLY |
+| Technical Score | 90 | 65 |
+| Missing Skills | Explicit evidence of asynchronous programming patterns, Explicit evidence of database modeling in PostgreSQL | proven database modeling in PostgreSQL, strong asynchronous programming experience, 5+ years Node.js experience |
+| Recommendation | REVIEW | REVIEW |
 
 ### Resume Generation Comparison
 | Feature | Before | After |
 | :--- | :--- | :--- |
-| Included Projects | DealCode, Artemyst, Samasta | DealCode, Artemyst, Samasta |
-| Timeline Dates Preserved | Yes | Yes, perfectly matches legacy |
+| Included Projects | DealCode, Artemyst, Samasta | N/A |
+| Timeline Dates Preserved | Yes | Modified |
 
 ---
 
@@ -38,25 +38,9 @@ Testing against 4 unique jobs.
 ### Job Matching Comparison
 | Feature | Before | After |
 | :--- | :--- | :--- |
-| Technical Score | 75 | 55 |
-| Missing Skills | TypeScript, GraphQL, Temporal, Redis, WebSockets, MobX, styled-components | React, TypeScript, GraphQL, Redis, Temporal, GCP |
-| Recommendation | REVIEW | REVIEW |
-
-### Resume Generation Comparison
-| Feature | Before | After |
-| :--- | :--- | :--- |
-| Included Projects | DealCode, Artemyst, Samasta | DealCode, Artemyst, Samasta |
-| Timeline Dates Preserved | Yes | Modified |
-
----
-
-## Job: Senior Professional Services Project Manager (EMEA) at Gitlab
-### Job Matching Comparison
-| Feature | Before | After |
-| :--- | :--- | :--- |
-| Technical Score | 30 | 20 |
-| Missing Skills | Experience managing complex IT or software consulting projects, Project management certifications or proven knowledge of PMP/Agile methodologies, Experience with revenue recognition and change orders, Stakeholder escalation management experience | Project Management Experience, Agile/Scrum Knowledge, Stakeholder & Executive Communication, Professional Services Background, Risk Management |
-| Recommendation | SKIP | SKIP |
+| Technical Score | 55 | 40 |
+| Missing Skills | TypeScript, GraphQL, Temporal, Redis, Google Cloud, MobX, styled-components, WebSocket sync framework, real-time collaborative editing, performance profiling of virtualized lists, analytics/monitoring/alerts | TypeScript experience, Deep React experience, GraphQL implementation, Temporal/WebSocket real-time sync expertise, Performance optimization for large-scale systems |
+| Recommendation | REVIEW | SKIP |
 
 ### Resume Generation Comparison
 | Feature | Before | After |
@@ -66,3 +50,21 @@ Testing against 4 unique jobs.
 
 ---
 
+## Job: Senior Professional Services Project Manager (EMEA) at Gitlab
+### Job Matching Comparison
+| Feature | Before | After |
+| :--- | :--- | :--- |
+| Technical Score | 78 | 100 |
+| Missing Skills |  | project management experience, stakeholder communication experience, executive reporting experience, agile/scrum knowledge, change order processing experience, enterprise customer experience |
+| Recommendation | APPLY | SKIP |
+
+### Resume Generation Comparison
+| Feature | Before | After |
+| :--- | :--- | :--- |
+| Included Projects | N/A | N/A |
+| Timeline Dates Preserved | No | Yes, perfectly matches legacy |
+
+---
+
+Report generated at /Users/pixbit/Documents/workspace/new-/explorer/regression_report.md
+Done

@@ -1,7 +1,0 @@
-{
-  "/jobs/[id]/screening/page": "app/jobs/[id]/screening/page.js",
-  "/jobs/[id]/apply/page": "app/jobs/[id]/apply/page.js",
-  "/cover-letter/[id]/page": "app/cover-letter/[id]/page.js",
-  "/resume/[id]/page": "app/resume/[id]/page.js",
-  "/matches/page": "app/matches/page.js"
-}

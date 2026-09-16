@@ -1,4 +1,17 @@
 node_modules
+
+# Environment files (secrets)
 **/.env
 *.env
 .env
+
+# Next.js build output & cache
+.next
+apps/web/.next
+
+# TypeScript build output
+apps/api/dist
+
+# OS files
+.DS_Store
+Thumbs.db

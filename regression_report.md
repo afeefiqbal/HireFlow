@@ -1,70 +1,121 @@
-# Quality Regression Test Report
+# AI Job Agent — Regression Test Report
 
-Testing against 4 unique jobs.
-
-## Job: Laravel Senior Backend Developer (m/w/d) - Skaliere mit uns auf Millionen-Traffic at Kettner Edelmetalle
-### Job Matching Comparison
-| Feature | Before | After |
-| :--- | :--- | :--- |
-| Technical Score | 45 | 80 |
-| Missing Skills | Redis, ElasticSearch, Singlestore, WebSockets, Event-Driven Architecture, Microservices, Eloquent Optimization, Artisan Commands, High-traffic Experience | PHP 8+, WebSockets, Redis, Serverless, Event-driven architecture |
-| Recommendation | SKIP | REVIEW |
-
-### Resume Generation Comparison
-| Feature | Before | After |
-| :--- | :--- | :--- |
-| Included Projects | DealCode, Artemyst, Samasta | N/A |
-| Timeline Dates Preserved | Yes | Modified |
+**Generated**: 2026-09-16 12:03:19
+**Mode**: Evaluation
+**Smart Model**: openai/gpt-oss-120b
+**Fast Model**: openai/gpt-oss-20b
 
 ---
 
-## Job: Senior Backend Developer (Node.js) at OmniCloud Labs
-### Job Matching Comparison
-| Feature | Before | After |
-| :--- | :--- | :--- |
-| Technical Score | 90 | 65 |
-| Missing Skills | Explicit evidence of asynchronous programming patterns, Explicit evidence of database modeling in PostgreSQL | proven database modeling in PostgreSQL, strong asynchronous programming experience, 5+ years Node.js experience |
-| Recommendation | REVIEW | REVIEW |
+## Suite A: Context Builder (Deterministic — No LLM)
 
-### Resume Generation Comparison
-| Feature | Before | After |
-| :--- | :--- | :--- |
-| Included Projects | DealCode, Artemyst, Samasta | N/A |
-| Timeline Dates Preserved | Yes | Modified |
+| Job | Task | Tokens | Status |
+| :--- | :--- | :--- | :--- |
+| Laravel Senior Backend Developer (m/w/d) | JOB_MATCHING | ~1368 | ✅ |
+| Laravel Senior Backend Developer (m/w/d) | RESUME_GENERATION | ~2278 | ✅ |
+| Laravel Senior Backend Developer (m/w/d) | COVER_LETTER | ~1368 | ✅ |
+| Laravel Senior Backend Developer (m/w/d) | SCREENING_QUESTION | ~1368 | ✅ |
+| Senior Backend Developer (Node.js) | JOB_MATCHING | ~1240 | ✅ |
+| Senior Backend Developer (Node.js) | RESUME_GENERATION | ~2150 | ✅ |
+| Senior Backend Developer (Node.js) | COVER_LETTER | ~1240 | ✅ |
+| Senior Backend Developer (Node.js) | SCREENING_QUESTION | ~1240 | ✅ |
+| Senior / Staff Fullstack Engineer | JOB_MATCHING | ~1287 | ✅ |
+| Senior / Staff Fullstack Engineer | RESUME_GENERATION | ~2197 | ✅ |
+| Senior / Staff Fullstack Engineer | COVER_LETTER | ~1287 | ✅ |
+| Senior / Staff Fullstack Engineer | SCREENING_QUESTION | ~1287 | ✅ |
+| Senior Professional Services Project Man | JOB_MATCHING | ~1175 | ✅ |
+| Senior Professional Services Project Man | RESUME_GENERATION | ~2085 | ✅ |
+| Senior Professional Services Project Man | COVER_LETTER | ~1175 | ✅ |
+| Senior Professional Services Project Man | SCREENING_QUESTION | ~1175 | ✅ |
 
----
-
-## Job: Senior / Staff Fullstack Engineer at Linear
-### Job Matching Comparison
-| Feature | Before | After |
-| :--- | :--- | :--- |
-| Technical Score | 55 | 40 |
-| Missing Skills | TypeScript, GraphQL, Temporal, Redis, Google Cloud, MobX, styled-components, WebSocket sync framework, real-time collaborative editing, performance profiling of virtualized lists, analytics/monitoring/alerts | TypeScript experience, Deep React experience, GraphQL implementation, Temporal/WebSocket real-time sync expertise, Performance optimization for large-scale systems |
-| Recommendation | REVIEW | SKIP |
-
-### Resume Generation Comparison
-| Feature | Before | After |
-| :--- | :--- | :--- |
-| Included Projects | N/A | DealCode, Artemyst, Samasta |
-| Timeline Dates Preserved | No | Modified |
+✅ **PASS** — All 16 context builds passed structural validation
 
 ---
 
-## Job: Senior Professional Services Project Manager (EMEA) at Gitlab
-### Job Matching Comparison
-| Feature | Before | After |
-| :--- | :--- | :--- |
-| Technical Score | 78 | 100 |
-| Missing Skills |  | project management experience, stakeholder communication experience, executive reporting experience, agile/scrum knowledge, change order processing experience, enterprise customer experience |
-| Recommendation | APPLY | SKIP |
+## Suite F: Deterministic Fallback Validation (No LLM)
 
-### Resume Generation Comparison
-| Feature | Before | After |
-| :--- | :--- | :--- |
-| Included Projects | N/A | N/A |
-| Timeline Dates Preserved | No | Yes, perfectly matches legacy |
+| Job | Tech Score | Rec | Missing | Status |
+| :--- | :--- | :--- | :--- | :--- |
+| Laravel Senior Backend Developer (m | 99 | APPLY | 0 | ✅ |
+| Senior Backend Developer (Node.js) | 90 | APPLY | 0 | ✅ |
+| Senior / Staff Fullstack Engineer | 67 | APPLY | 1 | ✅ |
+| Senior Professional Services Projec | 78 | APPLY | 0 | ✅ |
+
+✅ **PASS** — All 4 deterministic evaluations passed
 
 ---
 
-Report generated at /Users/pixbit/Documents/workspace/new-/explorer/regression_report.md
-Done
+## Suite B: Job Matching (20B model — 4-5 jobs)
+
+| Job | Tech Score | Rec | Validation |
+| :--- | :--- | :--- | :--- |
+| Laravel Senior Backend Developer (m | 65 | REVIEW | ✅  |
+| Senior Backend Developer (Node.js) | 90 | APPLY | ✅  |
+| Senior / Staff Fullstack Engineer | 66 | REVIEW | ✅  |
+| Senior Professional Services Projec | 100 | SKIP | ✅  |
+
+> **Token Budget** — Used: 10,000 / 200,000 — Remaining: 190,000
+
+---
+
+## Suite E: Screening Questions (20B model)
+
+### Job: Laravel Senior Backend Developer (m/w/d) - Skaliere mit uns auf Millionen-Traffic
+
+| Question | Source | Answer Preview | Valid |
+| :--- | :--- | :--- | :--- |
+| How many years of professional software developmen... | 🟢 AI | 7 years | ✅ |
+| Describe your hands-on experience with relational ... | 🟡 User |  | ✅ |
+| Will you now or in the future require visa sponsor... | 🟡 User |  | ✅ |
+| What is your expected annual salary for this role? | 🟡 User |  | ✅ |
+| What is your current notice period or earliest ava... | 🟡 User |  | ✅ |
+
+✅ **PASS** — All 5 screening answers passed validation
+### Job: Senior Backend Developer (Node.js)
+
+| Question | Source | Answer Preview | Valid |
+| :--- | :--- | :--- | :--- |
+| How many years of professional software developmen... | 🟢 AI | 7 years | ✅ |
+| Describe your hands-on experience with relational ... | 🟡 User |  | ✅ |
+| Will you now or in the future require visa sponsor... | 🟡 User |  | ✅ |
+| What is your expected annual salary for this role? | 🟡 User |  | ✅ |
+| What is your current notice period or earliest ava... | 🟡 User |  | ✅ |
+
+✅ **PASS** — All 5 screening answers passed validation
+> **Token Budget** — Used: 15,000 / 200,000 — Remaining: 185,000
+
+---
+
+## Suite C: Resume Generation (120B model — 1-2 jobs)
+
+### Job: Laravel Senior Backend Developer (m/w/d) - Skaliere mit uns auf Millionen-Traffic at Kettner Edelmetalle
+
+❌ **FAIL** — Resume generation error: 429 {"error":{"message":"Rate limit reached for model `openai/gpt-oss-120b` in organization `org_01k
+⚠️ **WARN** — Rate limit hit — stopping Suite C
+> **Token Budget** — Used: 18,000 / 200,000 — Remaining: 182,000
+
+---
+
+## Suite D: Cover Letter (production model — 1-2 jobs)
+
+### Job: Laravel Senior Backend Developer (m/w/d) - Skaliere mit uns auf Millionen-Traffic at Kettner Edelmetalle
+
+| Check | Result |
+| :--- | :--- |
+| Has Opening | ✅ |
+| Has Full Text | ✅ (1311 chars) |
+| Hallucination Check | ✅ Clean |
+| Tone Check | ✅ Professional |
+
+✅ **PASS** — Cover letter for "Laravel Senior Backend Developer (m/w/d) - Skaliere mit uns auf Millionen-Traffic" passed all checks
+### Job: Senior Backend Developer (Node.js) at OmniCloud Labs
+
+❌ **FAIL** — Cover letter error: 429 {"error":{"message":"Rate limit reached for model `openai/gpt-oss-120b` in organization `org_01k
+⚠️ **WARN** — Rate limit hit — stopping Suite D
+> **Token Budget** — Used: 24,000 / 200,000 — Remaining: 176,000
+
+---
+
+## Token Usage Summary
+
+> **Token Budget** — Used: 24,000 / 200,000 — Remaining: 176,000

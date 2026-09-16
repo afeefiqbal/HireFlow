@@ -1,0 +1,94 @@
+{
+  "name": "AI Job Agent - Scheduled Job Polling & Discovery",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "hours",
+              "hoursInterval": 1
+            }
+          ]
+        }
+      },
+      "name": "Cron (Hourly)",
+      "type": "n8n-nodes-base.cron",
+      "typeVersion": 1,
+      "position": [250, 300]
+    },
+    {
+      "parameters": {
+        "url": "https://boards-api.greenhouse.io/v1/boards/spryker/jobs",
+        "options": {}
+      },
+      "name": "Fetch Greenhouse Jobs",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 3,
+      "position": [450, 300]
+    },
+    {
+      "parameters": {
+        "functionCode": "// Filter for postings within the last 24 hours only\nconst now = new Date();\nconst items = $input.all();\nconst freshJobs = [];\n\nfor (const item of items) {\n  const postedAt = item.json.updated_at || item.json.posted_at;\n  if (!postedAt) continue;\n  const ageHours = (now.getTime() - new Date(postedAt).getTime()) / (1000 * 60 * 60);\n  if (ageHours <= 24) {\n    freshJobs.push({\n      json: {\n        title: item.json.title,\n        company: 'Spryker',\n        location: item.json.location ? item.json.location.name : 'Germany · Remote',\n        isRemote: true,\n        postedAt: postedAt,\n        canonicalUrl: item.json.absolute_url,\n        applicationUrl: item.json.absolute_url,\n        source: 'Greenhouse Public Board',\n        techStack: ['PHP', 'Laravel', 'Vue.js', 'Docker', 'AWS']\n      }\n    });\n  }\n}\nreturn freshJobs;"
+      },
+      "name": "Strict 24h Filter",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [650, 300]
+    },
+    {
+      "parameters": {
+        "requestMethod": "POST",
+        "url": "http://api:4000/api/jobs/ingest",
+        "options": {},
+        "headerParametersUi": {
+          "parameter": [
+            {
+              "name": "Authorization",
+              "value": "Bearer afeef_private_dashboard_token_2026"
+            }
+          ]
+        }
+      },
+      "name": "Ingest Into AI Job Agent",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 3,
+      "position": [850, 300]
+    }
+  ],
+  "connections": {
+    "Cron (Hourly)": {
+      "main": [
+        [
+          {
+            "node": "Fetch Greenhouse Jobs",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch Greenhouse Jobs": {
+      "main": [
+        [
+          {
+            "node": "Strict 24h Filter",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Strict 24h Filter": {
+      "main": [
+        [
+          {
+            "node": "Ingest Into AI Job Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  }
+}

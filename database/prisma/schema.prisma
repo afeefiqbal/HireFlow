@@ -1,0 +1,395 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String            @id @default(uuid())
+  email     String            @unique
+  fullName  String
+  createdAt DateTime          @default(now()) @map("created_at")
+  updatedAt DateTime          @updatedAt @map("updated_at")
+  profile   CandidateProfile?
+
+  @@map("users")
+}
+
+model CandidateProfile {
+  id                      String        @id @default(uuid())
+  userId                  String        @unique @map("user_id")
+  fullName                String        @map("full_name")
+  headline                String
+  yearsOfExperience       Int           @default(7) @map("years_of_experience")
+  targetRoles             String[]      @map("target_roles")
+  targetLocations         String[]      @map("target_locations")
+  remotePreference        String        @default("preferred") @map("remote_preference")
+  relocationPreference    String        @default("preferred") @map("relocation_preference")
+  visaSponsorshipRequired Boolean       @default(true) @map("visa_sponsorship_required")
+  hasKnownCareerGap       Boolean       @default(true) @map("has_known_career_gap")
+  careerGapDescription    String        @default("Career break / independent development period between Aug 2024 and Jul 2025.") @map("career_gap_description")
+  createdAt               DateTime      @default(now()) @map("created_at")
+  updatedAt               DateTime      @updatedAt @map("updated_at")
+  coverLetters            CoverLetter[]
+  experiences             Experience[]
+  user                    User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  projects                Project[]
+  resumes                 Resume[]
+  skills                  Skill[]
+
+  @@map("profiles")
+}
+
+model Experience {
+  id           String           @id @default(uuid())
+  profileId    String           @map("profile_id")
+  company      String
+  role         String
+  startDate    String           @map("start_date")
+  endDate      String?          @map("end_date")
+  isCurrent    Boolean          @default(false) @map("is_current")
+  description  String?
+  technologies String[]
+  orderIndex   Int              @default(0) @map("order_index")
+  createdAt    DateTime         @default(now()) @map("created_at")
+  updatedAt    DateTime         @updatedAt @map("updated_at")
+  profile      CandidateProfile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+
+  @@index([company])
+  @@map("experiences")
+}
+
+model Skill {
+  id        String           @id @default(uuid())
+  profileId String           @map("profile_id")
+  name      String
+  category  String
+  level     String           @default("expert")
+  createdAt DateTime         @default(now()) @map("created_at")
+  updatedAt DateTime         @updatedAt @map("updated_at")
+  profile   CandidateProfile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+
+  @@unique([profileId, name])
+  @@index([name])
+  @@map("skills")
+}
+
+model Project {
+  id           String           @id @default(uuid())
+  profileId    String           @map("profile_id")
+  title        String
+  description  String?
+  technologies String[]
+  url          String?
+  verified     Boolean          @default(true)
+  orderIndex   Int              @default(0) @map("order_index")
+  createdAt    DateTime         @default(now()) @map("created_at")
+  updatedAt    DateTime         @updatedAt @map("updated_at")
+  profile      CandidateProfile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+
+  @@index([title])
+  @@map("projects")
+}
+
+model JobSource {
+  id          String    @id @default(uuid())
+  name        String    @unique
+  adapterType String    @map("adapter_type")
+  endpointUrl String?   @map("endpoint_url")
+  isActive    Boolean   @default(true) @map("is_active")
+  lastPolled  DateTime? @map("last_polled")
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+  jobs        Job[]
+
+  @@map("job_sources")
+}
+
+model Job {
+  id                 String                  @id @default(uuid())
+  sourceId           String?                 @map("source_id")
+  title              String
+  company            String
+  location           String
+  isRemote           Boolean                 @default(false) @map("is_remote")
+  employmentType     String                  @default("Full-time") @map("employment_type")
+  postedAt           DateTime?               @map("posted_at")
+  discoveredAt       DateTime                @default(now()) @map("discovered_at")
+  jobAgeHours        Float?                  @map("job_age_hours")
+  ageStatus          JobAgeStatus            @default(UNKNOWN) @map("age_status")
+  salaryMin          Float?                  @map("salary_min")
+  salaryMax          Float?                  @map("salary_max")
+  salaryCurrency     String?                 @default("EUR") @map("salary_currency")
+  visaStatus         VisaStatus              @default(NOT_STATED) @map("visa_status")
+  experienceRequired String?                 @map("experience_required")
+  techStack          String[]                @map("tech_stack")
+  description        String
+  requirements       String[]
+  preferredSkills    String[]                @map("preferred_skills")
+  applicationUrl     String                  @map("application_url")
+  canonicalUrl       String                  @unique @map("canonical_url")
+  source             String
+  sourceUrl          String?                 @map("source_url")
+  createdAt          DateTime                @default(now()) @map("created_at")
+  updatedAt          DateTime                @updatedAt @map("updated_at")
+  preparation        ApplicationPreparation?
+  application        Application?
+  atsAnalyses        AtsAnalysis[]
+  coverLetters       CoverLetter[]
+  matches            JobMatch[]
+  sourceRef          JobSource?              @relation(fields: [sourceId], references: [id])
+  resumeVersions     ResumeVersion[]
+  screeningQuestions ScreeningQuestion[]
+
+  @@index([postedAt])
+  @@index([discoveredAt])
+  @@index([company])
+  @@index([ageStatus])
+  @@index([canonicalUrl])
+  @@map("jobs")
+}
+
+model JobMatch {
+  id                  String             @id @default(uuid())
+  jobId               String             @map("job_id")
+  overallMatch        Int                @map("overall_match")
+  technicalMatch      Int                @map("technical_match")
+  experienceMatch     Int                @map("experience_match")
+  locationMatch       Int                @map("location_match")
+  visaCompatibility   VisaCompatibility  @map("visa_compatibility")
+  strongMatches       String[]           @map("strong_matches")
+  missingRequirements String[]           @map("missing_requirements")
+  concerns            String[]           @map("concerns")
+  reasoning           String[]           @map("reasoning")
+  recommendation      RecommendationType @map("recommendation")
+  createdAt           DateTime           @default(now()) @map("created_at")
+  updatedAt           DateTime           @updatedAt @map("updated_at")
+  job                 Job                @relation(fields: [jobId], references: [id], onDelete: Cascade)
+
+  @@index([jobId])
+  @@index([overallMatch])
+  @@index([recommendation])
+  @@map("job_matches")
+}
+
+model Resume {
+  id          String           @id @default(uuid())
+  profileId   String           @map("profile_id")
+  title       String
+  isMaster    Boolean          @default(false) @map("is_master")
+  contentJson Json             @map("content_json")
+  createdAt   DateTime         @default(now()) @map("created_at")
+  updatedAt   DateTime         @updatedAt @map("updated_at")
+  versions    ResumeVersion[]
+  profile     CandidateProfile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+
+  @@map("resumes")
+}
+
+model ResumeVersion {
+  id          String       @id @default(uuid())
+  resumeId    String?      @map("resume_id")
+  versionNum  Int          @default(1) @map("version_num")
+  tailoredFor String?      @map("tailored_for")
+  pdfUrl      String?      @map("pdf_url")
+  contentJson Json         @map("content_json")
+  createdAt   DateTime     @default(now()) @map("created_at")
+  candidateId String?      @map("candidate_id")
+  jobId       String?      @map("job_id")
+  status      String       @default("draft")
+  targetRole  String?      @map("target_role")
+  updatedAt   DateTime     @default(now()) @updatedAt @map("updated_at")
+  versionName String       @default("Afeef_Iqbal_CV_v1") @map("version_name")
+  atsAnalysis AtsAnalysis?
+  job         Job?         @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  resume      Resume?      @relation(fields: [resumeId], references: [id], onDelete: Cascade)
+
+  @@index([jobId])
+  @@map("resume_versions")
+}
+
+model AtsAnalysis {
+  id                  String        @id @default(uuid())
+  resumeVersionId     String        @unique @map("resume_version_id")
+  jobId               String        @map("job_id")
+  overallCoverage     Int           @map("overall_coverage")
+  requiredCoverage    Int           @map("required_coverage")
+  preferredCoverage   Int           @map("preferred_coverage")
+  experienceAlignment Int           @map("experience_alignment")
+  titleAlignment      Int           @map("title_alignment")
+  requiredSkills      Json          @map("required_skills")
+  preferredSkills     Json          @map("preferred_skills")
+  recommendations     String[]
+  createdAt           DateTime      @default(now()) @map("created_at")
+  job                 Job           @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  resumeVersion       ResumeVersion @relation(fields: [resumeVersionId], references: [id], onDelete: Cascade)
+
+  @@index([jobId])
+  @@map("ats_analyses")
+}
+
+model CoverLetter {
+  id             String           @id @default(uuid())
+  profileId      String           @map("profile_id")
+  jobId          String?          @map("job_id")
+  title          String
+  bodyText       String           @map("body_text")
+  createdAt      DateTime         @default(now()) @map("created_at")
+  updatedAt      DateTime         @updatedAt @map("updated_at")
+  closing        String?
+  middle         String?
+  opening        String?
+  recipientTitle String?          @map("recipient_title")
+  job            Job?             @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  profile        CandidateProfile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+
+  @@index([jobId])
+  @@map("cover_letters")
+}
+
+model ScreeningQuestion {
+  id                String   @id @default(uuid())
+  jobId             String   @map("job_id")
+  question          String
+  suggestedAnswer   String   @map("suggested_answer")
+  confidence        String   @default("high")
+  source            String   @default("Candidate Ground Truth")
+  requiresUserInput Boolean  @default(false) @map("requires_user_input")
+  userAnswer        String?  @map("user_answer")
+  createdAt         DateTime @default(now()) @map("created_at")
+  updatedAt         DateTime @updatedAt @map("updated_at")
+  job               Job      @relation(fields: [jobId], references: [id], onDelete: Cascade)
+
+  @@index([jobId])
+  @@map("screening_questions")
+}
+
+model ApplicationPreparation {
+  id                    String   @id @default(uuid())
+  jobId                 String   @unique @map("job_id")
+  jobAnalyzed           Boolean  @default(false) @map("job_analyzed")
+  cvGenerated           Boolean  @default(false) @map("cv_generated")
+  atsAnalyzed           Boolean  @default(false) @map("ats_analyzed")
+  coverLetterGenerated  Boolean  @default(false) @map("cover_letter_generated")
+  screeningInputNeeded  Int      @default(0) @map("screening_input_needed")
+  screeningTotalCount   Int      @default(0) @map("screening_total_count")
+  latestResumeVersionId String?  @map("latest_resume_version_id")
+  latestCoverLetterId   String?  @map("latest_cover_letter_id")
+  createdAt             DateTime @default(now()) @map("created_at")
+  updatedAt             DateTime @updatedAt @map("updated_at")
+  job                   Job      @relation(fields: [jobId], references: [id], onDelete: Cascade)
+
+  @@map("application_preparations")
+}
+
+model Application {
+  id             String              @id @default(uuid())
+  jobId          String              @unique @map("job_id")
+  status         ApplicationStatus   @default(DISCOVERED)
+  appliedDate    DateTime?           @map("applied_date")
+  cvVersion      String?             @map("cv_version")
+  coverLetterId  String?             @map("cover_letter_id")
+  applicationUrl String?             @map("application_url")
+  notes          String?
+  interviewDates String[]            @map("interview_dates")
+  createdAt      DateTime            @default(now()) @map("created_at")
+  updatedAt      DateTime            @updatedAt @map("updated_at")
+  answers        ApplicationAnswer[]
+  events         ApplicationEvent[]
+  job            Job                 @relation(fields: [jobId], references: [id], onDelete: Cascade)
+
+  @@index([status])
+  @@map("applications")
+}
+
+model ApplicationAnswer {
+  id            String      @id @default(uuid())
+  applicationId String      @map("application_id")
+  question      String
+  answer        String
+  isAiGenerated Boolean     @default(true) @map("is_ai_generated")
+  createdAt     DateTime    @default(now()) @map("created_at")
+  application   Application @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+
+  @@map("application_answers")
+}
+
+model ApplicationEvent {
+  id            String             @id @default(uuid())
+  applicationId String             @map("application_id")
+  fromStatus    ApplicationStatus? @map("from_status")
+  toStatus      ApplicationStatus  @map("to_status")
+  note          String?
+  createdAt     DateTime           @default(now()) @map("created_at")
+  application   Application        @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+
+  @@index([applicationId])
+  @@map("application_events")
+}
+
+model AiUsage {
+  id           String   @id @default(uuid())
+  provider     String
+  model        String
+  operation    String
+  jobId        String?  @map("job_id")
+  inputTokens  Int      @map("input_tokens")
+  outputTokens Int      @map("output_tokens")
+  latencyMs    Int      @map("latency_ms")
+  status       String
+  error        String?
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  @@index([jobId])
+  @@map("ai_usages")
+}
+
+model AiCache {
+  id           String   @id @default(uuid())
+  cacheKey     String   @unique @map("cache_key")
+  responseJson Json     @map("response_json")
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  @@index([cacheKey])
+  @@map("ai_cache")
+}
+
+enum VisaCompatibility {
+  compatible
+  unknown
+  incompatible
+}
+
+enum RecommendationType {
+  APPLY
+  REVIEW
+  SKIP
+}
+
+enum JobAgeStatus {
+  FRESH
+  OLDER
+  UNKNOWN
+}
+
+enum VisaStatus {
+  OFFERED
+  NOT_OFFERED
+  NOT_STATED
+}
+
+enum ApplicationStatus {
+  DISCOVERED
+  MATCHED
+  SAVED
+  CV_READY
+  READY_TO_APPLY
+  APPLIED
+  INTERVIEW
+  REJECTED
+  OFFER
+  WITHDRAWN
+}

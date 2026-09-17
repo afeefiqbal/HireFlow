@@ -37,6 +37,7 @@ export class ApplicationsController {
         'REJECTED',
         'OFFER',
         'WITHDRAWN',
+        'EXPIRED',
       ];
 
       if (!validStatuses.includes(status)) {

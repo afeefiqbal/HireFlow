@@ -22,6 +22,7 @@ const STATUS_COLUMNS: { key: ApplicationStatus; label: string; color: string }[]
   { key: 'INTERVIEW', label: 'Interviewing', color: 'border-purple-500/40 bg-purple-950/20 text-purple-300' },
   { key: 'OFFER', label: 'Offer Received', color: 'border-emerald-500/40 bg-emerald-950/20 text-emerald-300' },
   { key: 'REJECTED', label: 'Archived / Rejected', color: 'border-rose-500/40 bg-rose-950/20 text-rose-300' },
+  { key: 'EXPIRED', label: 'Expired / Closed', color: 'border-slate-800 bg-slate-950/60 text-slate-400' },
 ];
 
 export default function ApplicationsPage() {

@@ -26,8 +26,11 @@ import {
   Info,
   Download,
   XCircle,
-  X
+  X,
+  SidebarClose,
+  SidebarOpen
 } from 'lucide-react';
+import ApplicationCopilot from '@/components/ApplicationCopilot';
 
 export default function ApplicationPreparationPage() {
   const params = useParams();
@@ -45,6 +48,7 @@ export default function ApplicationPreparationPage() {
   const [qualityResults, setQualityResults] = useState<{ passed: boolean; checks: any[] } | null>(null);
   
   const [confirmationOpen, setConfirmationOpen] = useState(false);
+  const [copilotOpen, setCopilotOpen] = useState(true);
 
   const fetchPrepData = async () => {
     try {
@@ -127,6 +131,17 @@ export default function ApplicationPreparationPage() {
     }
   };
 
+  const handleMarkExpired = async () => {
+    if (!confirm('Mark this job posting as EXPIRED / CLOSED?')) return;
+    try {
+      await api.updateApplicationStatus(id, 'EXPIRED', 'Marked as expired from Application Copilot');
+      showToast('Job marked as EXPIRED / CLOSED');
+      await fetchPrepData();
+    } catch (err: any) {
+      alert(`Failed to mark expired: ${err.message}`);
+    }
+  };
+
   const runQualityCheck = () => {
     if (!data || !profile) return;
     
@@ -139,13 +154,13 @@ export default function ApplicationPreparationPage() {
     if (!cvExists) allPassed = false;
     
     // 2. CV Name matches exactly
-    if (cvExists && data.latestResume.contentJson) {
+    if (data.latestResume) {
       checks.push({ label: 'Candidate Name Verified', passed: true });
     }
     
     // 3. No fabricated employers
-    if (cvExists && data.latestResume.contentJson?.experiences) {
-      const cvExps = data.latestResume.contentJson.experiences;
+    if (data.latestResume?.experiences) {
+      const cvExps = data.latestResume.experiences;
       const validEmployers = profile.experiences.map((e: any) => e.company.toLowerCase());
       const hasFabricated = cvExps.some((e: any) => !validEmployers.includes(e.company.toLowerCase()));
       checks.push({ 
@@ -232,10 +247,13 @@ export default function ApplicationPreparationPage() {
   const readinessColor = readinessScore >= 95 ? 'text-teal-400 border-teal-500/40 bg-teal-500/10' : readinessScore >= 40 ? 'text-amber-400 border-amber-500/40 bg-amber-500/10' : 'text-slate-400 border-slate-700 bg-slate-800/50';
 
   // Find Job Match technical score if available
-  const matchRecord = job.matches && job.matches.length > 0 ? job.matches[0] : null;
+  const matchRecord: any = job.latestMatch || (job as any).matches?.[0] || null;
+  const techScore = matchRecord?.technical_match ?? matchRecord?.technicalMatch ?? 0;
+  const expScore = matchRecord?.experience_match ?? matchRecord?.experienceMatch ?? 0;
+  const matchRec = matchRecord?.recommendation || 'REVIEW';
 
   return (
-    <div className="space-y-6 pb-24">
+    <div className={`space-y-6 pb-24 transition-all duration-200 ${copilotOpen ? 'xl:pr-[460px]' : ''}`}>
       {/* Toast Notification */}
       {toastMessage && (
         <div className="fixed bottom-6 right-6 z-50 flex items-center gap-2 rounded-lg bg-teal-600 px-4 py-3 text-sm font-semibold text-white shadow-xl animate-bounce">
@@ -258,6 +276,22 @@ export default function ApplicationPreparationPage() {
         </div>
 
         <div className="flex items-center gap-2">
+          <button
+            onClick={() => setCopilotOpen((prev) => !prev)}
+            className={`inline-flex items-center gap-2 rounded-lg px-3 py-2 text-xs font-bold transition-colors border shadow-sm ${
+              copilotOpen
+                ? 'bg-teal-950/80 text-teal-300 border-teal-500/60 shadow-teal-950/50'
+                : 'bg-slate-800 text-slate-300 border-slate-700 hover:bg-slate-700 hover:text-white'
+            }`}
+            aria-label="Toggle Application Copilot"
+          >
+            <Sparkles className="h-3.5 w-3.5 text-teal-400" />
+            <span>APPLICATION COPILOT</span>
+            <span className="rounded bg-teal-900/60 px-1 py-0.2 text-[9px] font-mono text-teal-300">
+              V3.1
+            </span>
+          </button>
+
           <button
             onClick={runQualityCheck}
             className="inline-flex items-center gap-2 rounded-lg bg-teal-600 px-4 py-2 text-xs font-bold text-white hover:bg-teal-500 transition-colors shadow-lg shadow-teal-900/40"
@@ -304,15 +338,15 @@ export default function ApplicationPreparationPage() {
                <div className="flex items-center gap-4 pt-3 border-t border-slate-800">
                  <div className="text-xs">
                    <span className="text-slate-500">Technical Match: </span>
-                   <span className={`font-bold ${matchRecord.technicalMatch >= 80 ? 'text-teal-400' : matchRecord.technicalMatch >= 60 ? 'text-amber-400' : 'text-rose-400'}`}>{matchRecord.technicalMatch}%</span>
+                   <span className={`font-bold ${techScore >= 80 ? 'text-teal-400' : techScore >= 60 ? 'text-amber-400' : 'text-rose-400'}`}>{techScore}%</span>
                  </div>
                  <div className="text-xs">
                    <span className="text-slate-500">Experience: </span>
-                   <span className="font-bold text-teal-400">{matchRecord.experienceMatch}%</span>
+                   <span className="font-bold text-teal-400">{expScore}%</span>
                  </div>
                  <div className="text-xs">
                    <span className="text-slate-500">Opportunity Priority: </span>
-                   <span className={`font-bold ${matchRecord.recommendation === 'APPLY' ? 'text-emerald-400' : matchRecord.recommendation === 'REVIEW' ? 'text-amber-400' : 'text-rose-400'}`}>{matchRecord.recommendation}</span>
+                   <span className={`font-bold ${matchRec === 'APPLY' ? 'text-emerald-400' : matchRec === 'REVIEW' ? 'text-amber-400' : 'text-rose-400'}`}>{matchRec}</span>
                  </div>
                </div>
             )}
@@ -354,7 +388,7 @@ export default function ApplicationPreparationPage() {
               <div className="space-y-3 text-xs">
                 <div className="flex justify-between text-slate-400">
                   <span>Target Role:</span>
-                  <span className="text-teal-300 font-semibold">{latestResume.contentJson?.targetRole || latestResume.targetRole}</span>
+                  <span className="text-teal-300 font-semibold">{latestResume.targetRole}</span>
                 </div>
                 {latestAtsAnalysis && (
                   <div className="flex justify-between text-slate-400">
@@ -367,7 +401,7 @@ export default function ApplicationPreparationPage() {
                 <div className="pt-2">
                   <div className="text-[11px] font-bold text-slate-500 uppercase mb-2">Evidence Mode</div>
                   <div className="rounded-lg bg-slate-900 border border-slate-800 p-3 space-y-2 max-h-[150px] overflow-y-auto">
-                    {latestResume.contentJson?.experiences?.[0]?.bullets?.slice(0, 2).map((bullet: any, idx: number) => (
+                    {((latestResume.experiences || (latestResume as any).contentJson?.experiences || [])[0]?.bullets?.slice(0, 2) || []).map((bullet: any, idx: number) => (
                        <div key={idx} className="flex gap-2 text-slate-300">
                          <span className="shrink-0 mt-0.5">•</span>
                          <div>
@@ -438,8 +472,8 @@ export default function ApplicationPreparationPage() {
                    <ShieldCheck className="h-4 w-4 shrink-0" />
                    <span>Based on verified candidate evidence</span>
                  </div>
-                <div className="rounded-lg bg-slate-900 border border-slate-800 p-3 text-slate-300 italic line-clamp-6 text-[11px] whitespace-pre-wrap">
-                  {latestCoverLetter.bodyText}
+                 <div className="rounded-lg bg-slate-900 border border-slate-800 p-3 text-slate-300 italic line-clamp-6 text-[11px] whitespace-pre-wrap">
+                  {latestCoverLetter.fullText || (latestCoverLetter as any).bodyText}
                 </div>
               </div>
             ) : (
@@ -457,7 +491,7 @@ export default function ApplicationPreparationPage() {
                   EDIT
                 </Link>
                 <button 
-                  onClick={() => { navigator.clipboard.writeText(latestCoverLetter.bodyText); showToast("Copied to clipboard!"); }}
+                  onClick={() => { navigator.clipboard.writeText(latestCoverLetter.fullText || (latestCoverLetter as any).bodyText); showToast("Copied to clipboard!"); }}
                   className="flex-1 inline-flex items-center justify-center gap-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 px-3 py-2 text-xs font-bold text-white transition-colors border border-slate-700"
                 >
                   COPY
@@ -546,9 +580,9 @@ export default function ApplicationPreparationPage() {
                     <CheckCircle2 className="h-6 w-6 text-emerald-400 shrink-0 mt-0.5" />
                     <div>
                       <div className="font-bold text-emerald-400">Application Submitted</div>
-                      <div className="text-xs text-slate-400 mt-1">You marked this job as APPLIED on {new Date(job.application.updatedAt).toLocaleDateString()}.</div>
-                      {job.application.applicationUrl && (
-                        <a href={job.application.applicationUrl} target="_blank" rel="noreferrer" className="text-xs text-emerald-300 hover:underline mt-2 inline-block">View Posting</a>
+                      <div className="text-xs text-slate-400 mt-1">You marked this job as APPLIED on {new Date(job.application.appliedDate || job.application.lastUpdated || Date.now()).toLocaleDateString()}.</div>
+                      {(job.applicationUrl || (job.application as any).applicationUrl) && (
+                        <a href={job.applicationUrl || (job.application as any).applicationUrl} target="_blank" rel="noreferrer" className="text-xs text-emerald-300 hover:underline mt-2 inline-block">View Posting</a>
                       )}
                     </div>
                   </div>
@@ -656,6 +690,22 @@ export default function ApplicationPreparationPage() {
             </div>
           </div>
         </div>
+      )}
+
+      {/* Application Copilot Drawer */}
+      {data && (
+        <ApplicationCopilot
+          isOpen={copilotOpen}
+          onClose={() => setCopilotOpen(false)}
+          data={data}
+          profile={profile}
+          screeningQuestions={screeningQs}
+          onRefreshData={fetchPrepData}
+          onGenerateResume={handleGenerateResume}
+          onGenerateCoverLetter={handleGenerateCoverLetter}
+          onOpenApplication={runQualityCheck}
+          onMarkExpired={handleMarkExpired}
+        />
       )}
     </div>
   );

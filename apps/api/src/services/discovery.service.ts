@@ -1,5 +1,6 @@
 import { PrismaClient, VisaStatus } from '@prisma/client';
 import { JobFilterService } from './job-filter.service';
+import { JobPipelineService } from './intelligence/job-pipeline.service';
 
 const prisma = new PrismaClient();
 
@@ -22,6 +23,7 @@ interface IngestCandidate {
   applicationUrl: string;
   canonicalUrl: string;
   source: string;
+  sourceJobId?: string | null;
   sourceUrl?: string;
 }
 
@@ -133,44 +135,17 @@ export class DiscoveryService {
     let duplicatesSkipped = 0;
 
     for (const item of relevantCandidates) {
-      // Check for duplicates by canonicalUrl
-      const existing = await prisma.job.findUnique({
-        where: { canonicalUrl: item.canonicalUrl },
-      });
-
-      if (existing) {
-        duplicatesSkipped++;
-        continue;
-      }
-
-      // 24-Hour calculation
-      const ageEval = JobFilterService.evaluatePostingAge(item.postedAt);
-
-      const parsedPostedAt =
-        item.postedAt instanceof Date
-          ? item.postedAt
-          : typeof item.postedAt === 'number'
-          ? item.postedAt < 10000000000
-            ? new Date(item.postedAt * 1000)
-            : new Date(item.postedAt)
-          : typeof item.postedAt === 'string'
-          ? new Date(item.postedAt)
-          : null;
-
-      await prisma.job.create({
-        data: {
+      try {
+        const result = await JobPipelineService.processAndIngestJob({
           title: item.title,
           company: item.company,
           location: item.location,
           isRemote: item.isRemote,
           employmentType: item.employmentType,
-          postedAt: parsedPostedAt && !isNaN(parsedPostedAt.getTime()) ? parsedPostedAt : null,
-          jobAgeHours: ageEval.jobAgeHours,
-          ageStatus: ageEval.ageStatus,
+          postedAt: item.postedAt,
           salaryMin: item.salaryMin,
           salaryMax: item.salaryMax,
           salaryCurrency: item.salaryCurrency || 'EUR',
-          visaStatus: item.visaStatus,
           experienceRequired: item.experienceRequired,
           techStack: item.techStack,
           description: item.description,
@@ -179,13 +154,20 @@ export class DiscoveryService {
           applicationUrl: item.applicationUrl,
           canonicalUrl: item.canonicalUrl,
           source: item.source,
+          sourceJobId: item.sourceJobId,
           sourceUrl: item.sourceUrl,
-        },
-      });
+        });
 
-      newSaved++;
-      if (ageEval.isFresh) {
-        freshSaved++;
+        if (result.isNew) {
+          newSaved++;
+          if (result.job.ageStatus === 'FRESH') {
+            freshSaved++;
+          }
+        } else {
+          duplicatesSkipped++;
+        }
+      } catch (err: any) {
+        console.warn(`Error processing discovery candidate ${item.title}:`, err.message);
       }
     }
 
@@ -240,6 +222,7 @@ export class DiscoveryService {
             applicationUrl: j.absolute_url,
             canonicalUrl: j.absolute_url,
             source: 'Greenhouse',
+            sourceJobId: String(j.id || ''),
             sourceUrl: `https://boards.greenhouse.io/${comp}`,
           });
         }
@@ -287,6 +270,7 @@ export class DiscoveryService {
             applicationUrl: j.applyUrl || j.hostedUrl,
             canonicalUrl: j.hostedUrl,
             source: 'Lever',
+            sourceJobId: String(j.id || ''),
             sourceUrl: `https://jobs.lever.co/${comp}`,
           });
         }
@@ -332,6 +316,7 @@ export class DiscoveryService {
             applicationUrl: j.jobUrl,
             canonicalUrl: j.jobUrl,
             source: 'Ashby',
+            sourceJobId: String(j.id || ''),
             sourceUrl: `https://jobs.ashbyhq.com/${comp}`,
           });
         }
@@ -374,7 +359,8 @@ export class DiscoveryService {
           preferredSkills: [],
           applicationUrl: j.url,
           canonicalUrl: j.url,
-          source: 'Company Careers',
+          source: 'Arbeitnow (EU Tech)',
+          sourceJobId: String(j.slug || ''),
           sourceUrl: j.url,
         });
       }

@@ -13,17 +13,33 @@ import {
   AlertCircle,
   Code2,
   ExternalLink,
+  MessageSquare,
+  HelpCircle,
+  Save,
+  Sparkles,
 } from 'lucide-react';
 
 export default function ProfilePage() {
   const [profile, setProfile] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [commonAnswers, setCommonAnswers] = useState<any>({
+    visaSponsorship: '',
+    workAuthorization: '',
+    noticePeriod: '',
+    expectedSalary: '',
+    relocation: '',
+  });
+  const [savingAnswers, setSavingAnswers] = useState(false);
+  const [savedSuccess, setSavedSuccess] = useState(false);
 
   useEffect(() => {
     async function load() {
       try {
         const data = await api.getProfile();
         setProfile(data);
+        if (data.commonAnswers) {
+          setCommonAnswers(data.commonAnswers);
+        }
       } catch (err) {
         console.error('Failed to load profile:', err);
       } finally {
@@ -32,6 +48,19 @@ export default function ProfilePage() {
     }
     load();
   }, []);
+
+  const handleSaveCommonAnswers = async () => {
+    setSavingAnswers(true);
+    try {
+      await api.updateCommonAnswers(commonAnswers);
+      setSavedSuccess(true);
+      setTimeout(() => setSavedSuccess(false), 3500);
+    } catch (err: any) {
+      alert(`Failed to save common answers: ${err.message}`);
+    } finally {
+      setSavingAnswers(false);
+    }
+  };
 
   if (loading) {
     return (
@@ -124,6 +153,117 @@ export default function ProfilePage() {
                 {loc}
               </span>
             ))}
+          </div>
+        </div>
+      </div>
+
+      {/* Global Common Answers Bank */}
+      <div id="common-answers" className="rounded-xl border border-teal-500/30 bg-[#0c1424] p-6 space-y-5 shadow-lg">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-800 pb-4">
+          <div>
+            <h2 className="text-base font-bold text-white flex items-center gap-2">
+              <MessageSquare className="h-5 w-5 text-teal-400" />
+              Global Common Answers Bank
+              <span className="rounded bg-teal-950 px-2 py-0.5 text-[10px] font-bold text-teal-300 border border-teal-800/50">
+                USER AUTHORITATIVE
+              </span>
+            </h2>
+            <p className="text-xs text-slate-400 mt-1">
+              Configure your standard answers once. When new jobs are analyzed, HireFlow deterministically pre-fills sensitive screening questions with the <span className="text-indigo-300 font-bold">USER PROVIDED</span> badge.
+            </p>
+          </div>
+
+          <div className="flex items-center gap-2">
+            {savedSuccess && (
+              <span className="text-xs font-bold text-emerald-400 flex items-center gap-1">
+                <CheckCircle2 className="h-4 w-4" /> Saved!
+              </span>
+            )}
+            <button
+              onClick={handleSaveCommonAnswers}
+              disabled={savingAnswers}
+              className="inline-flex items-center gap-1.5 rounded-lg bg-teal-600 hover:bg-teal-500 disabled:opacity-50 px-4 py-2 text-xs font-bold text-white transition-colors shadow-md shadow-teal-950/50"
+            >
+              <Save className="h-3.5 w-3.5" />
+              {savingAnswers ? 'Saving...' : 'Save Common Answers'}
+            </button>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+          {/* Visa Sponsorship */}
+          <div className="space-y-1.5">
+            <label className="block text-xs font-bold uppercase tracking-wider text-slate-300">
+              Visa Sponsorship Statement
+            </label>
+            <textarea
+              rows={2}
+              value={commonAnswers.visaSponsorship || ''}
+              onChange={(e) => setCommonAnswers({ ...commonAnswers, visaSponsorship: e.target.value })}
+              placeholder="e.g. Yes, I will require visa sponsorship (EU Blue Card support for Germany & EU)."
+              className="w-full rounded-lg border border-slate-700 bg-slate-900/90 px-3 py-2 text-xs text-slate-200 placeholder-slate-500 focus:outline-none focus:border-teal-500 transition-colors"
+            />
+            <p className="text-[10px] text-slate-500">Auto-fills questions containing &quot;visa&quot;, &quot;sponsor&quot;, or &quot;work permit&quot;.</p>
+          </div>
+
+          {/* Work Authorization */}
+          <div className="space-y-1.5">
+            <label className="block text-xs font-bold uppercase tracking-wider text-slate-300">
+              Work Authorization Declaration
+            </label>
+            <textarea
+              rows={2}
+              value={commonAnswers.workAuthorization || ''}
+              onChange={(e) => setCommonAnswers({ ...commonAnswers, workAuthorization: e.target.value })}
+              placeholder="e.g. Indian citizen. Requires visa sponsorship / EU Blue Card for European work authorization."
+              className="w-full rounded-lg border border-slate-700 bg-slate-900/90 px-3 py-2 text-xs text-slate-200 placeholder-slate-500 focus:outline-none focus:border-teal-500 transition-colors"
+            />
+            <p className="text-[10px] text-slate-500">Auto-fills questions asking about legal authorization or work rights.</p>
+          </div>
+
+          {/* Notice Period & Availability */}
+          <div className="space-y-1.5">
+            <label className="block text-xs font-bold uppercase tracking-wider text-slate-300">
+              Notice Period &amp; Earliest Availability
+            </label>
+            <input
+              type="text"
+              value={commonAnswers.noticePeriod || ''}
+              onChange={(e) => setCommonAnswers({ ...commonAnswers, noticePeriod: e.target.value })}
+              placeholder="e.g. 30 days / 1 month notice period."
+              className="w-full rounded-lg border border-slate-700 bg-slate-900/90 px-3 py-2 text-xs text-slate-200 placeholder-slate-500 focus:outline-none focus:border-teal-500 transition-colors"
+            />
+            <p className="text-[10px] text-slate-500">Auto-fills questions containing &quot;notice period&quot;, &quot;start date&quot;, or &quot;availability&quot;.</p>
+          </div>
+
+          {/* Expected Salary */}
+          <div className="space-y-1.5">
+            <label className="block text-xs font-bold uppercase tracking-wider text-slate-300">
+              Expected Annual Gross Salary
+            </label>
+            <input
+              type="text"
+              value={commonAnswers.expectedSalary || ''}
+              onChange={(e) => setCommonAnswers({ ...commonAnswers, expectedSalary: e.target.value })}
+              placeholder="e.g. €75,000 – €85,000 gross/year (negotiable based on location & equity)."
+              className="w-full rounded-lg border border-slate-700 bg-slate-900/90 px-3 py-2 text-xs text-slate-200 placeholder-slate-500 focus:outline-none focus:border-teal-500 transition-colors"
+            />
+            <p className="text-[10px] text-slate-500">Auto-fills questions asking for expected salary, pay, or compensation.</p>
+          </div>
+
+          {/* Relocation Readiness */}
+          <div className="space-y-1.5 md:col-span-2">
+            <label className="block text-xs font-bold uppercase tracking-wider text-slate-300">
+              Relocation Readiness Statement
+            </label>
+            <input
+              type="text"
+              value={commonAnswers.relocation || ''}
+              onChange={(e) => setCommonAnswers({ ...commonAnswers, relocation: e.target.value })}
+              placeholder="e.g. Yes, fully prepared and eager to relocate to Germany, Netherlands, or across the EU."
+              className="w-full rounded-lg border border-slate-700 bg-slate-900/90 px-3 py-2 text-xs text-slate-200 placeholder-slate-500 focus:outline-none focus:border-teal-500 transition-colors"
+            />
+            <p className="text-[10px] text-slate-500">Auto-fills questions asking if you are open or willing to relocate.</p>
           </div>
         </div>
       </div>

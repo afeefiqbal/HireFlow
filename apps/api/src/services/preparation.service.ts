@@ -152,6 +152,7 @@ export class PreparationService {
             cvVersion: job.application.cvVersion,
             interviewDates: job.application.interviewDates,
             lastUpdated: job.application.updatedAt.toISOString(),
+            snapshotJson: (job.application.snapshotJson as any) || null,
           }
         : null,
     };
@@ -169,6 +170,7 @@ export class PreparationService {
       latestAtsAnalysis,
       latestCoverLetter,
       screeningQuestions,
+      applicationSnapshot: (job.application?.snapshotJson as any) || null,
     };
   }
 

@@ -17,6 +17,11 @@ export class JobsController {
         minMatchScore,
         visaStatus,
         source,
+        roleFamily,
+        seniority,
+        remoteType,
+        freshnessStatus,
+        visaSponsorship,
         page = '1',
         limit = '20',
       } = req.query;
@@ -38,6 +43,26 @@ export class JobsController {
 
       if (visaStatus && visaStatus !== 'ALL') {
         where.visaStatus = visaStatus as any;
+      }
+
+      if (visaSponsorship && visaSponsorship !== 'ALL') {
+        where.visaSponsorship = visaSponsorship as string;
+      }
+
+      if (roleFamily && roleFamily !== 'ALL') {
+        where.roleFamily = roleFamily as string;
+      }
+
+      if (seniority && seniority !== 'ALL') {
+        where.seniority = seniority as string;
+      }
+
+      if (remoteType && remoteType !== 'ALL') {
+        where.remoteType = remoteType as string;
+      }
+
+      if (freshnessStatus && freshnessStatus !== 'ALL') {
+        where.freshnessStatus = freshnessStatus as string;
       }
 
       if (source) {
@@ -125,6 +150,30 @@ export class JobsController {
         applicationUrl: job.applicationUrl,
         canonicalUrl: job.canonicalUrl,
         source: job.source,
+
+        // V4 Intelligence Fields
+        sourceJobId: job.sourceJobId,
+        sourceIdentity: job.sourceIdentity,
+        canonicalIdentity: job.canonicalIdentity,
+        locations: job.locations,
+        remoteType: job.remoteType,
+        remoteEvidence: job.remoteEvidence,
+        postedAtSource: job.postedAtSource,
+        freshnessStatus: job.freshnessStatus,
+        seniority: job.seniority,
+        roleFamily: job.roleFamily,
+        visaSponsorship: job.visaSponsorship,
+        visaEvidence: job.visaEvidence,
+        relocation: job.relocation,
+        relocationEvidence: job.relocationEvidence,
+        responsibilities: job.responsibilities,
+        technologyEvidence: job.technologyEvidence,
+        normalizedCompany: job.normalizedCompany,
+        normalizedTitle: job.normalizedTitle,
+        whyThisJob: job.whyThisJob,
+        applicationPriority: job.applicationPriority,
+        priorityReasons: job.priorityReasons,
+
         latestMatch: job.matches[0]
           ? {
               id: job.matches[0].id,
@@ -223,7 +272,6 @@ export class JobsController {
         salaryMin,
         salaryMax,
         salaryCurrency = 'EUR',
-        visaStatus = 'NOT_STATED',
         experienceRequired,
         techStack = [],
         description,
@@ -232,6 +280,7 @@ export class JobsController {
         applicationUrl,
         canonicalUrl,
         source,
+        sourceJobId,
         sourceUrl,
       } = req.body;
 
@@ -242,55 +291,141 @@ export class JobsController {
         });
       }
 
-      // Check deduplication
-      const existing = await prisma.job.findUnique({
-        where: { canonicalUrl },
+      const { JobPipelineService } = await import('../services/intelligence/job-pipeline.service');
+      const result = await JobPipelineService.processAndIngestJob({
+        title,
+        company,
+        location: location || (isRemote ? 'Remote' : 'Unknown'),
+        isRemote: Boolean(isRemote),
+        employmentType,
+        postedAt,
+        salaryMin: salaryMin ? Number(salaryMin) : null,
+        salaryMax: salaryMax ? Number(salaryMax) : null,
+        salaryCurrency,
+        experienceRequired,
+        techStack,
+        description: description || title,
+        requirements,
+        preferredSkills,
+        applicationUrl: applicationUrl || canonicalUrl,
+        canonicalUrl,
+        source: source || 'External Ingestion',
+        sourceJobId,
+        sourceUrl,
       });
 
-      if (existing) {
-        return res.status(200).json({
-          success: true,
-          message: 'Job already exists. Skipped duplicate.',
-          data: existing,
-        });
-      }
-
-      // 24-hour evaluation
-      const ageEvaluation = JobFilterService.evaluatePostingAge(postedAt);
-
-      const newJob = await prisma.job.create({
-        data: {
-          title,
-          company,
-          location: location || (isRemote ? 'Remote' : 'Unknown'),
-          isRemote: Boolean(isRemote),
-          employmentType,
-          postedAt: postedAt ? new Date(postedAt) : null,
-          jobAgeHours: ageEvaluation.jobAgeHours,
-          ageStatus: ageEvaluation.ageStatus,
-          salaryMin: salaryMin ? Number(salaryMin) : null,
-          salaryMax: salaryMax ? Number(salaryMax) : null,
-          salaryCurrency,
-          visaStatus,
-          experienceRequired,
-          techStack,
-          description: description || title,
-          requirements,
-          preferredSkills,
-          applicationUrl: applicationUrl || canonicalUrl,
-          canonicalUrl,
-          source: source || 'External Ingestion',
-          sourceUrl,
-        },
-      });
-
-      return res.status(201).json({
+      return res.status(result.isNew ? 201 : 200).json({
         success: true,
-        data: newJob,
+        data: result.job,
+        isNew: result.isNew,
+        isMerged: result.isMerged,
       });
     } catch (error: any) {
       console.error('Error ingesting job:', error);
       return res.status(500).json({ success: false, message: error.message });
+    }
+  }
+
+  static async getJobIntelligence(req: Request, res: Response) {
+    try {
+      const { id } = req.params;
+      const job = await prisma.job.findUnique({
+        where: { id },
+        include: {
+          matches: { orderBy: { createdAt: 'desc' }, take: 1 },
+        },
+      });
+
+      if (!job) {
+        return res.status(404).json({ success: false, message: 'Job not found' });
+      }
+
+      return res.json({
+        success: true,
+        data: {
+          jobId: job.id,
+          title: job.title,
+          company: job.company,
+          normalizedTitle: job.normalizedTitle,
+          normalizedCompany: job.normalizedCompany,
+          roleFamily: job.roleFamily,
+          seniority: job.seniority,
+          remoteType: job.remoteType,
+          freshnessStatus: job.freshnessStatus,
+          visaSponsorship: job.visaSponsorship,
+          visaEvidence: job.visaEvidence,
+          relocation: job.relocation,
+          relocationEvidence: job.relocationEvidence,
+          technologyEvidence: job.technologyEvidence,
+          whyThisJob: job.whyThisJob,
+          applicationPriority: job.applicationPriority,
+          priorityReasons: job.priorityReasons,
+          latestMatch: job.matches[0] || null,
+        },
+      });
+    } catch (err: any) {
+      console.error('Error fetching job intelligence:', err);
+      return res.status(500).json({ success: false, message: err.message });
+    }
+  }
+
+  static async normalizeJob(req: Request, res: Response) {
+    try {
+      const { company, title, techStack } = req.body;
+      const { JobNormalizer } = await import('../services/intelligence/job-normalizer');
+      const normalizedCompany = JobNormalizer.normalizeCompany(company || '');
+      const normalizedTitle = JobNormalizer.normalizeTitle(title || '');
+      const normalizedTechs = JobNormalizer.normalizeTechnologies(techStack || []);
+
+      return res.json({
+        success: true,
+        data: {
+          originalCompany: company,
+          normalizedCompany,
+          originalTitle: title,
+          normalizedTitle,
+          originalTechs: techStack,
+          normalizedTechs,
+        },
+      });
+    } catch (err: any) {
+      return res.status(500).json({ success: false, message: err.message });
+    }
+  }
+
+  static async deduplicateJob(req: Request, res: Response) {
+    try {
+      const { JobDeduplicator } = await import('../services/intelligence/job-deduplicator');
+      const { source, sourceJobId, company, title, location, description, canonicalUrl } = req.body;
+      const identities = JobDeduplicator.generateIdentities(
+        source || 'external',
+        sourceJobId,
+        company || '',
+        title || '',
+        location || '',
+        description || '',
+        canonicalUrl || ''
+      );
+
+      const existing = await prisma.job.findFirst({
+        where: {
+          OR: [
+            { canonicalUrl: canonicalUrl || undefined },
+            { canonicalIdentity: identities.canonicalIdentity },
+          ],
+        },
+      });
+
+      return res.json({
+        success: true,
+        data: {
+          identities,
+          isDuplicate: Boolean(existing),
+          existingJobId: existing ? existing.id : null,
+        },
+      });
+    } catch (err: any) {
+      return res.status(500).json({ success: false, message: err.message });
     }
   }
 

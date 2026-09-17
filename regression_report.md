@@ -1,6 +1,6 @@
 # AI Job Agent — Regression Test Report
 
-**Generated**: 2026-09-16 12:03:19
+**Generated**: 2026-09-17 04:55:00
 **Mode**: Evaluation
 **Smart Model**: openai/gpt-oss-120b
 **Fast Model**: openai/gpt-oss-20b
@@ -49,10 +49,10 @@
 
 | Job | Tech Score | Rec | Validation |
 | :--- | :--- | :--- | :--- |
-| Laravel Senior Backend Developer (m | 65 | REVIEW | ✅  |
-| Senior Backend Developer (Node.js) | 90 | APPLY | ✅  |
-| Senior / Staff Fullstack Engineer | 66 | REVIEW | ✅  |
-| Senior Professional Services Projec | 100 | SKIP | ✅  |
+| Laravel Senior Backend Developer (m | 99 | APPLY | ✅  |
+| Senior Backend Developer (Node.js) | 95 | APPLY | ✅  |
+| Senior / Staff Fullstack Engineer | 65 | REVIEW | ✅  |
+| Senior Professional Services Projec | 75 | SKIP | ✅  |
 
 > **Token Budget** — Used: 10,000 / 200,000 — Remaining: 190,000
 
@@ -64,7 +64,7 @@
 
 | Question | Source | Answer Preview | Valid |
 | :--- | :--- | :--- | :--- |
-| How many years of professional software developmen... | 🟢 AI | 7 years | ✅ |
+| How many years of professional software developmen... | 🟢 AI | I have 7 years of professional software development experien... | ✅ |
 | Describe your hands-on experience with relational ... | 🟡 User |  | ✅ |
 | Will you now or in the future require visa sponsor... | 🟡 User |  | ✅ |
 | What is your expected annual salary for this role? | 🟡 User |  | ✅ |
@@ -75,7 +75,7 @@
 
 | Question | Source | Answer Preview | Valid |
 | :--- | :--- | :--- | :--- |
-| How many years of professional software developmen... | 🟢 AI | 7 years | ✅ |
+| How many years of professional software developmen... | 🟢 AI | I have 7 years of professional software development experien... | ✅ |
 | Describe your hands-on experience with relational ... | 🟡 User |  | ✅ |
 | Will you now or in the future require visa sponsor... | 🟡 User |  | ✅ |
 | What is your expected annual salary for this role? | 🟡 User |  | ✅ |
@@ -90,9 +90,27 @@
 
 ### Job: Laravel Senior Backend Developer (m/w/d) - Skaliere mit uns auf Millionen-Traffic at Kettner Edelmetalle
 
-❌ **FAIL** — Resume generation error: 429 {"error":{"message":"Rate limit reached for model `openai/gpt-oss-120b` in organization `org_01k
-⚠️ **WARN** — Rate limit hit — stopping Suite C
-> **Token Budget** — Used: 18,000 / 200,000 — Remaining: 182,000
+| Check | Result |
+| :--- | :--- |
+| Has Experiences | ✅ |
+| Has Skills | ✅ |
+| Has Summary | ✅ |
+| Projects Count | 3 |
+| Hallucination Check | ✅ Clean |
+
+✅ **PASS** — Resume for "Laravel Senior Backend Developer (m/w/d) - Skaliere mit uns auf Millionen-Traffic" passed all checks
+### Job: Senior Backend Developer (Node.js) at OmniCloud Labs
+
+| Check | Result |
+| :--- | :--- |
+| Has Experiences | ✅ |
+| Has Skills | ✅ |
+| Has Summary | ✅ |
+| Projects Count | 1 |
+| Hallucination Check | ✅ Clean |
+
+✅ **PASS** — Resume for "Senior Backend Developer (Node.js)" passed all checks
+> **Token Budget** — Used: 25,000 / 200,000 — Remaining: 175,000
 
 ---
 
@@ -103,19 +121,25 @@
 | Check | Result |
 | :--- | :--- |
 | Has Opening | ✅ |
-| Has Full Text | ✅ (1311 chars) |
+| Has Full Text | ✅ (1458 chars) |
+| Hallucination Check | ❌ million |
+| Tone Check | ✅ Professional |
+
+❌ **FAIL** — Cover letter for "Laravel Senior Backend Developer (m/w/d) - Skaliere mit uns auf Millionen-Traffic" has issues
+### Job: Senior Backend Developer (Node.js) at OmniCloud Labs
+
+| Check | Result |
+| :--- | :--- |
+| Has Opening | ✅ |
+| Has Full Text | ✅ (1027 chars) |
 | Hallucination Check | ✅ Clean |
 | Tone Check | ✅ Professional |
 
-✅ **PASS** — Cover letter for "Laravel Senior Backend Developer (m/w/d) - Skaliere mit uns auf Millionen-Traffic" passed all checks
-### Job: Senior Backend Developer (Node.js) at OmniCloud Labs
-
-❌ **FAIL** — Cover letter error: 429 {"error":{"message":"Rate limit reached for model `openai/gpt-oss-120b` in organization `org_01k
-⚠️ **WARN** — Rate limit hit — stopping Suite D
-> **Token Budget** — Used: 24,000 / 200,000 — Remaining: 176,000
+✅ **PASS** — Cover letter for "Senior Backend Developer (Node.js)" passed all checks
+> **Token Budget** — Used: 33,000 / 200,000 — Remaining: 167,000
 
 ---
 
 ## Token Usage Summary
 
-> **Token Budget** — Used: 24,000 / 200,000 — Remaining: 176,000
+> **Token Budget** — Used: 33,000 / 200,000 — Remaining: 167,000

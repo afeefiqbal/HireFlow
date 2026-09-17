@@ -34,6 +34,11 @@ export default function JobsPage() {
   const [remoteOnly, setRemoteOnly] = useState(false);
   const [visaFilter, setVisaFilter] = useState<string>('ALL');
   const [minMatch, setMinMatch] = useState<number>(0);
+  // V4 Ground Truth Filters
+  const [selectedRoleFamily, setSelectedRoleFamily] = useState<string>('');
+  const [selectedSeniority, setSelectedSeniority] = useState<string>('');
+  const [selectedRemoteType, setSelectedRemoteType] = useState<string>('');
+  const [selectedFreshness, setSelectedFreshness] = useState<string>('');
 
   const fetchJobs = useCallback(async () => {
     setLoading(true);
@@ -48,6 +53,10 @@ export default function JobsPage() {
         remoteOnly: remoteOnly,
         visaSponsorship: visaFilter !== 'ALL' ? (visaFilter as VisaStatus) : undefined,
         minMatchScore: minMatch > 0 ? minMatch : undefined,
+        roleFamily: selectedRoleFamily || undefined,
+        seniority: selectedSeniority || undefined,
+        remoteType: selectedRemoteType || undefined,
+        freshnessStatus: selectedFreshness || undefined,
       });
       setJobs(res.jobs || []);
     } catch (err: any) {
@@ -55,7 +64,21 @@ export default function JobsPage() {
     } finally {
       setLoading(false);
     }
-  }, [search, freshOnly, selectedRole, selectedTech, selectedLocation, selectedSource, remoteOnly, visaFilter, minMatch]);
+  }, [
+    search,
+    freshOnly,
+    selectedRole,
+    selectedTech,
+    selectedLocation,
+    selectedSource,
+    remoteOnly,
+    visaFilter,
+    minMatch,
+    selectedRoleFamily,
+    selectedSeniority,
+    selectedRemoteType,
+    selectedFreshness,
+  ]);
 
   useEffect(() => {
     fetchJobs();
@@ -112,6 +135,10 @@ export default function JobsPage() {
     setRemoteOnly(false);
     setVisaFilter('ALL');
     setMinMatch(0);
+    setSelectedRoleFamily('');
+    setSelectedSeniority('');
+    setSelectedRemoteType('');
+    setSelectedFreshness('');
   };
 
   return (
@@ -187,11 +214,87 @@ export default function JobsPage() {
           />
         </div>
 
-        {/* Filter Badges & Dropdowns */}
+        {/* V4 Ground Truth Row */}
+        <div className="rounded-lg bg-slate-900/60 p-3 border border-slate-800/80">
+          <div className="text-[11px] font-semibold text-teal-400 uppercase tracking-wider mb-2 flex items-center gap-1.5">
+            <Sparkles className="h-3.5 w-3.5" />
+            <span>V4 Canonical Ground Truth Filters</span>
+          </div>
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 text-xs">
+            {/* Role Family */}
+            <div>
+              <label className="block text-[11px] font-semibold text-slate-400 mb-1">Role Family</label>
+              <select
+                value={selectedRoleFamily}
+                onChange={(e) => setSelectedRoleFamily(e.target.value)}
+                className="w-full rounded-md border border-slate-700 bg-slate-800 px-2.5 py-1.5 text-slate-200 focus:border-teal-500 focus:outline-none"
+              >
+                <option value="">All Role Families</option>
+                <option value="SOFTWARE_ENGINEERING">Software Engineering</option>
+                <option value="ENGINEERING_MANAGEMENT">Eng Management</option>
+                <option value="PRODUCT_MANAGEMENT">Product Management</option>
+                <option value="DEVOPS_SRE">DevOps & Cloud</option>
+                <option value="DATA_ENGINEERING">Data Engineering</option>
+                <option value="QA_TESTING">QA / Testing</option>
+                <option value="OTHER">Other</option>
+              </select>
+            </div>
+
+            {/* Seniority */}
+            <div>
+              <label className="block text-[11px] font-semibold text-slate-400 mb-1">Seniority Level</label>
+              <select
+                value={selectedSeniority}
+                onChange={(e) => setSelectedSeniority(e.target.value)}
+                className="w-full rounded-md border border-slate-700 bg-slate-800 px-2.5 py-1.5 text-slate-200 focus:border-teal-500 focus:outline-none"
+              >
+                <option value="">All Seniorities</option>
+                <option value="LEAD">Lead / Staff / Principal</option>
+                <option value="SENIOR">Senior</option>
+                <option value="MID">Mid-level</option>
+                <option value="JUNIOR">Junior / Entry</option>
+                <option value="INTERN">Intern</option>
+              </select>
+            </div>
+
+            {/* Work Setup */}
+            <div>
+              <label className="block text-[11px] font-semibold text-slate-400 mb-1">Work Setup</label>
+              <select
+                value={selectedRemoteType}
+                onChange={(e) => setSelectedRemoteType(e.target.value)}
+                className="w-full rounded-md border border-slate-700 bg-slate-800 px-2.5 py-1.5 text-slate-200 focus:border-teal-500 focus:outline-none"
+              >
+                <option value="">Any Setup</option>
+                <option value="REMOTE">Remote</option>
+                <option value="HYBRID">Hybrid</option>
+                <option value="ONSITE">On-site</option>
+              </select>
+            </div>
+
+            {/* Freshness Tier */}
+            <div>
+              <label className="block text-[11px] font-semibold text-slate-400 mb-1">Freshness Tier</label>
+              <select
+                value={selectedFreshness}
+                onChange={(e) => setSelectedFreshness(e.target.value)}
+                className="w-full rounded-md border border-slate-700 bg-slate-800 px-2.5 py-1.5 text-slate-200 focus:border-teal-500 focus:outline-none"
+              >
+                <option value="">All Tiers</option>
+                <option value="FRESH">&lt; 6 hours (Fresh)</option>
+                <option value="RECENT">6 - 12 hours (Recent)</option>
+                <option value="TODAY">12 - 24 hours (Today)</option>
+                <option value="STALE">&gt; 24 hours (Stale)</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        {/* Detailed Filter Badges & Dropdowns */}
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-7 gap-2.5 text-xs">
           {/* Target Role */}
           <div>
-            <label className="block text-[11px] font-semibold text-slate-400 mb-1">Target Role</label>
+            <label className="block text-[11px] font-semibold text-slate-400 mb-1">Keyword Title</label>
             <select
               value={selectedRole}
               onChange={(e) => setSelectedRole(e.target.value)}
@@ -303,7 +406,19 @@ export default function JobsPage() {
         </div>
 
         {/* Active Filters Reset Bar */}
-        {(selectedRole || selectedTech || selectedLocation || selectedSource || remoteOnly || visaFilter !== 'ALL' || minMatch > 0 || search || !freshOnly) && (
+        {(selectedRole ||
+          selectedTech ||
+          selectedLocation ||
+          selectedSource ||
+          remoteOnly ||
+          visaFilter !== 'ALL' ||
+          minMatch > 0 ||
+          search ||
+          !freshOnly ||
+          selectedRoleFamily ||
+          selectedSeniority ||
+          selectedRemoteType ||
+          selectedFreshness) && (
           <div className="flex items-center justify-between border-t border-slate-800/80 pt-2 text-xs text-slate-400">
             <div className="flex items-center gap-1.5">
               <span>Active filters applied.</span>

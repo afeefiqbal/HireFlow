@@ -47,4 +47,19 @@ export class ScreeningController {
       return res.status(500).json({ success: false, message: err.message });
     }
   }
+
+  static async syncCommonAnswers(req: Request, res: Response) {
+    try {
+      const { id: jobId } = req.params;
+      const questions = await ScreeningService.syncCommonAnswersForJob(jobId);
+      return res.json({
+        success: true,
+        message: 'Common answers synced successfully',
+        data: questions,
+      });
+    } catch (err: any) {
+      console.error('Error syncing common answers:', err);
+      return res.status(500).json({ success: false, message: err.message });
+    }
+  }
 }

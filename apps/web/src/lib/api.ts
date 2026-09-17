@@ -6,6 +6,7 @@ import {
   ApplicationRecord,
   ApplicationStatus,
   JobFilterParams,
+  ScreeningQuestionItem,
 } from '@ai-job-agent/shared';
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api';
@@ -42,6 +43,10 @@ export const api = {
     if (params?.search) query.append('search', params.search);
     if (params?.freshOnly !== undefined) query.append('freshOnly', String(params.freshOnly));
     if (params?.roles?.length) query.append('role', params.roles[0]);
+    if (params?.roleFamily && params.roleFamily !== 'ALL') query.append('roleFamily', params.roleFamily);
+    if (params?.seniority && params.seniority !== 'ALL') query.append('seniority', params.seniority);
+    if (params?.remoteType && params.remoteType !== 'ALL') query.append('remoteType', params.remoteType);
+    if (params?.freshnessStatus && params.freshnessStatus !== 'ALL') query.append('freshnessStatus', params.freshnessStatus);
     if (params?.technologies?.length) query.append('technology', params.technologies[0]);
     if (params?.locations?.length) query.append('location', params.locations[0]);
     if (params?.remoteOnly) query.append('remoteOnly', 'true');
@@ -64,6 +69,10 @@ export const api = {
 
   async getJobById(id: string): Promise<Job> {
     return fetchJson<Job>(`/jobs/${id}`);
+  },
+
+  async getJobIntelligence(id: string): Promise<any> {
+    return fetchJson(`/jobs/${id}/intelligence`);
   },
 
   async triggerDiscovery(): Promise<{
@@ -181,6 +190,19 @@ export const api = {
     return fetchJson('/applications', {
       method: 'POST',
       body: JSON.stringify({ jobId, status, note }),
+    });
+  },
+
+  async updateCommonAnswers(commonAnswers: any) {
+    return fetchJson<any>('/profile/common-answers', {
+      method: 'PUT',
+      body: JSON.stringify({ commonAnswers }),
+    });
+  },
+
+  async syncJobCommonAnswers(jobId: string) {
+    return fetchJson<ScreeningQuestionItem[]>(`/jobs/${jobId}/screening/sync-common`, {
+      method: 'POST',
     });
   },
 };

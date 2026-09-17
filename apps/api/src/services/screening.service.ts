@@ -50,6 +50,14 @@ export class ScreeningService {
 
     if (!profile) throw new Error('Candidate profile not found');
 
+    const commonAnswers = (profile.commonAnswers as any) || {
+      visaSponsorship: 'Yes, I will require visa sponsorship (EU Blue Card / work visa for Germany & EU).',
+      workAuthorization: 'Indian citizen. Requires visa sponsorship / EU Blue Card for legal authorization in Europe.',
+      noticePeriod: '30 days / 1 month notice period.',
+      expectedSalary: '€75,000 – €85,000 gross per year (negotiable based on location & equity).',
+      relocation: 'Yes, fully prepared and eager to relocate to Germany, Netherlands, or across the EU.',
+    };
+
     // If rawQuestions was explicitly provided (e.g. user requested regeneration or added custom), bypass cache
     const isExplicitRequest = !!rawQuestions;
 
@@ -67,10 +75,20 @@ export class ScreeningService {
       let confidence: 'high' | 'medium' | 'low' = requiresUserInput ? 'low' : 'high';
       let source = requiresUserInput ? 'User Input Required' : 'Candidate Ground Truth';
 
+      // Deterministic check against Candidate Common Answers Bank
+      const matchedBank = ScreeningService.matchCommonAnswer(q, commonAnswers);
+
       // Find if this question already exists for this job to update instead of duplicate
       const existing = await prisma.screeningQuestion.findFirst({
         where: { jobId, question: q }
       });
+
+      let initialUserAnswer = existing?.userAnswer || null;
+      if (!initialUserAnswer && matchedBank && requiresUserInput) {
+        initialUserAnswer = matchedBank.answer;
+        source = 'User Provided (Common Bank)';
+        confidence = 'high';
+      }
 
       let record;
       if (existing) {
@@ -78,11 +96,10 @@ export class ScreeningService {
           where: { id: existing.id },
           data: {
             suggestedAnswer,
-            confidence,
-            source,
+            confidence: initialUserAnswer ? 'high' : confidence,
+            source: initialUserAnswer && !existing.userAnswer ? 'User Provided (Common Bank)' : source,
             requiresUserInput,
-            // If regenerating, we might want to clear the userAnswer so they see the new suggestion
-            // or we could keep it. We'll keep it if it's there.
+            userAnswer: initialUserAnswer,
           },
         });
       } else {
@@ -94,7 +111,7 @@ export class ScreeningService {
             confidence,
             source,
             requiresUserInput,
-            userAnswer: null,
+            userAnswer: initialUserAnswer,
           },
         });
       }
@@ -105,7 +122,7 @@ export class ScreeningService {
         question: record.question,
         suggestedAnswer: record.suggestedAnswer,
         confidence,
-        source,
+        source: record.source,
         requiresUserInput,
         userAnswer: record.userAnswer,
         createdAt: record.createdAt.toISOString(),
@@ -130,6 +147,98 @@ export class ScreeningService {
     return results;
   }
 
+  /**
+   * Deterministically matches question patterns against Common Answers Bank
+   */
+  static matchCommonAnswer(question: string, bank: any): { answer: string; category: string } | null {
+    if (!bank) return null;
+    const qLower = question.toLowerCase();
+
+    // 1. Visa Sponsorship
+    if (bank.visaSponsorship && (
+      qLower.includes('visa') || 
+      qLower.includes('sponsor') || 
+      qLower.includes('work permit') ||
+      (qLower.includes('authorized') && qLower.includes('sponsor'))
+    )) {
+      return { answer: bank.visaSponsorship, category: 'Visa Sponsorship' };
+    }
+
+    // 2. Work Authorization / Legal Right to Work
+    if (bank.workAuthorization && (
+      qLower.includes('legally authorized') || 
+      qLower.includes('work authorization') || 
+      qLower.includes('legal right to work') ||
+      qLower.includes('eligible to work')
+    )) {
+      return { answer: bank.workAuthorization, category: 'Work Authorization' };
+    }
+
+    // 3. Notice Period / Availability
+    if (bank.noticePeriod && (
+      qLower.includes('notice period') || 
+      qLower.includes('earliest start') || 
+      qLower.includes('earliest availability') || 
+      qLower.includes('start date') ||
+      qLower.includes('availability')
+    )) {
+      return { answer: bank.noticePeriod, category: 'Notice Period' };
+    }
+
+    // 4. Expected Salary / Compensation
+    if (bank.expectedSalary && (
+      qLower.includes('salary') || 
+      qLower.includes('compensation') || 
+      qLower.includes('remuneration') || 
+      qLower.includes('desired pay') ||
+      qLower.includes('expected annual')
+    )) {
+      return { answer: bank.expectedSalary, category: 'Salary Expectations' };
+    }
+
+    // 5. Relocation
+    if (bank.relocation && (
+      qLower.includes('relocat') || 
+      qLower.includes('willing to move') || 
+      qLower.includes('open to move')
+    )) {
+      return { answer: bank.relocation, category: 'Relocation Readiness' };
+    }
+
+    return null;
+  }
+
+  static async syncCommonAnswersForJob(jobId: string): Promise<ScreeningQuestionItem[]> {
+    const profile = await prisma.candidateProfile.findFirst();
+    const commonAnswers = (profile?.commonAnswers as any) || {
+      visaSponsorship: 'Yes, I will require visa sponsorship (EU Blue Card / work visa for Germany & EU).',
+      workAuthorization: 'Indian citizen. Requires visa sponsorship / EU Blue Card for legal authorization in Europe.',
+      noticePeriod: '30 days / 1 month notice period.',
+      expectedSalary: '€75,000 – €85,000 gross per year (negotiable based on location & equity).',
+      relocation: 'Yes, fully prepared and eager to relocate to Germany, Netherlands, or across the EU.',
+    };
+
+    const questions = await prisma.screeningQuestion.findMany({ where: { jobId } });
+
+    for (const q of questions) {
+      if (q.requiresUserInput && !q.userAnswer) {
+        const matched = ScreeningService.matchCommonAnswer(q.question, commonAnswers);
+        if (matched) {
+          await prisma.screeningQuestion.update({
+            where: { id: q.id },
+            data: {
+              userAnswer: matched.answer,
+              source: 'User Provided (Common Bank)',
+              confidence: 'high',
+            },
+          });
+        }
+      }
+    }
+
+    return this.getScreeningQuestions(jobId);
+  }
+
   static async getScreeningQuestions(jobId: string): Promise<ScreeningQuestionItem[]> {
     const questions = await prisma.screeningQuestion.findMany({
       where: { jobId },
@@ -139,6 +248,53 @@ export class ScreeningService {
     if (questions.length === 0) {
       // Auto-analyze initial screening questions
       return this.analyzeScreeningQuestions(jobId);
+    }
+
+    // Auto-fill any unanswered sensitive questions using candidate common bank
+    const profile = await prisma.candidateProfile.findFirst();
+    const commonAnswers = (profile?.commonAnswers as any) || {
+      visaSponsorship: 'Yes, I will require visa sponsorship (EU Blue Card / work visa for Germany & EU).',
+      workAuthorization: 'Indian citizen. Requires visa sponsorship / EU Blue Card for legal authorization in Europe.',
+      noticePeriod: '30 days / 1 month notice period.',
+      expectedSalary: '€75,000 – €85,000 gross per year (negotiable based on location & equity).',
+      relocation: 'Yes, fully prepared and eager to relocate to Germany, Netherlands, or across the EU.',
+    };
+
+    let updatedAny = false;
+    for (const q of questions) {
+      if (q.requiresUserInput && !q.userAnswer) {
+        const matched = ScreeningService.matchCommonAnswer(q.question, commonAnswers);
+        if (matched) {
+          q.userAnswer = matched.answer;
+          q.source = 'User Provided (Common Bank)';
+          q.confidence = 'high';
+          await prisma.screeningQuestion.update({
+            where: { id: q.id },
+            data: {
+              userAnswer: matched.answer,
+              source: 'User Provided (Common Bank)',
+              confidence: 'high',
+            },
+          });
+          updatedAny = true;
+        }
+      }
+    }
+
+    if (updatedAny) {
+      const pendingCount = questions.filter((q) => q.requiresUserInput && !q.userAnswer).length;
+      await prisma.applicationPreparation.upsert({
+        where: { jobId },
+        create: {
+          jobId,
+          screeningInputNeeded: pendingCount,
+          screeningTotalCount: questions.length,
+        },
+        update: {
+          screeningInputNeeded: pendingCount,
+          screeningTotalCount: questions.length,
+        },
+      });
     }
 
     return questions.map((q) => ({

@@ -31,6 +31,12 @@ model CandidateProfile {
   visaSponsorshipRequired Boolean       @default(true) @map("visa_sponsorship_required")
   hasKnownCareerGap       Boolean       @default(true) @map("has_known_career_gap")
   careerGapDescription    String        @default("Career break / independent development period between Aug 2024 and Jul 2025.") @map("career_gap_description")
+  phone                   String?
+  location                String?       @default("Alappuzha, Kerala, India")
+  linkedin                String?       @default("https://linkedin.com/in/afeef-iqbal")
+  github                  String?       @default("https://github.com/afeefiqbal")
+  portfolio               String?
+  commonAnswers           Json?         @map("common_answers")
   createdAt               DateTime      @default(now()) @map("created_at")
   updatedAt               DateTime      @updatedAt @map("updated_at")
   coverLetters            CoverLetter[]
@@ -133,6 +139,31 @@ model Job {
   canonicalUrl       String                  @unique @map("canonical_url")
   source             String
   sourceUrl          String?                 @map("source_url")
+
+  // V4 Job Intelligence Fields
+  sourceJobId            String?                 @map("source_job_id")
+  sourceIdentity         String?                 @map("source_identity")
+  canonicalIdentity      String?                 @map("canonical_identity")
+  descriptionFingerprint String?                 @map("description_fingerprint")
+  locations              String[]                @default([])
+  remoteType             String                  @default("UNKNOWN") @map("remote_type")
+  remoteEvidence         Json?                   @map("remote_evidence")
+  postedAtSource         String                  @default("UNKNOWN") @map("posted_at_source")
+  freshnessStatus        String                  @default("UNKNOWN") @map("freshness_status")
+  seniority              String                  @default("UNKNOWN")
+  roleFamily             String                  @default("UNKNOWN") @map("role_family")
+  visaSponsorship        String                  @default("NOT_MENTIONED") @map("visa_sponsorship")
+  visaEvidence           Json?                   @map("visa_evidence")
+  relocation             String                  @default("NOT_MENTIONED")
+  relocationEvidence     Json?                   @map("relocation_evidence")
+  responsibilities       String[]                @default([])
+  technologyEvidence     Json?                   @map("technology_evidence")
+  normalizedCompany      String?                 @map("normalized_company")
+  normalizedTitle        String?                 @map("normalized_title")
+  whyThisJob             Json?                   @map("why_this_job")
+  applicationPriority    Int?                    @map("application_priority")
+  priorityReasons        String[]                @default([]) @map("priority_reasons")
+
   createdAt          DateTime                @default(now()) @map("created_at")
   updatedAt          DateTime                @updatedAt @map("updated_at")
   preparation        ApplicationPreparation?
@@ -149,6 +180,9 @@ model Job {
   @@index([company])
   @@index([ageStatus])
   @@index([canonicalUrl])
+  @@index([canonicalIdentity])
+  @@index([roleFamily])
+  @@index([freshnessStatus])
   @@map("jobs")
 }
 
@@ -295,6 +329,7 @@ model Application {
   applicationUrl String?             @map("application_url")
   notes          String?
   interviewDates String[]            @map("interview_dates")
+  snapshotJson   Json?               @map("snapshot_json")
   createdAt      DateTime            @default(now()) @map("created_at")
   updatedAt      DateTime            @updatedAt @map("updated_at")
   answers        ApplicationAnswer[]
@@ -392,4 +427,5 @@ enum ApplicationStatus {
   REJECTED
   OFFER
   WITHDRAWN
+  EXPIRED
 }

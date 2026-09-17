@@ -22,15 +22,19 @@ apiRouter.get('/dashboard/stats', DashboardController.getStats);
 apiRouter.get('/jobs', JobsController.getJobs);
 apiRouter.post('/jobs/discover', JobsController.triggerDiscovery);
 apiRouter.get('/jobs/:id', JobsController.getJobById);
+apiRouter.get('/jobs/:id/intelligence', JobsController.getJobIntelligence);
+apiRouter.post('/jobs/normalize', JobsController.normalizeJob);
+apiRouter.post('/jobs/deduplicate', JobsController.deduplicateJob);
 apiRouter.post('/jobs/ingest', JobsController.ingestJob);
 
 // AI Matching
 apiRouter.post('/jobs/:id/analyze', MatchesController.analyzeJob);
 apiRouter.get('/matches', MatchesController.getMatches);
 
-// Profile
+// Profile & Common Answers Bank
 apiRouter.get('/profile', ProfileController.getProfile);
 apiRouter.put('/profile', ProfileController.updateProfile);
+apiRouter.put('/profile/common-answers', ProfileController.updateCommonAnswers);
 
 // Applications Tracking
 apiRouter.get('/applications', ApplicationsController.listApplications);
@@ -58,6 +62,7 @@ apiRouter.put('/cover-letters/:id', CoverLettersController.updateCoverLetter);
 apiRouter.post('/jobs/:id/screening/analyze', ScreeningController.analyzeScreening);
 apiRouter.get('/jobs/:id/screening', ScreeningController.getScreeningQuestions);
 apiRouter.post('/screening/:id/answer', ScreeningController.answerQuestion);
+apiRouter.post('/jobs/:id/screening/sync-common', ScreeningController.syncCommonAnswers);
 
 // 4. Application Preparation Workspace & Queue
 apiRouter.get('/jobs/:id/application-preparation', PreparationController.getPreparation);

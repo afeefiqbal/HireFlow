@@ -8,6 +8,102 @@ export type RecommendationType = 'APPLY' | 'REVIEW' | 'SKIP';
 export type JobAgeStatus = 'FRESH' | 'OLDER' | 'UNKNOWN';
 export type VisaStatus = 'OFFERED' | 'NOT_OFFERED' | 'NOT_STATED';
 
+// ==========================================
+// V4 JOB INTELLIGENCE TYPES & CONTRACTS
+// ==========================================
+
+export type FactSource = 'JOB_DESCRIPTION' | 'ATS_METADATA' | 'COMPENSATION_FIELD' | 'TITLE' | 'FEED';
+export type FactConfidence = 'HIGH' | 'MEDIUM' | 'LOW';
+
+export type FreshnessStatus = 'FRESH' | 'RECENT' | 'TODAY' | 'STALE' | 'UNKNOWN';
+export type VisaSponsorship = 'AVAILABLE' | 'NOT_AVAILABLE' | 'NOT_MENTIONED';
+export type Relocation = 'AVAILABLE' | 'NOT_AVAILABLE' | 'NOT_MENTIONED';
+export type RemoteType = 'REMOTE' | 'HYBRID' | 'ONSITE' | 'UNKNOWN';
+export type Seniority =
+  | 'INTERN'
+  | 'JUNIOR'
+  | 'MID'
+  | 'SENIOR'
+  | 'STAFF'
+  | 'PRINCIPAL'
+  | 'LEAD'
+  | 'MANAGER'
+  | 'DIRECTOR'
+  | 'UNKNOWN';
+
+export type RoleFamily =
+  | 'SOFTWARE_ENGINEERING'
+  | 'ENGINEERING_MANAGEMENT'
+  | 'PRODUCT'
+  | 'PROJECT_MANAGEMENT'
+  | 'QA'
+  | 'DEVOPS'
+  | 'DATA'
+  | 'DESIGN'
+  | 'SALES'
+  | 'MARKETING'
+  | 'CUSTOMER_SUCCESS'
+  | 'OTHER'
+  | 'UNKNOWN';
+
+export interface ExtractedFact<T> {
+  value: T;
+  evidence?: string | null;
+  source: FactSource;
+  confidence: FactConfidence;
+}
+
+export interface TechnologyEvidenceItem {
+  technology: string;
+  status: 'REQUIRED' | 'OPTIONAL';
+  evidence: string;
+  source: FactSource;
+  confidence: FactConfidence;
+}
+
+export interface WhyThisJobBreakdown {
+  roleFamily: {
+    status: 'MATCH' | 'MISMATCH';
+    value: RoleFamily;
+    candidateFamily: string;
+    isGatePass: boolean;
+  };
+  seniority: {
+    status: 'MATCH' | 'GAP';
+    value: Seniority;
+    candidateSeniority: string;
+  };
+  technologies: Array<{
+    technology: string;
+    status: 'DIRECT' | 'PARTIAL' | 'NOT_VERIFIED';
+    evidence?: string;
+  }>;
+  workSetup: {
+    remoteType: RemoteType;
+    location: string;
+    isCompatible: boolean;
+  };
+  visa: {
+    status: VisaSponsorship;
+    evidence?: string | null;
+  };
+  relocation: {
+    status: Relocation;
+    evidence?: string | null;
+  };
+  freshness: {
+    status: FreshnessStatus;
+    ageHours: number | null;
+    label: string;
+  };
+  applicationUrlQuality: {
+    isAuthenticAts: boolean;
+    domain: string;
+  };
+  priorityScore: number;
+  priorityReasons: string[];
+}
+
 export type ApplicationStatus =
   | 'DISCOVERED'
   | 'MATCHED'
@@ -18,7 +114,8 @@ export type ApplicationStatus =
   | 'INTERVIEW'
   | 'REJECTED'
   | 'OFFER'
-  | 'WITHDRAWN';
+  | 'WITHDRAWN'
+  | 'EXPIRED';
 
 export interface VerifiedExperience {
   id: string;
@@ -56,6 +153,22 @@ export interface CandidateProfile {
   projects: VerifiedProject[];
   hasKnownCareerGap: boolean;
   careerGapDescription: string;
+  email?: string;
+  phone?: string | null;
+  location?: string | null;
+  linkedin?: string | null;
+  github?: string | null;
+  portfolio?: string | null;
+  commonAnswers?: CommonAnswersBank | null;
+}
+
+export interface CommonAnswersBank {
+  visaSponsorship: string;
+  workAuthorization: string;
+  noticePeriod: string;
+  expectedSalary: string;
+  relocation: string;
+  [key: string]: string;
 }
 
 export interface Job {
@@ -84,6 +197,30 @@ export interface Job {
   sourceUrl?: string;
   createdAt: string;
   updatedAt: string;
+
+  // V4 Job Intelligence & Ground Truth Fields
+  sourceJobId?: string | null;
+  sourceIdentity?: string | null;
+  canonicalIdentity?: string | null;
+  descriptionFingerprint?: string | null;
+  locations?: string[];
+  remoteType?: RemoteType;
+  remoteEvidence?: ExtractedFact<RemoteType> | null;
+  postedAtSource?: string;
+  freshnessStatus?: FreshnessStatus;
+  seniority?: Seniority;
+  roleFamily?: RoleFamily;
+  visaSponsorship?: VisaSponsorship;
+  visaEvidence?: ExtractedFact<VisaSponsorship> | null;
+  relocation?: Relocation;
+  relocationEvidence?: ExtractedFact<Relocation> | null;
+  responsibilities?: string[];
+  technologyEvidence?: TechnologyEvidenceItem[] | null;
+  normalizedCompany?: string | null;
+  normalizedTitle?: string | null;
+  whyThisJob?: WhyThisJobBreakdown | null;
+  applicationPriority?: number | null;
+  priorityReasons?: string[];
 
   // Populated relation or latest match
   latestMatch?: AIMatchResult | null;
@@ -115,6 +252,30 @@ export interface ApplicationSummary {
   cvVersion?: string | null;
   interviewDates?: string[];
   lastUpdated: string;
+  snapshotJson?: ApplicationSnapshot | null;
+}
+
+export interface ApplicationSnapshot {
+  jobTitle: string;
+  company: string;
+  appliedDate: string;
+  resume: {
+    versionId?: string;
+    versionName: string;
+    targetRole?: string;
+    summary?: string;
+  };
+  coverLetter: {
+    id?: string;
+    version: string;
+    fullText: string;
+  } | null;
+  screeningAnswers: Array<{
+    question: string;
+    answer: string;
+    source: 'AI_VERIFIED' | 'USER_PROVIDED' | 'USER_INPUT_REQUIRED';
+    requiresUserInput: boolean;
+  }>;
 }
 
 export interface ApplicationRecord extends ApplicationSummary {
@@ -158,6 +319,10 @@ export interface JobFilterParams {
   remoteOnly?: boolean;
   minMatchScore?: number;
   visaSponsorship?: VisaStatus;
+  roleFamily?: RoleFamily | string;
+  seniority?: Seniority | string;
+  remoteType?: RemoteType | string;
+  freshnessStatus?: FreshnessStatus | string;
   salaryMin?: number;
   source?: string;
   page?: number;
@@ -280,6 +445,7 @@ export interface ApplicationPreparationSummary {
   latestAtsAnalysis?: AtsAnalysisResult | null;
   latestCoverLetter?: CoverLetterData | null;
   screeningQuestions?: ScreeningQuestionItem[];
+  applicationSnapshot?: ApplicationSnapshot | null;
 }
 
 export interface ApplicationQueueGroup {

@@ -196,6 +196,7 @@ export class DiscoveryService {
       try {
         const res = await fetch(`https://boards-api.greenhouse.io/v1/boards/${comp}/jobs?content=true`, {
           headers: { Accept: 'application/json' },
+          signal: AbortSignal.timeout(10000),
         });
         if (!res.ok) continue;
         const data = (await res.json()) as any;
@@ -244,6 +245,7 @@ export class DiscoveryService {
       try {
         const res = await fetch(`https://api.lever.co/v0/postings/${comp}?mode=json`, {
           headers: { Accept: 'application/json' },
+          signal: AbortSignal.timeout(10000),
         });
         if (!res.ok) continue;
         const jobs = (await res.json()) as any[];
@@ -292,6 +294,7 @@ export class DiscoveryService {
       try {
         const res = await fetch(`https://api.ashbyhq.com/posting-api/job-board/${comp}`, {
           headers: { Accept: 'application/json' },
+          signal: AbortSignal.timeout(10000),
         });
         if (!res.ok) continue;
         const data = (await res.json()) as any;
@@ -335,6 +338,7 @@ export class DiscoveryService {
     try {
       const res = await fetch('https://www.arbeitnow.com/api/job-board-api', {
         headers: { Accept: 'application/json' },
+        signal: AbortSignal.timeout(10000),
       });
       if (!res.ok) return results;
       const json = (await res.json()) as any;

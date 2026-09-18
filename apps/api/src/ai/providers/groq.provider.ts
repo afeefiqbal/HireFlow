@@ -24,6 +24,25 @@ export class GroqProvider implements AIProvider {
     return fs.readFileSync(promptPath, 'utf8');
   }
 
+  private safeParseJson(content: string | undefined | null, fallback: any = {}): any {
+    if (!content) return fallback;
+    try {
+      let cleaned = content.trim();
+      if (cleaned.startsWith('```json')) {
+        cleaned = cleaned.slice(7);
+      } else if (cleaned.startsWith('```')) {
+        cleaned = cleaned.slice(3);
+      }
+      if (cleaned.endsWith('```')) {
+        cleaned = cleaned.slice(0, -3);
+      }
+      return JSON.parse(cleaned.trim());
+    } catch (e: any) {
+      console.warn('[GroqProvider] Failed to parse JSON response:', e.message);
+      return fallback;
+    }
+  }
+
   async analyzeJob(jobDescription: string, candidateProfile: any): Promise<any> {
     if (!this.client) throw new Error('Provider not initialized');
     
@@ -73,7 +92,7 @@ SCHEMA REQUIRED:
       response_format: { type: 'json_object' },
     });
 
-    const parsed = JSON.parse(completion.choices[0]?.message?.content || '{}');
+    const parsed = this.safeParseJson(completion.choices[0]?.message?.content, {});
     
     // Normalize technical score to 0-100 range if it appears to be 0-10
     if (parsed.match_analysis && typeof parsed.match_analysis.technical_score === 'number') {
@@ -143,7 +162,7 @@ You MUST output ONLY valid JSON matching the schema. No markdown, no explanation
       model: process.env.GROQ_SMART_MODEL || 'openai/gpt-oss-120b',
       response_format: { type: 'json_object' },
     });
-    return JSON.parse(completion.choices[0]?.message?.content || '{}');
+    return this.safeParseJson(completion.choices[0]?.message?.content, {});
   }
 
   async generateCoverLetter(jobDescription: string, companyName: string, candidateProfile: any): Promise<{ subject: string; body: string }> {
@@ -174,7 +193,7 @@ ${contextStr}
       model: process.env.GROQ_SMART_MODEL || 'openai/gpt-oss-120b',
       response_format: { type: 'json_object' },
     });
-    return JSON.parse(completion.choices[0]?.message?.content || '{}');
+    return this.safeParseJson(completion.choices[0]?.message?.content, { subject: '', body: '' });
   }
 
   async answerScreeningQuestions(questions: string[], candidateProfile: any): Promise<Array<{ question: string; requiresUserInput: boolean; suggestedAnswer: string }>> {
@@ -216,7 +235,7 @@ ${contextStr}
       model: process.env.GROQ_FAST_MODEL || 'openai/gpt-oss-20b',
       response_format: { type: 'json_object' },
     });
-    const parsed = JSON.parse(completion.choices[0]?.message?.content || '{}');
+    const parsed = this.safeParseJson(completion.choices[0]?.message?.content, { results: [] });
     return parsed.results || [];
   }
 }

@@ -22,6 +22,8 @@ import { ApplicationService } from '../application.service';
 const prisma = new PrismaClient();
 
 export class AutoApplyService {
+  private static activeSubmissions = new Set<string>();
+
   private static adapters: SubmissionAdapter[] = [
     new LeverSubmissionAdapter(),
     new GreenhouseSubmissionAdapter(),
@@ -99,6 +101,16 @@ export class AutoApplyService {
     }
 
     const adapter = this.getAdapterForJob(job);
+
+    // 0. Check if submission is actively in-flight
+    if (this.activeSubmissions.has(jobId)) {
+      return {
+        isEligible: false,
+        reason: 'Submission is currently in progress for this job',
+        adapterType: adapter.mechanism,
+        requiresUserInputCount: 0,
+      };
+    }
 
     // 1. Check if already applied
     if (job.application?.status === 'APPLIED') {
@@ -288,9 +300,6 @@ export class AutoApplyService {
       };
     }
 
-    // -------------------------------------------------------------
-    // LIVE SUBMISSION EXECUTION
-    // -------------------------------------------------------------
     // Check eligibility before real live submission
     const eligibility = await this.evaluateEligibility(jobId);
     if (!eligibility.isEligible) {
@@ -301,7 +310,18 @@ export class AutoApplyService {
       };
     }
 
-    const executionResult = await adapter.submit(job as any, payload, { dryRun: false });
+    if (this.activeSubmissions.has(jobId)) {
+      return {
+        success: false,
+        mode: 'LIVE',
+        error: 'Submission already in progress for this opportunity. Duplicate submission prevented.',
+      };
+    }
+
+    this.activeSubmissions.add(jobId);
+
+    try {
+      const executionResult = await adapter.submit(job as any, payload, { dryRun: false });
 
     if (!executionResult.success || !executionResult.receipt) {
       // Record failure or manual required event without marking APPLIED
@@ -363,5 +383,8 @@ export class AutoApplyService {
       mode: 'LIVE',
       receipt,
     };
+    } finally {
+      this.activeSubmissions.delete(jobId);
+    }
   }
 }

@@ -319,8 +319,9 @@ export class PreparationService {
     const targetStatus = pendingUserInput === 0 ? 'READY_TO_APPLY' : 'PREPARING';
 
     if (!application) {
-      await prisma.application.create({
-        data: {
+      await prisma.application.upsert({
+        where: { jobId },
+        create: {
           jobId,
           status: targetStatus,
           lastActivityAt: new Date(),
@@ -332,6 +333,10 @@ export class PreparationService {
               note: `Application automatically prepared (${targetStatus})`,
             },
           },
+        },
+        update: {
+          status: targetStatus,
+          lastActivityAt: new Date(),
         },
       });
     } else if (['DISCOVERED', 'SHORTLISTED', 'SAVED'].includes(application.status)) {

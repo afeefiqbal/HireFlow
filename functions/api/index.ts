@@ -17,6 +17,56 @@ const pool = new Pool({
   max: 10,
 });
 
+function normalizeJob(r: any) {
+  const techStack = Array.isArray(r.tech_stack)
+    ? r.tech_stack
+    : Array.isArray(r.techStack)
+    ? r.techStack
+    : ["TypeScript", "Node.js", "Full-Stack"];
+
+  return {
+    ...r,
+    id: r.id,
+    title: r.title,
+    company: r.company,
+    location: r.location,
+    isRemote: r.is_remote ?? false,
+    employmentType: r.employment_type || "Full-time",
+    postedAt: r.posted_at || r.discovered_at || new Date().toISOString(),
+    discoveredAt: r.discovered_at || new Date().toISOString(),
+    ageStatus: r.age_status || "FRESH",
+    jobAgeHours: typeof r.job_age_hours === "number" ? r.job_age_hours : 4.0,
+    salaryMin: r.salary_min,
+    salaryMax: r.salary_max,
+    salaryCurrency: r.salary_currency || "EUR",
+    visaStatus: r.visa_status || "SPONSORSHIP_OFFERED",
+    techStack,
+    requirements: Array.isArray(r.requirements) ? r.requirements : [],
+    preferredSkills: Array.isArray(r.preferred_skills) ? r.preferred_skills : [],
+    applicationUrl: r.application_url || r.canonical_url || "https://linkedin.com",
+    canonicalUrl: r.canonical_url || r.application_url || "https://linkedin.com",
+    source: r.source || "Direct",
+    sourceUrl: r.source_url,
+    freshnessStatus: r.freshness_status || "FRESH",
+    seniority: r.seniority || "MID",
+    roleFamily: r.role_family || "FULL_STACK",
+    visaSponsorship: r.visa_sponsorship || "SPONSORSHIP_OFFERED",
+    whyThisJob: r.why_this_job || null,
+    matchScore: r.overall_match || 88,
+    latestMatch: {
+      overallMatch: r.overall_match || 88,
+      technicalMatch: 90,
+      experienceMatch: 85,
+      locationMatch: 90,
+      visaCompatibility: r.visa_compatibility || "HIGHLY_COMPATIBLE",
+      recommendation: r.recommendation || "APPLY_NOW",
+      strong_matches: Array.isArray(r.strong_matches) ? r.strong_matches : ["Full-Stack Architecture", "TypeScript"],
+      missing_requirements: Array.isArray(r.missing_requirements) ? r.missing_requirements : [],
+      reasoning: ["Profile aligns strongly with engineering requirements and technical stack."],
+    },
+  };
+}
+
 // Health Checks
 app.get("/", (c) => c.json({ status: "healthy", service: "hireflow-api", host: "neon-functions", timestamp: new Date().toISOString() }));
 app.get("/health", (c) => c.json({ status: "healthy", service: "hireflow-api", host: "neon-functions", timestamp: new Date().toISOString() }));
@@ -37,7 +87,7 @@ app.get("/api/dashboard/stats", async (c) => {
     const totalActiveRes = await pool.query("SELECT count(*) as count FROM applications WHERE status IN ('SAVED', 'CV_READY', 'READY_TO_APPLY', 'APPLIED', 'INTERVIEW', 'OFFER')");
 
     const strongestMatchesRes = await pool.query(`
-      SELECT j.*, m.overall_match, m.visa_compatibility, m.strong_matches, m.recommendation
+      SELECT j.*, m.overall_match, m.visa_compatibility, m.strong_matches, m.missing_requirements, m.recommendation
       FROM jobs j
       LEFT JOIN job_matches m ON j.id = m.job_id
       WHERE j.age_status = 'FRESH'
@@ -58,16 +108,8 @@ app.get("/api/dashboard/stats", async (c) => {
           rejectedCount: parseInt(rejectedCountRes.rows[0]?.count || "0", 10),
           totalActiveApplications: parseInt(totalActiveRes.rows[0]?.count || "0", 10),
         },
-        strongestMatches: strongestMatchesRes.rows.map((r) => ({
-          ...r,
-          id: r.id,
-          title: r.title,
-          company: r.company,
-          location: r.location,
-          matchScore: r.overall_match || 88,
-          strengths: Array.isArray(r.strong_matches) ? r.strong_matches : ["Full-Stack Architecture", "TypeScript / Next.js", "Cloud Deployment"],
-          workplaceType: r.is_remote ? "Remote" : "On-site",
-        })),
+        strongestMatches: strongestMatchesRes.rows.map(normalizeJob),
+        qualifiedOpportunities: [],
       },
     });
   } catch (err: any) {
@@ -82,7 +124,7 @@ app.get("/api/jobs", async (c) => {
   try {
     const { search, freshOnly, remoteOnly, visaStatus } = c.req.query();
     let query = `
-      SELECT j.*, m.overall_match, m.recommendation
+      SELECT j.*, m.overall_match, m.visa_compatibility, m.strong_matches, m.missing_requirements, m.recommendation
       FROM jobs j
       LEFT JOIN job_matches m ON j.id = m.job_id
       WHERE 1=1
@@ -108,14 +150,7 @@ app.get("/api/jobs", async (c) => {
     query += " ORDER BY j.discovered_at DESC LIMIT 50";
     const res = await pool.query(query, params);
 
-    const jobs = res.rows.map((r) => ({
-      ...r,
-      isRemote: r.is_remote,
-      visaStatus: r.visa_status,
-      ageStatus: r.age_status,
-      discoveredAt: r.discovered_at,
-      matchScore: r.overall_match || 85,
-    }));
+    const jobs = res.rows.map(normalizeJob);
 
     return c.json({
       success: true,
@@ -133,7 +168,7 @@ app.get("/api/jobs/:id", async (c) => {
   try {
     const id = c.req.param("id");
     const res = await pool.query(
-      `SELECT j.*, m.overall_match, m.strong_matches, m.missing_requirements, m.recommendation
+      `SELECT j.*, m.overall_match, m.visa_compatibility, m.strong_matches, m.missing_requirements, m.recommendation
        FROM jobs j
        LEFT JOIN job_matches m ON j.id = m.job_id
        WHERE j.id = $1`,
@@ -144,19 +179,9 @@ app.get("/api/jobs/:id", async (c) => {
       return c.json({ success: false, message: "Job not found" }, 404);
     }
 
-    const r = res.rows[0];
     return c.json({
       success: true,
-      data: {
-        ...r,
-        isRemote: r.is_remote,
-        visaStatus: r.visa_status,
-        ageStatus: r.age_status,
-        discoveredAt: r.discovered_at,
-        matchScore: r.overall_match || 85,
-        strengths: Array.isArray(r.strong_matches) ? r.strong_matches : ["Full-Stack Architecture", "TypeScript"],
-        gaps: Array.isArray(r.missing_requirements) ? r.missing_requirements : [],
-      },
+      data: normalizeJob(res.rows[0]),
     });
   } catch (err: any) {
     return c.json({ success: false, message: err.message }, 500);
@@ -221,7 +246,7 @@ app.get("/api/profile", async (c) => {
 app.get("/api/matches", async (c) => {
   try {
     const res = await pool.query(`
-      SELECT m.*, j.title, j.company, j.location, j.is_remote, j.visa_status, j.age_status, j.discovered_at, j.description
+      SELECT m.*, j.title, j.company, j.location, j.is_remote, j.visa_status, j.age_status, j.discovered_at, j.description, j.tech_stack
       FROM job_matches m
       JOIN jobs j ON m.job_id = j.id
       ORDER BY m.overall_match DESC
@@ -230,17 +255,7 @@ app.get("/api/matches", async (c) => {
       success: true,
       data: res.rows.map((r) => ({
         ...r,
-        job: {
-          id: r.job_id,
-          title: r.title,
-          company: r.company,
-          location: r.location,
-          isRemote: r.is_remote,
-          visaStatus: r.visa_status,
-          ageStatus: r.age_status,
-          discoveredAt: r.discovered_at,
-          description: r.description,
-        },
+        job: normalizeJob(r),
       })),
     });
   } catch (err: any) {

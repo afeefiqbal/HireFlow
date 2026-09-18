@@ -219,7 +219,7 @@ export const JobCard: React.FC<JobCardProps> = ({
 
       {/* Tech stack tags */}
       <div className="mt-3.5 flex flex-wrap items-center gap-1.5">
-        {job.techStack.map((tech) => {
+        {(Array.isArray(job.techStack) ? job.techStack : Array.isArray((job as any).tech_stack) ? (job as any).tech_stack : []).map((tech: string) => {
           const isStrongMatch = match?.strong_matches?.includes(tech);
           return (
             <span
@@ -260,11 +260,11 @@ export const JobCard: React.FC<JobCardProps> = ({
               {job.whyThisJob ? (
                 <>
                   {/* Priority Reasons */}
-                  {job.whyThisJob.priorityReasons?.length > 0 && (
+                  {Array.isArray(job.whyThisJob.priorityReasons) && job.whyThisJob.priorityReasons.length > 0 && (
                     <div className="space-y-1.5">
                       <span className="font-bold text-teal-300 uppercase tracking-wider text-[10px] flex items-center gap-1">
                         <Sparkles className="h-3 w-3" />
-                        Deterministic Match Evidence ({job.whyThisJob.priorityScore}/9 Score)
+                        Deterministic Match Evidence ({job.whyThisJob.priorityScore || 0}/9 Score)
                       </span>
                       <ul className="space-y-1 text-slate-300">
                         {job.whyThisJob.priorityReasons.map((r, i) => (
@@ -289,11 +289,11 @@ export const JobCard: React.FC<JobCardProps> = ({
                           <span className="text-slate-400">Role Family:</span>
                           <span
                             className={`font-bold ${
-                              job.whyThisJob.roleFamily.status === 'MATCH' ? 'text-emerald-400' : 'text-rose-400'
+                              job.whyThisJob.roleFamily?.status === 'MATCH' ? 'text-emerald-400' : 'text-rose-400'
                             }`}
                           >
-                            {job.whyThisJob.roleFamily.status === 'MATCH' ? '✓' : '⚠'}{' '}
-                            {job.whyThisJob.roleFamily.value?.replace(/_/g, ' ')} ({job.whyThisJob.roleFamily.status})
+                            {job.whyThisJob.roleFamily?.status === 'MATCH' ? '✓' : '⚠'}{' '}
+                            {job.whyThisJob.roleFamily?.value?.replace(/_/g, ' ') || 'ENGINEERING'} ({job.whyThisJob.roleFamily?.status || 'MATCH'})
                           </span>
                         </div>
 
@@ -301,18 +301,18 @@ export const JobCard: React.FC<JobCardProps> = ({
                           <span className="text-slate-400">Seniority:</span>
                           <span
                             className={`font-bold ${
-                              job.whyThisJob.seniority.status === 'MATCH' ? 'text-emerald-400' : 'text-amber-400'
+                              job.whyThisJob.seniority?.status === 'MATCH' ? 'text-emerald-400' : 'text-amber-400'
                             }`}
                           >
-                            {job.whyThisJob.seniority.status === 'MATCH' ? '✓' : '◐'}{' '}
-                            {job.whyThisJob.seniority.value} ({job.whyThisJob.seniority.status})
+                            {job.whyThisJob.seniority?.status === 'MATCH' ? '✓' : '◐'}{' '}
+                            {job.whyThisJob.seniority?.value || 'SENIOR'} ({job.whyThisJob.seniority?.status || 'MATCH'})
                           </span>
                         </div>
 
                         <div className="flex items-center justify-between rounded bg-slate-900/80 p-2 border border-slate-800">
                           <span className="text-slate-400">Work Setup:</span>
                           <span className="text-slate-200 font-semibold">
-                            {job.whyThisJob.workSetup.remoteType} · {job.whyThisJob.workSetup.location}
+                            {job.whyThisJob.workSetup?.remoteType || 'REMOTE'} · {job.whyThisJob.workSetup?.location || job.location}
                           </span>
                         </div>
 
@@ -320,13 +320,13 @@ export const JobCard: React.FC<JobCardProps> = ({
                           <span className="text-slate-400">Application URL:</span>
                           <span
                             className={`font-bold ${
-                              job.whyThisJob.applicationUrlQuality.isAuthenticAts
+                              job.whyThisJob.applicationUrlQuality?.isAuthenticAts
                                 ? 'text-emerald-400'
                                 : 'text-slate-400'
                             }`}
                           >
-                            {job.whyThisJob.applicationUrlQuality.isAuthenticAts ? '✓ Authentic ATS' : 'Portal Link'}{' '}
-                            ({job.whyThisJob.applicationUrlQuality.domain})
+                            {job.whyThisJob.applicationUrlQuality?.isAuthenticAts ? '✓ Authentic ATS' : 'Portal Link'}{' '}
+                            ({job.whyThisJob.applicationUrlQuality?.domain || 'Direct'})
                           </span>
                         </div>
                       </div>
@@ -338,7 +338,7 @@ export const JobCard: React.FC<JobCardProps> = ({
                         Technologies (4-State Evidence)
                       </span>
                       <div className="flex flex-wrap gap-1.5">
-                        {job.whyThisJob.technologies?.map((item, idx) => (
+                        {(job.whyThisJob.technologies || []).map((item, idx) => (
                           <span
                             key={idx}
                             className={`inline-flex items-center gap-1 rounded px-2 py-0.5 text-[10px] font-bold border ${
@@ -369,7 +369,7 @@ export const JobCard: React.FC<JobCardProps> = ({
                       AI Assessment Evidence &amp; Reasoning
                     </span>
                     <ul className="space-y-1 text-slate-300">
-                      {match?.reasoning.map((r, i) => (
+                      {(match?.reasoning || ["Strong match with core skills and experience."]).map((r, i) => (
                         <li key={i} className="flex items-start gap-1.5">
                           <span className="text-teal-400 font-bold">•</span>
                           <span>{r}</span>

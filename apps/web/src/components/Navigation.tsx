@@ -14,13 +14,15 @@ import {
   ShieldCheck,
   Zap,
   Layers,
+  BarChart3,
 } from 'lucide-react';
 
 const NAV_ITEMS = [
   { href: '/', label: 'Dashboard', icon: LayoutDashboard },
   { href: '/jobs', label: 'Jobs', icon: Briefcase },
   { href: '/matches', label: 'Matches', icon: Sparkles },
-  { href: '/application-queue', label: 'Application Queue', icon: KanbanSquare },
+  { href: '/application-queue', label: 'Queue', icon: KanbanSquare },
+  { href: '/analytics', label: 'Analytics', icon: BarChart3 },
   { href: '/applications', label: 'Tracking', icon: Layers },
   { href: '/resume', label: 'Resume', icon: FileText },
   { href: '/profile', label: 'Profile', icon: User },

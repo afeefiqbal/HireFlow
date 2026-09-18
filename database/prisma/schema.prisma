@@ -330,13 +330,19 @@ model Application {
   notes          String?
   interviewDates String[]            @map("interview_dates")
   snapshotJson   Json?               @map("snapshot_json")
+  nextFollowUpAt DateTime?           @map("next_follow_up_at")
+  lastActivityAt DateTime            @default(now()) @map("last_activity_at")
   createdAt      DateTime            @default(now()) @map("created_at")
   updatedAt      DateTime            @updatedAt @map("updated_at")
   answers        ApplicationAnswer[]
   events         ApplicationEvent[]
+  notesList      ApplicationNote[]
   job            Job                 @relation(fields: [jobId], references: [id], onDelete: Cascade)
 
   @@index([status])
+  @@index([nextFollowUpAt])
+  @@index([lastActivityAt])
+  @@index([createdAt])
   @@map("applications")
 }
 
@@ -352,16 +358,34 @@ model ApplicationAnswer {
   @@map("application_answers")
 }
 
+model ApplicationNote {
+  id            String      @id @default(uuid())
+  applicationId String      @map("application_id")
+  content       String
+  createdAt     DateTime    @default(now()) @map("created_at")
+  updatedAt     DateTime    @updatedAt @map("updated_at")
+  application   Application @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+
+  @@index([applicationId])
+  @@index([createdAt])
+  @@map("application_notes")
+}
+
 model ApplicationEvent {
   id            String             @id @default(uuid())
   applicationId String             @map("application_id")
+  type          String             @default("STATUS_CHANGED")
   fromStatus    ApplicationStatus? @map("from_status")
   toStatus      ApplicationStatus  @map("to_status")
+  source        String             @default("USER")
   note          String?
+  metadata      Json?
   createdAt     DateTime           @default(now()) @map("created_at")
   application   Application        @relation(fields: [applicationId], references: [id], onDelete: Cascade)
 
   @@index([applicationId])
+  @@index([createdAt])
+  @@index([type])
   @@map("application_events")
 }
 
@@ -420,6 +444,8 @@ enum ApplicationStatus {
   DISCOVERED
   MATCHED
   SAVED
+  SHORTLISTED
+  PREPARING
   CV_READY
   READY_TO_APPLY
   APPLIED

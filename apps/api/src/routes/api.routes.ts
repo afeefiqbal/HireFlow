@@ -36,9 +36,15 @@ apiRouter.get('/profile', ProfileController.getProfile);
 apiRouter.put('/profile', ProfileController.updateProfile);
 apiRouter.put('/profile/common-answers', ProfileController.updateCommonAnswers);
 
-// Applications Tracking
+// Applications Tracking & V5 Analytics
 apiRouter.get('/applications', ApplicationsController.listApplications);
 apiRouter.post('/applications', ApplicationsController.updateApplicationStatus);
+apiRouter.get('/applications/analytics', ApplicationsController.getAnalytics);
+apiRouter.get('/applications/timeline', ApplicationsController.getTimeline);
+apiRouter.get('/applications/:id', ApplicationsController.getApplicationById);
+apiRouter.post('/applications/:id/notes', ApplicationsController.addNote);
+apiRouter.post('/applications/:id/follow-up', ApplicationsController.setFollowUp);
+apiRouter.patch('/applications/:id/follow-up', ApplicationsController.setFollowUp);
 
 // ==========================================
 // V2 INTELLIGENCE WORKFLOWS

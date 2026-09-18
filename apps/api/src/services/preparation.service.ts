@@ -197,21 +197,48 @@ export class PreparationService {
     const applied: any[] = [];
     const interview: any[] = [];
     const rejected: any[] = [];
+    const shortlisted: any[] = [];
+    const preparing: any[] = [];
+    const offer: any[] = [];
+    const archived: any[] = [];
 
     for (const j of jobs) {
       const appStatus = j.application?.status;
 
       // Pipeline status overrides
-      if (appStatus === 'APPLIED') {
-        applied.push(j);
+      if (appStatus === 'OFFER') {
+        offer.push(j);
+        continue;
+      }
+      if (appStatus === 'REJECTED' || appStatus === 'WITHDRAWN' || appStatus === 'EXPIRED') {
+        archived.push(j);
+        rejected.push(j);
         continue;
       }
       if (appStatus === 'INTERVIEW') {
         interview.push(j);
         continue;
       }
-      if (appStatus === 'REJECTED') {
-        rejected.push(j);
+      if (appStatus === 'APPLIED') {
+        applied.push(j);
+        continue;
+      }
+      if (appStatus === 'READY_TO_APPLY') {
+        readyToApply.push(j);
+        continue;
+      }
+      if (appStatus === 'PREPARING') {
+        preparing.push(j);
+        cvReady.push(j);
+        continue;
+      }
+      if (appStatus === 'SHORTLISTED' || appStatus === 'SAVED') {
+        shortlisted.push(j);
+        continue;
+      }
+      if (appStatus === 'CV_READY') {
+        preparing.push(j);
+        cvReady.push(j);
         continue;
       }
 
@@ -221,10 +248,14 @@ export class PreparationService {
 
       if (pendingScreening > 0) {
         needsInput.push(j);
+        preparing.push(j);
       } else if (hasCv && hasCoverLetter) {
         readyToApply.push(j);
       } else if (hasCv) {
         cvReady.push(j);
+        preparing.push(j);
+      } else {
+        shortlisted.push(j);
       }
     }
 
@@ -235,6 +266,10 @@ export class PreparationService {
       applied,
       interview,
       rejected,
+      shortlisted,
+      preparing,
+      offer,
+      archived,
     };
   }
 }

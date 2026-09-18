@@ -108,6 +108,8 @@ export type ApplicationStatus =
   | 'DISCOVERED'
   | 'MATCHED'
   | 'SAVED'
+  | 'SHORTLISTED'
+  | 'PREPARING'
   | 'CV_READY'
   | 'READY_TO_APPLY'
   | 'APPLIED'
@@ -243,6 +245,47 @@ export interface AIMatchResult {
   createdAt?: string;
 }
 
+export type ApplicationEventType =
+  | 'CREATED'
+  | 'STATUS_CHANGED'
+  | 'SHORTLISTED'
+  | 'PREPARATION_STARTED'
+  | 'RESUME_GENERATED'
+  | 'COVER_LETTER_GENERATED'
+  | 'SCREENING_COMPLETED'
+  | 'READY_TO_APPLY'
+  | 'APPLICATION_OPENED'
+  | 'APPLIED'
+  | 'INTERVIEW_SCHEDULED'
+  | 'INTERVIEW_COMPLETED'
+  | 'OFFER_RECEIVED'
+  | 'REJECTED'
+  | 'WITHDRAWN'
+  | 'EXPIRED'
+  | 'NOTE_ADDED'
+  | 'FOLLOW_UP_SET';
+
+export interface ApplicationEventItem {
+  id: string;
+  applicationId: string;
+  type: ApplicationEventType | string;
+  fromStatus?: ApplicationStatus | null;
+  toStatus: ApplicationStatus;
+  source?: string;
+  note?: string | null;
+  metadata?: any;
+  timestamp: string;
+  createdAt?: string;
+}
+
+export interface ApplicationNoteItem {
+  id: string;
+  applicationId: string;
+  content: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export interface ApplicationSummary {
   id: string;
   jobId: string;
@@ -251,6 +294,8 @@ export interface ApplicationSummary {
   notes?: string | null;
   cvVersion?: string | null;
   interviewDates?: string[];
+  nextFollowUpAt?: string | null;
+  lastActivityAt?: string | null;
   lastUpdated: string;
   snapshotJson?: ApplicationSnapshot | null;
 }
@@ -281,15 +326,137 @@ export interface ApplicationSnapshot {
 export interface ApplicationRecord extends ApplicationSummary {
   job: Job;
   events: ApplicationEventItem[];
+  notesList?: ApplicationNoteItem[];
 }
 
-export interface ApplicationEventItem {
+export interface ApplicationHealthChecklist {
+  resumeReady: boolean;
+  resumeVersionName?: string;
+  coverLetterReady: boolean;
+  screeningReady: boolean;
+  screeningPendingCount: number;
+  applicationUrlAvailable: boolean;
+  applicationUrl?: string;
+  isApplied: boolean;
+  appliedDate?: string | null;
+  followUpStatus: 'TODAY' | 'UPCOMING' | 'OVERDUE' | 'NOT_SET';
+  followUpDaysRemaining?: number | null;
+  nextFollowUpAt?: string | null;
+}
+
+export interface ApplicationDetailRecord extends ApplicationSummary {
+  job: Job;
+  events: ApplicationEventItem[];
+  notesList: ApplicationNoteItem[];
+  healthChecklist: ApplicationHealthChecklist;
+}
+
+export interface ApplicationTimelineItem {
   id: string;
   applicationId: string;
+  jobId: string;
+  jobTitle: string;
+  company: string;
+  type: ApplicationEventType | string;
   fromStatus?: ApplicationStatus | null;
   toStatus: ApplicationStatus;
+  source: string;
   note?: string | null;
+  metadata?: any;
   timestamp: string;
+}
+
+export interface FunnelCounts {
+  discovered: number;
+  shortlisted: number;
+  preparing: number;
+  readyToApply: number;
+  applied: number;
+  interview: number;
+  offer: number;
+}
+
+export interface ConversionMetricItem {
+  numerator: number;
+  denominator: number;
+  rate: number | null;
+  percentage?: number | null;
+  formatted: string;
+  insufficientData: boolean;
+}
+
+export interface ApplicationConversionMetrics {
+  applicationRate: ConversionMetricItem;
+  interviewRate: ConversionMetricItem;
+  offerRate: ConversionMetricItem;
+}
+
+export interface ApplicationTimeMetrics {
+  discoveryToApply: {
+    avgDays: number | null;
+    medianDays: number | null;
+    sampleCount: number;
+    insufficientData: boolean;
+    label: string;
+  };
+  applyToInterview: {
+    avgDays: number | null;
+    medianDays: number | null;
+    sampleCount: number;
+    insufficientData: boolean;
+    label: string;
+  };
+  interviewToOffer: {
+    avgDays: number | null;
+    medianDays: number | null;
+    sampleCount: number;
+    insufficientData: boolean;
+    label: string;
+  };
+  avgDaysToApply?: number | null;
+  medianDaysToApply?: number | null;
+  avgDaysToInterview?: number | null;
+  medianDaysToInterview?: number | null;
+  avgDaysToOffer?: number | null;
+  medianDaysToOffer?: number | null;
+  insufficientData?: boolean;
+}
+
+export interface BreakdownItem {
+  key: string;
+  label: string;
+  count: number;
+  percentage?: number;
+  interviewCount?: number;
+  offerCount?: number;
+}
+
+export interface ApplicationAnalytics {
+  dateRange: 'today' | '7d' | '30d' | '90d' | 'all' | 'custom';
+  startDate: string | null;
+  endDate: string | null;
+  summary: {
+    totalApplications: number;
+    appliedCount: number;
+    interviewCount: number;
+    offerCount: number;
+    rejectedCount: number;
+    pendingCount: number;
+    followUpsDueCount: number;
+  };
+  funnel: FunnelCounts;
+  conversions: ApplicationConversionMetrics;
+  conversionMetrics?: ApplicationConversionMetrics;
+  timeMetrics: ApplicationTimeMetrics;
+  breakdowns: {
+    source: BreakdownItem[];
+    roleFamily: BreakdownItem[];
+    technologies: BreakdownItem[];
+    technology?: BreakdownItem[];
+    remote: BreakdownItem[];
+    visa: BreakdownItem[];
+    freshness: BreakdownItem[];
+  };
 }
 
 export interface DashboardStats {
@@ -455,5 +622,9 @@ export interface ApplicationQueueGroup {
   applied: Job[];
   interview: Job[];
   rejected: Job[];
+  shortlisted?: Job[];
+  preparing?: Job[];
+  offer?: Job[];
+  archived?: Job[];
 }
 

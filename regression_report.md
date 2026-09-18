@@ -1,7 +1,7 @@
 # AI Job Agent — Regression Test Report
 
-**Generated**: 2026-09-17 04:55:00
-**Mode**: Evaluation
+**Generated**: 2026-09-17 06:23:16
+**Mode**: Development
 **Smart Model**: openai/gpt-oss-120b
 **Fast Model**: openai/gpt-oss-20b
 
@@ -49,10 +49,10 @@
 
 | Job | Tech Score | Rec | Validation |
 | :--- | :--- | :--- | :--- |
-| Laravel Senior Backend Developer (m | 99 | APPLY | ✅  |
-| Senior Backend Developer (Node.js) | 95 | APPLY | ✅  |
-| Senior / Staff Fullstack Engineer | 65 | REVIEW | ✅  |
-| Senior Professional Services Projec | 75 | SKIP | ✅  |
+| Laravel Senior Backend Developer (m | 65 | REVIEW | ❌ hallucination detected |
+| Senior Backend Developer (Node.js) | 65 | REVIEW | ✅  |
+| Senior / Staff Fullstack Engineer | 70 | REVIEW | ✅  |
+| Senior Professional Services Projec | 100 | SKIP | ✅  |
 
 > **Token Budget** — Used: 10,000 / 200,000 — Remaining: 190,000
 
@@ -121,7 +121,7 @@
 | Check | Result |
 | :--- | :--- |
 | Has Opening | ✅ |
-| Has Full Text | ✅ (1458 chars) |
+| Has Full Text | ✅ (1487 chars) |
 | Hallucination Check | ❌ million |
 | Tone Check | ✅ Professional |
 
@@ -131,7 +131,7 @@
 | Check | Result |
 | :--- | :--- |
 | Has Opening | ✅ |
-| Has Full Text | ✅ (1027 chars) |
+| Has Full Text | ✅ (1141 chars) |
 | Hallucination Check | ✅ Clean |
 | Tone Check | ✅ Professional |
 

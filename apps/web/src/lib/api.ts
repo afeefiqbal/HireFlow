@@ -7,6 +7,9 @@ import {
   ApplicationStatus,
   JobFilterParams,
   ScreeningQuestionItem,
+  ApplicationDetailRecord,
+  ApplicationAnalytics,
+  ApplicationTimelineItem,
 } from '@ai-job-agent/shared';
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api';
@@ -186,11 +189,46 @@ export const api = {
     return fetchJson('/applications');
   },
 
-  async updateApplicationStatus(jobId: string, status: ApplicationStatus, note?: string) {
+  async updateApplicationStatus(jobId: string, status: ApplicationStatus, note?: string, source: string = 'USER') {
     return fetchJson('/applications', {
       method: 'POST',
-      body: JSON.stringify({ jobId, status, note }),
+      body: JSON.stringify({ jobId, status, note, source }),
     });
+  },
+
+  async getApplicationById(id: string): Promise<ApplicationDetailRecord> {
+    return fetchJson<ApplicationDetailRecord>(`/applications/${id}`);
+  },
+
+  async addApplicationNote(id: string, content: string, source: string = 'USER') {
+    return fetchJson<{ id: string; content: string; createdAt: string }>(`/applications/${id}/notes`, {
+      method: 'POST',
+      body: JSON.stringify({ content, source }),
+    });
+  },
+
+  async setFollowUpDate(id: string, nextFollowUpAt: string | null, source: string = 'USER') {
+    return fetchJson<any>(`/applications/${id}/follow-up`, {
+      method: 'POST',
+      body: JSON.stringify({ nextFollowUpAt, source }),
+    });
+  },
+
+  async getApplicationAnalytics(
+    range: 'today' | '7d' | '30d' | '90d' | 'all' | 'custom' = 'all',
+    start?: string,
+    end?: string
+  ): Promise<ApplicationAnalytics> {
+    const params = new URLSearchParams();
+    if (range) params.append('range', range);
+    if (start) params.append('start', start);
+    if (end) params.append('end', end);
+    const queryString = params.toString() ? `?${params.toString()}` : '';
+    return fetchJson<ApplicationAnalytics>(`/applications/analytics${queryString}`);
+  },
+
+  async getApplicationTimeline(limit: number = 50): Promise<ApplicationTimelineItem[]> {
+    return fetchJson<ApplicationTimelineItem[]>(`/applications/timeline?limit=${limit}`);
   },
 
   async updateCommonAnswers(commonAnswers: any) {

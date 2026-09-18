@@ -16,3 +16,8 @@ apps/api/dist
 .DS_Store
 Thumbs.db
 .neon
+.open-next
+.wrangler
+apps/web/.open-next
+apps/web/.wrangler
+functions/test.ts

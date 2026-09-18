@@ -3,15 +3,13 @@ const nextConfig = {
   reactStrictMode: true,
   transpilePackages: ['@ai-job-agent/shared'],
   env: {
-    NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api',
+    NEXT_PUBLIC_API_URL: 'https://br-empty-tooth-b46jpbjc-backend.compute.c-6.us-east-2.aws.neon.tech/api',
   },
   async rewrites() {
-    const apiTarget = process.env.INTERNAL_API_URL || process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api';
-    const destination = apiTarget.endsWith('/api') ? `${apiTarget}/:path*` : `${apiTarget}/api/:path*`;
     return [
       {
         source: '/api/:path*',
-        destination,
+        destination: 'https://br-empty-tooth-b46jpbjc-backend.compute.c-6.us-east-2.aws.neon.tech/api/:path*',
       },
     ];
   },

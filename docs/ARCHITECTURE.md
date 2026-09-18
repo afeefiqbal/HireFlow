@@ -191,13 +191,67 @@ The **AI Job Agent** is a purpose-built, private, single-user intelligence dashb
 
 ---
 
-## 9. Future CV & Screening System Roadmap (V2 Preview)
+## 9. Completed Evolution: V1 Through V5.2
 
-1. **Master Profile → Tailored CV Generation:**
-   - For a Laravel Senior position: Elevate Laravel, Eloquent ORM, MySQL performance tuning, Artemyst & Samasta projects.
-   - For a Node.js position: Elevate Node.js, Express, async processing, DealCode project, AWS & PostgreSQL architecture.
-   - For a Full Stack position: Present balanced portfolio highlighting end-to-end delivery with Vue/React and backend frameworks.
-2. **ATS Compatibility Validator:**
-   - Evaluates keyword density, heading hierarchy, single-column parsing, and standard date formatting without fluff.
-3. **Screening Questions Assistant:**
-   - Pre-drafts answers to common recruiter questions ("Why are you looking for a new role?", "Describe your experience with high-traffic Laravel applications") drawing solely on verified career milestones.
+- **V1 — Core Architecture & Candidate Ground Truth:** Single source of truth for candidate profile (Afeef Iqbal, 7+ years, 5 verified companies, 3 projects), strict <24h job discovery, and anti-hallucination evaluation.
+- **V2 — AI Generation & ATS Optimization:** Tailored resume generation, keyword density scoring, single-column export formatting, and cover letter synthesis.
+- **V3 & V3.1 — Application Preparation & Copilot:** Side-by-side Preparation Copilot, Common Answers Bank with bidirectional sync, token tracking, and deterministic matching fallback.
+- **V4 — Job Intelligence & Evidence Engine:** Multi-source ingestion (Greenhouse, Lever, Arbeitnow), cross-source canonical identity deduplication, freshness classifier, 4-state candidate matching (`DIRECT`, `PARTIAL`, `NOT_VERIFIED`, `NOT_RETRIEVED`), role family gate, and technology evidence excerpts.
+- **V5 & V5.2 — Application Lifecycle, Tracking & Analytics:** Independent `ApplicationStatus` state machine (`SAVED`, `CV_READY`, `SHORTLISTED`, `PREPARING`, `READY_TO_APPLY`, `APPLIED`, `INTERVIEW`, `OFFER`, `REJECTED`, `WITHDRAWN`, `EXPIRED`), append-only audit events, immutable `ApplicationSnapshot` on application finalization, controlled conversion rate analytics (zero-division guarded), optimistic Kanban UI with automatic rollback on invalid transitions, and follow-up reminders.
+
+---
+
+## 10. HIREflow V6 — Interview Intelligence & System Hardening
+
+HIREflow V6 completes the platform into an end-to-end, production-ready personal job-search workspace with multi-stage interview tracking, evidence-backed preparation, real-time mock simulation, and structured debriefing.
+
+### 10.1 Architectural Principles of V6
+1. **Strict Lifecycle Decoupling:**  
+   `ApplicationStatus` represents external job tracker state. `InterviewStatus` and `InterviewRoundStatus` represent the candidate's personal preparation pipeline. An interview can be planned or drilled even for shortlist/preparation applications without prematurely mutating `ApplicationStatus`.
+2. **Immutable Historical Snapshot Preservation:**  
+   `ApplicationSnapshot` remains completely immutable across all interview activities. No round creation, question recording, or debrief ever mutates the historical snapshot taken at application time.
+3. **Dynamic Candidate Ground Truth Injection:**  
+   Candidate facts (projects, verified skills, employment dates, responsibilities) are never hard-coded in service logic; they are dynamically queried through `CandidateContextBuilder` and Prisma profile relations.
+4. **Strict Attribution & Zero Creative License:**  
+   - `PREDICTED` questions are distinguished from `ACTUAL_INTERVIEW` questions.
+   - STAR answers attribute situation, task, and action to `AI_VERIFIED` candidate experience, while flagging unverified metrics as `USER_INPUT_REQUIRED` with explicit placeholder tags.
+   - Mock simulator evaluations audit answers for unverified technologies (e.g. Kafka, Kubernetes, Go) without mutating candidate ground truth.
+
+### 10.2 Domain Models & Entity Relationships
+```
+Application (1) ──── (0..1) Interview
+                             │
+                             ├──── (0..n) InterviewRound
+                             │             - sequence, roundType, status
+                             │             - scheduledAt, completedAt
+                             │             - interviewerName, meetingUrl
+                             │
+                             ├──── (0..n) InterviewPrepKit
+                             │             - companyBrief, roleBrief
+                             │             - techTopics, projectDeepDives
+                             │             - questionsToAsk
+                             │
+                             ├──── (0..n) InterviewQuestion
+                             │             - questionText, category
+                             │             - source (PREDICTED vs ACTUAL)
+                             │             - resultAttribution
+                             │
+                             ├──── (0..n) MockInterviewSession
+                             │             - qna pairs, real-time feedback
+                             │             - unverifiedClaims detection
+                             │
+                             └──── (0..n) InterviewDebrief
+                                           - candidateReflection, outcomes
+                                           - followUpDate (+24h/+48h)
+```
+
+### 10.3 Core Interfaces & Frontend Cockpit
+- **Command Center (`/interviews`):** Overview of active interview pipelines, upcoming schedules, filter by company/status, and debrief reminders.
+- **Interview Cockpit (`/applications/[id]/interview`):**
+  1. *Rounds & Schedule:* Sequence progression, interviewer context, call links.
+  2. *Prep Kit & V4 Tech Revision:* Technical cheat-sheet, candidate match strengths, company intelligence.
+  3. *Question Predictor & Bank:* Predicted questions + live interview questions bank.
+  4. *STAR Answer Builder:* Situation, Task, Action, Result framework with strict attribution.
+  5. *Mock Interview Simulator:* Interactive drilling with compliance warning auditing.
+  6. *Post-Round Debrief:* Performance reflection and automated follow-up reminder scheduling.
+

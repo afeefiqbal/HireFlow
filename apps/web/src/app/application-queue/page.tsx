@@ -1,9 +1,10 @@
 'use client';
 
-import React, { useEffect, useState, useMemo } from 'react';
+import React, { useEffect, useState, useMemo, useCallback } from 'react';
 import Link from 'next/link';
 import { api } from '@/lib/api';
-import { ApplicationQueueGroup, Job } from '@ai-job-agent/shared';
+import { ApplicationQueueGroup, ApplicationStatus, Job } from '@ai-job-agent/shared';
+import { ClientDate } from '@/components/ClientDate';
 import {
   Inbox,
   CheckCircle2,
@@ -27,12 +28,25 @@ import {
   Award,
   BookmarkCheck,
   Sparkles,
+  GripVertical,
+  BellRing,
 } from 'lucide-react';
+
+interface ToastState {
+  type: 'success' | 'error' | 'info';
+  message: string;
+}
 
 export default function ApplicationQueuePage() {
   const [queue, setQueue] = useState<ApplicationQueueGroup | null>(null);
   const [loading, setLoading] = useState(true);
-  const [toastMessage, setToastMessage] = useState<string | null>(null);
+  const [refreshing, setRefreshing] = useState(false);
+  const [toast, setToast] = useState<ToastState | null>(null);
+
+  // Drag and Drop state
+  const [draggedJob, setDraggedJob] = useState<Job | null>(null);
+  const [draggedFromCol, setDraggedFromCol] = useState<string | null>(null);
+  const [dragOverCol, setDragOverCol] = useState<string | null>(null);
 
   // Filters
   const [searchTerm, setSearchTerm] = useState('');
@@ -41,27 +55,76 @@ export default function ApplicationQueuePage() {
   const [seniorityFilter, setSeniorityFilter] = useState('ALL');
   const [remoteFilter, setRemoteFilter] = useState('ALL');
   const [sourceFilter, setSourceFilter] = useState('ALL');
+  const [onlyFollowUpsDue, setOnlyFollowUpsDue] = useState(false);
 
-  const fetchQueue = async () => {
+  const fetchQueue = useCallback(async (isSilent = false) => {
     try {
-      setLoading(true);
+      if (!isSilent) setLoading(true);
+      else setRefreshing(true);
       const data = await api.getApplicationQueue();
       setQueue(data);
     } catch (err: any) {
       console.error('Failed to load application queue:', err);
     } finally {
       setLoading(false);
+      setRefreshing(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
     fetchQueue();
-  }, []);
 
-  const showToast = (msg: string) => {
-    setToastMessage(msg);
-    setTimeout(() => setToastMessage(null), 4000);
+    // SWR / cross-page synchronization listeners
+    const handleSync = () => fetchQueue(true);
+    const handleFocus = () => fetchQueue(true);
+
+    window.addEventListener('hireflow:application-updated', handleSync);
+    window.addEventListener('focus', handleFocus);
+
+    return () => {
+      window.removeEventListener('hireflow:application-updated', handleSync);
+      window.removeEventListener('focus', handleFocus);
+    };
+  }, [fetchQueue]);
+
+  const showToast = (type: 'success' | 'error' | 'info', message: string) => {
+    setToast({ type, message });
+    setTimeout(() => setToast(null), 5000);
   };
+
+  // Follow-up calculations across all jobs
+  const followUpStats = useMemo(() => {
+    if (!queue) return { overdue: 0, dueToday: 0, upcoming: 0 };
+    const allJobs = [
+      ...(queue.shortlisted || []),
+      ...(queue.preparing || queue.needsInput || queue.cvReady || []),
+      ...(queue.readyToApply || []),
+      ...(queue.applied || []),
+      ...(queue.interview || []),
+      ...(queue.offer || []),
+      ...(queue.archived || queue.rejected || []),
+    ];
+
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    let overdue = 0;
+    let dueToday = 0;
+    let upcoming = 0;
+
+    allJobs.forEach((job) => {
+      const dStr = job.application?.nextFollowUpAt;
+      if (!dStr) return;
+      const target = new Date(dStr);
+      target.setHours(0, 0, 0, 0);
+      const diff = Math.round((target.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+      if (diff < 0) overdue++;
+      else if (diff === 0) dueToday++;
+      else upcoming++;
+    });
+
+    return { overdue, dueToday, upcoming };
+  }, [queue]);
 
   // Follow-up state badge helper
   const getFollowUpBadge = (nextFollowUpAt?: string | null) => {
@@ -77,21 +140,21 @@ export default function ApplicationQueuePage() {
       return (
         <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-bold bg-rose-500/20 text-rose-300 border border-rose-500/30 animate-pulse">
           <Clock className="w-2.5 h-2.5" />
-          FOLLOW UP OVERDUE ({Math.abs(diffDays)}d)
+          OVERDUE ({Math.abs(diffDays)}d)
         </span>
       );
     } else if (diffDays === 0) {
       return (
         <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-bold bg-amber-500/20 text-amber-300 border border-amber-500/30">
           <Clock className="w-2.5 h-2.5" />
-          FOLLOW UP TODAY
+          DUE TODAY
         </span>
       );
     } else {
       return (
         <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-bold bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">
           <Clock className="w-2.5 h-2.5" />
-          FOLLOW UP IN {diffDays}d
+          IN {diffDays}d
         </span>
       );
     }
@@ -99,6 +162,17 @@ export default function ApplicationQueuePage() {
 
   // Filter predicate
   const filterJob = (job: Job) => {
+    if (onlyFollowUpsDue) {
+      const dStr = job.application?.nextFollowUpAt;
+      if (!dStr) return false;
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const target = new Date(dStr);
+      target.setHours(0, 0, 0, 0);
+      const diffDays = Math.round((target.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+      if (diffDays > 0) return false;
+    }
+
     if (searchTerm) {
       const q = searchTerm.toLowerCase();
       const matchesCompany = job.company?.toLowerCase().includes(q);
@@ -132,70 +206,84 @@ export default function ApplicationQueuePage() {
   const rawArchived = queue?.archived || queue?.rejected || [];
 
   // Apply filters
-  const shortlistedItems = useMemo(() => rawShortlisted.filter(filterJob), [rawShortlisted, searchTerm, roleFamilyFilter, seniorityFilter, remoteFilter, sourceFilter]);
-  const preparingItems = useMemo(() => rawPreparing.filter(filterJob), [rawPreparing, searchTerm, roleFamilyFilter, seniorityFilter, remoteFilter, sourceFilter]);
-  const readyToApplyItems = useMemo(() => rawReadyToApply.filter(filterJob), [rawReadyToApply, searchTerm, roleFamilyFilter, seniorityFilter, remoteFilter, sourceFilter]);
-  const appliedItems = useMemo(() => rawApplied.filter(filterJob), [rawApplied, searchTerm, roleFamilyFilter, seniorityFilter, remoteFilter, sourceFilter]);
-  const interviewItems = useMemo(() => rawInterview.filter(filterJob), [rawInterview, searchTerm, roleFamilyFilter, seniorityFilter, remoteFilter, sourceFilter]);
-  const offerItems = useMemo(() => rawOffer.filter(filterJob), [rawOffer, searchTerm, roleFamilyFilter, seniorityFilter, remoteFilter, sourceFilter]);
-  const archivedItems = useMemo(() => rawArchived.filter(filterJob), [rawArchived, searchTerm, roleFamilyFilter, seniorityFilter, remoteFilter, sourceFilter]);
+  const shortlistedItems = useMemo(() => rawShortlisted.filter(filterJob), [rawShortlisted, searchTerm, roleFamilyFilter, seniorityFilter, remoteFilter, sourceFilter, onlyFollowUpsDue]);
+  const preparingItems = useMemo(() => rawPreparing.filter(filterJob), [rawPreparing, searchTerm, roleFamilyFilter, seniorityFilter, remoteFilter, sourceFilter, onlyFollowUpsDue]);
+  const readyToApplyItems = useMemo(() => rawReadyToApply.filter(filterJob), [rawReadyToApply, searchTerm, roleFamilyFilter, seniorityFilter, remoteFilter, sourceFilter, onlyFollowUpsDue]);
+  const appliedItems = useMemo(() => rawApplied.filter(filterJob), [rawApplied, searchTerm, roleFamilyFilter, seniorityFilter, remoteFilter, sourceFilter, onlyFollowUpsDue]);
+  const interviewItems = useMemo(() => rawInterview.filter(filterJob), [rawInterview, searchTerm, roleFamilyFilter, seniorityFilter, remoteFilter, sourceFilter, onlyFollowUpsDue]);
+  const offerItems = useMemo(() => rawOffer.filter(filterJob), [rawOffer, searchTerm, roleFamilyFilter, seniorityFilter, remoteFilter, sourceFilter, onlyFollowUpsDue]);
+  const archivedItems = useMemo(() => rawArchived.filter(filterJob), [rawArchived, searchTerm, roleFamilyFilter, seniorityFilter, remoteFilter, sourceFilter, onlyFollowUpsDue]);
 
   const columns = [
     {
       id: 'SHORTLISTED',
+      targetStatus: 'SHORTLISTED' as ApplicationStatus,
       title: 'Shortlisted',
       items: shortlistedItems,
       icon: <BookmarkCheck className="h-4 w-4 text-sky-400" />,
       border: 'border-sky-500/30',
       badge: 'bg-sky-500/20 text-sky-300 border border-sky-500/40',
+      activeBorder: 'border-sky-400 bg-sky-950/30',
     },
     {
       id: 'PREPARING',
+      targetStatus: 'PREPARING' as ApplicationStatus,
       title: 'Preparing',
       items: preparingItems,
       icon: <FileText className="h-4 w-4 text-blue-400" />,
       border: 'border-blue-500/30',
       badge: 'bg-blue-500/20 text-blue-300 border border-blue-500/40',
+      activeBorder: 'border-blue-400 bg-blue-950/30',
     },
     {
       id: 'READY_TO_APPLY',
+      targetStatus: 'READY_TO_APPLY' as ApplicationStatus,
       title: 'Ready to Apply',
       items: readyToApplyItems,
       icon: <CheckCircle2 className="h-4 w-4 text-teal-400" />,
       border: 'border-teal-500/30',
       badge: 'bg-teal-500/20 text-teal-300 border border-teal-500/40',
+      activeBorder: 'border-teal-400 bg-teal-950/30',
     },
     {
       id: 'APPLIED',
+      targetStatus: 'APPLIED' as ApplicationStatus,
       title: 'Applied',
       items: appliedItems,
       icon: <Send className="h-4 w-4 text-emerald-400" />,
       border: 'border-emerald-500/30',
       badge: 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40',
+      activeBorder: 'border-emerald-400 bg-emerald-950/30',
     },
     {
       id: 'INTERVIEW',
+      targetStatus: 'INTERVIEW' as ApplicationStatus,
       title: 'Interview',
       items: interviewItems,
       icon: <Calendar className="h-4 w-4 text-purple-400" />,
       border: 'border-purple-500/30',
       badge: 'bg-purple-500/20 text-purple-300 border border-purple-500/40',
+      activeBorder: 'border-purple-400 bg-purple-950/30',
     },
     {
       id: 'OFFER',
+      targetStatus: 'OFFER' as ApplicationStatus,
       title: 'Offer',
       items: offerItems,
       icon: <Award className="h-4 w-4 text-amber-400" />,
       border: 'border-amber-500/30',
       badge: 'bg-amber-500/20 text-amber-300 border border-amber-500/40',
+      activeBorder: 'border-amber-400 bg-amber-950/30',
     },
     {
       id: 'ARCHIVED',
+      targetStatus: 'WITHDRAWN' as ApplicationStatus,
       title: 'Archived',
       items: archivedItems,
       icon: <XCircle className="h-4 w-4 text-rose-400" />,
       border: 'border-rose-500/30',
       badge: 'bg-rose-500/20 text-rose-300 border border-rose-500/40',
+      activeBorder: 'border-rose-400 bg-rose-950/30',
     },
   ];
 
@@ -204,6 +292,104 @@ export default function ApplicationQueuePage() {
     : columns.filter((col) => col.id === statusFilter);
 
   const totalFilteredCount = columns.reduce((acc, col) => acc + col.items.length, 0);
+
+  // ==========================================
+  // DRAG AND DROP HANDLERS WITH OPTIMISTIC UI
+  // ==========================================
+
+  const handleDragStart = (e: React.DragEvent, job: Job, fromColId: string) => {
+    setDraggedJob(job);
+    setDraggedFromCol(fromColId);
+    e.dataTransfer.setData('text/plain', JSON.stringify({ jobId: job.id, fromColId }));
+    e.dataTransfer.effectAllowed = 'move';
+  };
+
+  const handleDragOver = (e: React.DragEvent, colId: string) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+    if (dragOverCol !== colId) {
+      setDragOverCol(colId);
+    }
+  };
+
+  const handleDragLeave = (e: React.DragEvent, colId: string) => {
+    if (dragOverCol === colId) {
+      setDragOverCol(null);
+    }
+  };
+
+  const handleDragEnd = () => {
+    setDraggedJob(null);
+    setDraggedFromCol(null);
+    setDragOverCol(null);
+  };
+
+  const handleDrop = async (e: React.DragEvent, targetColId: string) => {
+    e.preventDefault();
+    setDragOverCol(null);
+
+    if (!draggedJob || !draggedFromCol || draggedFromCol === targetColId) {
+      return;
+    }
+
+    const targetCol = columns.find((c) => c.id === targetColId);
+    if (!targetCol) return;
+
+    const previousQueue = queue;
+    if (!previousQueue) return;
+
+    const movingJob = { ...draggedJob };
+    const targetStatus = targetCol.targetStatus;
+
+    // 1. Optimistic Local State Update
+    const removeFromBucket = (list?: Job[]) => (list || []).filter((j) => j.id !== movingJob.id);
+    const updatedJob: Job = {
+      ...movingJob,
+      application: movingJob.application
+        ? { ...movingJob.application, status: targetStatus }
+        : {
+            id: movingJob.id,
+            jobId: movingJob.id,
+            status: targetStatus,
+            appliedDate: targetStatus === 'APPLIED' ? new Date().toISOString() : null,
+            lastUpdated: new Date().toISOString(),
+          },
+    };
+
+    const nextQueue: ApplicationQueueGroup = {
+      ...previousQueue,
+      shortlisted: targetColId === 'SHORTLISTED' ? [updatedJob, ...removeFromBucket(previousQueue.shortlisted)] : removeFromBucket(previousQueue.shortlisted),
+      preparing: targetColId === 'PREPARING' ? [updatedJob, ...removeFromBucket(previousQueue.preparing)] : removeFromBucket(previousQueue.preparing),
+      needsInput: removeFromBucket(previousQueue.needsInput),
+      cvReady: removeFromBucket(previousQueue.cvReady),
+      readyToApply: targetColId === 'READY_TO_APPLY' ? [updatedJob, ...removeFromBucket(previousQueue.readyToApply)] : removeFromBucket(previousQueue.readyToApply),
+      applied: targetColId === 'APPLIED' ? [updatedJob, ...removeFromBucket(previousQueue.applied)] : removeFromBucket(previousQueue.applied),
+      interview: targetColId === 'INTERVIEW' ? [updatedJob, ...removeFromBucket(previousQueue.interview)] : removeFromBucket(previousQueue.interview),
+      offer: targetColId === 'OFFER' ? [updatedJob, ...removeFromBucket(previousQueue.offer)] : removeFromBucket(previousQueue.offer),
+      archived: targetColId === 'ARCHIVED' ? [updatedJob, ...removeFromBucket(previousQueue.archived)] : removeFromBucket(previousQueue.archived),
+      rejected: removeFromBucket(previousQueue.rejected),
+    };
+
+    setQueue(nextQueue);
+    showToast('info', `Moving "${movingJob.title}" to ${targetCol.title}...`);
+
+    // 2. Authoritative API Call
+    try {
+      await api.updateApplicationStatus(
+        movingJob.id,
+        targetStatus,
+        `Transitioned to ${targetStatus} via Kanban drag & drop`,
+        'USER'
+      );
+      showToast('success', `✓ Moved "${movingJob.title}" to ${targetCol.title}`);
+      window.dispatchEvent(new CustomEvent('hireflow:application-updated'));
+      await fetchQueue(true);
+    } catch (err: any) {
+      // 3. Rollback on Failure
+      setQueue(previousQueue);
+      showToast('error', `⚠️ Transition rejected: ${err.message || 'Illegal lifecycle transition'}`);
+    }
+  };
 
   if (loading) {
     return (
@@ -221,11 +407,25 @@ export default function ApplicationQueuePage() {
 
   return (
     <div className="space-y-6">
-      {/* Toast */}
-      {toastMessage && (
-        <div className="fixed bottom-6 right-6 z-50 flex items-center gap-2 rounded-lg bg-teal-600 px-4 py-3 text-sm font-semibold text-white shadow-xl animate-bounce">
-          <ShieldCheck className="h-5 w-5" />
-          <span>{toastMessage}</span>
+      {/* Toast Notification */}
+      {toast && (
+        <div
+          className={`fixed bottom-6 right-6 z-50 flex items-center gap-2.5 rounded-lg px-4 py-3 text-sm font-semibold shadow-2xl border transition-all ${
+            toast.type === 'error'
+              ? 'bg-rose-950 text-rose-200 border-rose-600/80 shadow-rose-950/50'
+              : toast.type === 'success'
+              ? 'bg-teal-950 text-teal-200 border-teal-500/80 shadow-teal-950/50'
+              : 'bg-slate-900 text-slate-200 border-slate-700 shadow-slate-950/50'
+          }`}
+        >
+          {toast.type === 'error' ? (
+            <AlertTriangle className="h-5 w-5 text-rose-400 shrink-0" />
+          ) : toast.type === 'success' ? (
+            <CheckCircle2 className="h-5 w-5 text-teal-400 shrink-0" />
+          ) : (
+            <RefreshCw className="h-4 w-4 text-blue-400 animate-spin shrink-0" />
+          )}
+          <span>{toast.message}</span>
         </div>
       )}
 
@@ -240,81 +440,110 @@ export default function ApplicationQueuePage() {
             </span>
           </h1>
           <p className="text-xs text-slate-400 mt-1">
-            Authoritative lifecycle progression, follow-up management, and immutable application tracking.
+            Drag cards between columns to advance lifecycle states with optimistic updates and strict gate enforcement.
           </p>
         </div>
 
-        <button
-          onClick={fetchQueue}
-          className="inline-flex items-center gap-1.5 rounded-lg border border-slate-700 bg-slate-800 hover:bg-slate-700 px-3.5 py-1.5 text-xs font-semibold text-slate-300 transition-colors"
-        >
-          <RefreshCw className="h-3.5 w-3.5" />
-          Refresh Pipeline
-        </button>
-      </div>
-
-      {/* Summary Stat Counters */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-3">
-        <div className="rounded-xl border border-slate-800 bg-[#0f172a] p-3">
-          <div className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Total</div>
-          <div className="text-xl font-black text-white mt-1">{totalFilteredCount}</div>
-        </div>
-        <div className="rounded-xl border border-sky-500/30 bg-sky-950/20 p-3">
-          <div className="text-[10px] font-bold uppercase tracking-wider text-sky-400">Shortlist</div>
-          <div className="text-xl font-black text-sky-300 mt-1">{shortlistedItems.length}</div>
-        </div>
-        <div className="rounded-xl border border-blue-500/30 bg-blue-950/20 p-3">
-          <div className="text-[10px] font-bold uppercase tracking-wider text-blue-400">Preparing</div>
-          <div className="text-xl font-black text-blue-300 mt-1">{preparingItems.length}</div>
-        </div>
-        <div className="rounded-xl border border-teal-500/30 bg-teal-950/20 p-3">
-          <div className="text-[10px] font-bold uppercase tracking-wider text-teal-400">Ready</div>
-          <div className="text-xl font-black text-teal-300 mt-1">{readyToApplyItems.length}</div>
-        </div>
-        <div className="rounded-xl border border-emerald-500/30 bg-emerald-950/20 p-3">
-          <div className="text-[10px] font-bold uppercase tracking-wider text-emerald-400">Applied</div>
-          <div className="text-xl font-black text-emerald-300 mt-1">{appliedItems.length}</div>
-        </div>
-        <div className="rounded-xl border border-purple-500/30 bg-purple-950/20 p-3">
-          <div className="text-[10px] font-bold uppercase tracking-wider text-purple-400">Interview</div>
-          <div className="text-xl font-black text-purple-300 mt-1">{interviewItems.length}</div>
-        </div>
-        <div className="rounded-xl border border-amber-500/30 bg-amber-950/20 p-3">
-          <div className="text-[10px] font-bold uppercase tracking-wider text-amber-400">Offer</div>
-          <div className="text-xl font-black text-amber-300 mt-1">{offerItems.length}</div>
-        </div>
-        <div className="rounded-xl border border-rose-500/30 bg-rose-950/20 p-3">
-          <div className="text-[10px] font-bold uppercase tracking-wider text-rose-400">Archived</div>
-          <div className="text-xl font-black text-rose-300 mt-1">{archivedItems.length}</div>
+        <div className="flex items-center gap-3">
+          <button
+            onClick={() => fetchQueue(false)}
+            disabled={refreshing}
+            className="inline-flex items-center gap-1.5 rounded-lg border border-slate-700 bg-slate-800 hover:bg-slate-700 px-3.5 py-1.5 text-xs font-semibold text-slate-300 transition-colors disabled:opacity-50"
+          >
+            <RefreshCw className={`h-3.5 w-3.5 ${refreshing ? 'animate-spin text-teal-400' : ''}`} />
+            <span>{refreshing ? 'Syncing...' : 'Sync Board'}</span>
+          </button>
         </div>
       </div>
 
-      {/* Filter Controls Bar */}
+      {/* Follow-Up Action Alert Banner */}
+      {(followUpStats.overdue > 0 || followUpStats.dueToday > 0) && (
+        <div className="rounded-xl border border-amber-500/40 bg-gradient-to-r from-amber-950/30 via-slate-900 to-rose-950/30 p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-lg">
+          <div className="flex items-center gap-3">
+            <div className="p-2 rounded-lg bg-amber-500/20 text-amber-400 border border-amber-500/30">
+              <BellRing className="h-5 w-5 animate-pulse" />
+            </div>
+            <div>
+              <div className="font-bold text-sm text-white flex items-center gap-2">
+                Action Required: Follow-ups Pending
+                {followUpStats.overdue > 0 && (
+                  <span className="px-1.5 py-0.2 rounded bg-rose-500/30 text-rose-300 text-[10px] font-extrabold border border-rose-500/40">
+                    {followUpStats.overdue} OVERDUE
+                  </span>
+                )}
+                {followUpStats.dueToday > 0 && (
+                  <span className="px-1.5 py-0.2 rounded bg-amber-500/30 text-amber-300 text-[10px] font-extrabold border border-amber-500/40">
+                    {followUpStats.dueToday} DUE TODAY
+                  </span>
+                )}
+              </div>
+              <p className="text-xs text-slate-400 mt-0.5">
+                Maintain communication cadence with hiring teams to maximize interview conversion.
+              </p>
+            </div>
+          </div>
+
+          <button
+            onClick={() => setOnlyFollowUpsDue(!onlyFollowUpsDue)}
+            className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-colors shrink-0 flex items-center gap-1.5 border ${
+              onlyFollowUpsDue
+                ? 'bg-amber-500 text-slate-950 border-amber-400'
+                : 'bg-slate-800 hover:bg-slate-700 text-amber-300 border-amber-500/30'
+            }`}
+          >
+            <Clock className="w-3.5 h-3.5" />
+            <span>{onlyFollowUpsDue ? 'Clear Follow-Up Filter' : 'Filter Follow-ups Due'}</span>
+          </button>
+        </div>
+      )}
+
+      {/* Filter Control Bar */}
       <div className="rounded-xl border border-slate-800 bg-[#0b1324] p-4 space-y-3">
-        <div className="flex items-center gap-2 text-xs font-bold text-slate-300">
-          <Filter className="w-3.5 h-3.5 text-teal-400" />
-          Filter Applications
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2 text-xs font-semibold text-slate-300">
+            <Filter className="h-4 w-4 text-teal-400" />
+            <span>Kanban Filters</span>
+            <span className="text-slate-500">({totalFilteredCount} matching cards)</span>
+          </div>
+
+          {(searchTerm || statusFilter !== 'ALL' || roleFamilyFilter !== 'ALL' || seniorityFilter !== 'ALL' || remoteFilter !== 'ALL' || sourceFilter !== 'ALL' || onlyFollowUpsDue) && (
+            <button
+              onClick={() => {
+                setSearchTerm('');
+                setStatusFilter('ALL');
+                setRoleFamilyFilter('ALL');
+                setSeniorityFilter('ALL');
+                setRemoteFilter('ALL');
+                setSourceFilter('ALL');
+                setOnlyFollowUpsDue(false);
+              }}
+              className="text-[11px] text-teal-400 hover:text-teal-300 font-semibold"
+            >
+              Reset Filters
+            </button>
+          )}
         </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-2.5">
           {/* Search */}
           <div className="relative">
-            <Search className="w-3.5 h-3.5 text-slate-500 absolute left-2.5 top-2.5" />
+            <Search className="absolute left-2.5 top-2.5 h-3.5 w-3.5 text-slate-500" />
             <input
               type="text"
-              placeholder="Search company or title..."
+              placeholder="Search company/title..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="w-full pl-8 pr-3 py-1.5 rounded-lg border border-slate-700 bg-slate-900 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-teal-500"
             />
           </div>
 
-          {/* Status */}
+          {/* Column/Status Filter */}
           <select
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
             className="w-full px-2.5 py-1.5 rounded-lg border border-slate-700 bg-slate-900 text-xs text-white focus:outline-none focus:border-teal-500"
           >
-            <option value="ALL">All Stages</option>
+            <option value="ALL">All Columns</option>
             <option value="SHORTLISTED">Shortlisted</option>
             <option value="PREPARING">Preparing</option>
             <option value="READY_TO_APPLY">Ready to Apply</option>
@@ -331,12 +560,10 @@ export default function ApplicationQueuePage() {
             className="w-full px-2.5 py-1.5 rounded-lg border border-slate-700 bg-slate-900 text-xs text-white focus:outline-none focus:border-teal-500"
           >
             <option value="ALL">All Role Families</option>
-            <option value="Software Engineering">Software Engineering</option>
-            <option value="DevOps">DevOps</option>
-            <option value="Data">Data</option>
-            <option value="QA">QA</option>
-            <option value="Engineering Management">Engineering Management</option>
-            <option value="Other">Other</option>
+            <option value="SOFTWARE_ENGINEERING">Software Engineering</option>
+            <option value="DATA_AI">Data &amp; AI</option>
+            <option value="PRODUCT_DESIGN">Product &amp; Design</option>
+            <option value="INFRASTRUCTURE">Infrastructure</option>
           </select>
 
           {/* Seniority */}
@@ -384,149 +611,169 @@ export default function ApplicationQueuePage() {
 
       {/* Kanban Board Columns */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-7 gap-4 items-start">
-        {visibleColumns.map((col) => (
-          <div
-            key={col.id}
-            className={`rounded-xl border ${col.border} bg-[#0b1324] p-3 space-y-3 min-h-[420px] flex flex-col justify-between`}
-          >
-            <div>
-              {/* Column Header */}
-              <div className="flex items-center justify-between border-b border-slate-800 pb-2 mb-3">
-                <div className="flex items-center gap-1.5 text-xs font-bold text-white">
-                  {col.icon}
-                  <span>{col.title}</span>
-                </div>
-                <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${col.badge}`}>
-                  {col.items.length}
-                </span>
-              </div>
+        {visibleColumns.map((col) => {
+          const isOver = dragOverCol === col.id;
 
-              {/* Card Items */}
-              <div className="space-y-2.5">
-                {col.items.length === 0 ? (
-                  <div className="text-center py-8 text-[11px] text-slate-600 italic">
-                    No applications
+          return (
+            <div
+              key={col.id}
+              onDragOver={(e) => handleDragOver(e, col.id)}
+              onDragLeave={(e) => handleDragLeave(e, col.id)}
+              onDrop={(e) => handleDrop(e, col.id)}
+              className={`rounded-xl border transition-all duration-150 ${
+                isOver ? col.activeBorder + ' ring-2 ring-teal-500/40' : col.border
+              } bg-[#0b1324] p-3 space-y-3 min-h-[460px] flex flex-col justify-between`}
+            >
+              <div>
+                {/* Column Header */}
+                <div className="flex items-center justify-between border-b border-slate-800 pb-2 mb-3">
+                  <div className="flex items-center gap-1.5 text-xs font-bold text-white">
+                    {col.icon}
+                    <span>{col.title}</span>
                   </div>
-                ) : (
-                  col.items.map((job) => {
-                    const isFresh = job.ageStatus === 'FRESH';
-                    const followUpBadge = getFollowUpBadge(job.application?.nextFollowUpAt);
-                    const priorityScore = job.applicationPriority;
-                    const priorityReasons = job.priorityReasons || [];
+                  <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${col.badge}`}>
+                    {col.items.length}
+                  </span>
+                </div>
 
-                    return (
-                      <div
-                        key={job.id}
-                        className="rounded-lg border border-slate-800 bg-[#0f172a] p-3 space-y-2.5 shadow-sm hover:border-slate-700 transition-colors"
-                      >
-                        {/* Header: Priority & Freshness */}
-                        <div className="flex items-center justify-between gap-1">
-                          {priorityScore != null ? (
-                            <span
-                              className={`text-[9px] font-extrabold uppercase px-1.5 py-0.5 rounded ${
-                                priorityScore >= 80
-                                  ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30'
-                                  : priorityScore >= 50
-                                  ? 'bg-amber-500/20 text-amber-300 border border-amber-500/30'
-                                  : 'bg-slate-700/50 text-slate-400 border border-slate-600/30'
-                              }`}
-                              title={priorityReasons.join(', ')}
-                            >
-                              Priority {priorityScore}
+                {/* Card Items */}
+                <div className="space-y-2.5">
+                  {col.items.length === 0 ? (
+                    <div className="text-center py-10 text-[11px] text-slate-600 italic border-2 border-dashed border-slate-800/60 rounded-lg">
+                      {isOver ? 'Drop card here' : 'No applications'}
+                    </div>
+                  ) : (
+                    col.items.map((job) => {
+                      const isFresh = job.ageStatus === 'FRESH';
+                      const followUpBadge = getFollowUpBadge(job.application?.nextFollowUpAt);
+                      const priorityScore = job.applicationPriority;
+                      const priorityReasons = job.priorityReasons || [];
+                      const isBeingDragged = draggedJob?.id === job.id;
+
+                      return (
+                        <div
+                          key={job.id}
+                          draggable={true}
+                          onDragStart={(e) => handleDragStart(e, job, col.id)}
+                          onDragEnd={handleDragEnd}
+                          className={`rounded-lg border bg-[#0f172a] p-3 space-y-2.5 shadow-sm transition-all cursor-grab active:cursor-grabbing hover:border-slate-600 ${
+                            isBeingDragged
+                              ? 'opacity-40 border-teal-500 scale-95'
+                              : 'border-slate-800'
+                          }`}
+                        >
+                          {/* Header: Priority, Drag Handle & Freshness */}
+                          <div className="flex items-center justify-between gap-1">
+                            <div className="flex items-center gap-1.5">
+                              <GripVertical className="h-3.5 w-3.5 text-slate-600 shrink-0" />
+                              {priorityScore != null ? (
+                                <span
+                                  className={`text-[9px] font-extrabold uppercase px-1.5 py-0.5 rounded ${
+                                    priorityScore >= 80
+                                      ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30'
+                                      : priorityScore >= 50
+                                      ? 'bg-amber-500/20 text-amber-300 border border-amber-500/30'
+                                      : 'bg-slate-700/50 text-slate-400 border border-slate-600/30'
+                                  }`}
+                                  title={priorityReasons.join(', ')}
+                                >
+                                  Priority {priorityScore}
+                                </span>
+                              ) : (
+                                <span className="text-[9px] font-bold text-slate-500">Standard</span>
+                              )}
+                            </div>
+
+                            {isFresh && (
+                              <span className="shrink-0 text-teal-400 flex items-center gap-0.5 text-[9px] font-bold" title="Fresh <24h">
+                                <Flame className="h-3 w-3" />
+                                Fresh
+                              </span>
+                            )}
+                          </div>
+
+                          {/* Title & Company */}
+                          <div>
+                            <h4 className="font-bold text-white text-xs line-clamp-1">
+                              {job.title}
+                            </h4>
+                            <div className="text-[11px] text-slate-400 flex items-center gap-1 mt-0.5">
+                              <Building2 className="h-3 w-3 text-slate-500 shrink-0" />
+                              <span className="truncate">{job.company}</span>
+                            </div>
+                          </div>
+
+                          {/* Location & Seniority */}
+                          <div className="flex items-center gap-2 text-[10px] text-slate-400">
+                            <span className="flex items-center gap-0.5 truncate">
+                              <MapPin className="h-3 w-3 text-slate-500 shrink-0" />
+                              {job.location || 'Unknown'}
                             </span>
-                          ) : (
-                            <span className="text-[9px] font-bold text-slate-500">Standard</span>
+                            {job.seniority && job.seniority !== 'UNKNOWN' && (
+                              <span className="px-1.5 py-0.5 rounded bg-slate-800 text-slate-300 border border-slate-700">
+                                {job.seniority}
+                              </span>
+                            )}
+                          </div>
+
+                          {/* Role Family tag */}
+                          {job.roleFamily && job.roleFamily !== 'UNKNOWN' && (
+                            <div className="text-[9px] font-medium text-slate-400 flex items-center gap-1">
+                              <Briefcase className="w-2.5 h-2.5 text-slate-500" />
+                              {job.roleFamily}
+                            </div>
                           )}
 
-                          {isFresh && (
-                            <span className="shrink-0 text-teal-400 flex items-center gap-0.5 text-[9px] font-bold" title="Fresh <24h">
-                              <Flame className="h-3 w-3" />
-                              Fresh
-                            </span>
+                          {/* Follow-up State Badge */}
+                          {followUpBadge && (
+                            <div className="pt-1">
+                              {followUpBadge}
+                            </div>
                           )}
-                        </div>
 
-                        {/* Title & Company */}
-                        <div>
-                          <h4 className="font-bold text-white text-xs line-clamp-1">
-                            {job.title}
-                          </h4>
-                          <div className="text-[11px] text-slate-400 flex items-center gap-1 mt-0.5">
-                            <Building2 className="h-3 w-3 text-slate-500 shrink-0" />
-                            <span className="truncate">{job.company}</span>
-                          </div>
-                        </div>
-
-                        {/* Location & Seniority */}
-                        <div className="flex items-center gap-2 text-[10px] text-slate-400">
-                          <span className="flex items-center gap-0.5 truncate">
-                            <MapPin className="h-3 w-3 text-slate-500 shrink-0" />
-                            {job.location || 'Unknown'}
-                          </span>
-                          {job.seniority && job.seniority !== 'UNKNOWN' && (
-                            <span className="px-1.5 py-0.5 rounded bg-slate-800 text-slate-300 border border-slate-700">
-                              {job.seniority}
-                            </span>
-                          )}
-                        </div>
-
-                        {/* Role Family tag */}
-                        {job.roleFamily && job.roleFamily !== 'UNKNOWN' && (
-                          <div className="text-[9px] font-medium text-slate-400 flex items-center gap-1">
-                            <Briefcase className="w-2.5 h-2.5 text-slate-500" />
-                            {job.roleFamily}
-                          </div>
-                        )}
-
-                        {/* Follow-up State Badge */}
-                        {followUpBadge && (
-                          <div className="pt-1">
-                            {followUpBadge}
-                          </div>
-                        )}
-
-                        {/* Actions */}
-                        <div className="pt-2 border-t border-slate-800/80 flex items-center justify-between gap-1">
-                          <Link
-                            href={`/applications/${job.application?.id || job.id}`}
-                            className="text-[11px] text-teal-400 hover:text-teal-300 font-bold flex items-center gap-1"
-                            title="Open V5 Application Workspace"
-                          >
-                            <span>Workspace</span>
-                            <ArrowRight className="h-3 w-3" />
-                          </Link>
-
-                          <div className="flex items-center gap-2">
+                          {/* Actions */}
+                          <div className="pt-2 border-t border-slate-800/80 flex items-center justify-between gap-1">
                             <Link
-                              href={`/jobs/${job.id}/apply`}
-                              className="text-[10px] text-slate-400 hover:text-slate-200"
-                              title="Copilot Preparation"
+                              href={`/applications/${job.application?.id || job.id}`}
+                              className="text-[11px] text-teal-400 hover:text-teal-300 font-bold flex items-center gap-1"
+                              title="Open V5 Application Workspace"
                             >
-                              Copilot
+                              <span>Workspace</span>
+                              <ArrowRight className="h-3 w-3" />
                             </Link>
-                            <a
-                              href={job.applicationUrl || job.canonicalUrl}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="text-[11px] text-slate-400 hover:text-white flex items-center gap-0.5"
-                              title="Open Official Employer Portal"
-                            >
-                              <ExternalLink className="h-3 w-3" />
-                            </a>
+
+                            <div className="flex items-center gap-2">
+                              <Link
+                                href={`/jobs/${job.id}/apply`}
+                                className="text-[10px] text-slate-400 hover:text-slate-200"
+                                title="Copilot Preparation"
+                              >
+                                Copilot
+                              </Link>
+                              <a
+                                href={job.applicationUrl || job.canonicalUrl}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-[11px] text-slate-400 hover:text-white flex items-center gap-0.5"
+                                title="Open Official Employer Portal"
+                              >
+                                <ExternalLink className="h-3 w-3" />
+                              </a>
+                            </div>
                           </div>
                         </div>
-                      </div>
-                    );
-                  })
-                )}
+                      );
+                    })
+                  )}
+                </div>
+              </div>
+
+              <div className="text-[10px] text-slate-600 text-center pt-2">
+                Drag to transition status
               </div>
             </div>
-
-            <div className="text-[10px] text-slate-600 text-center pt-2">
-              Human-Controlled Submission
-            </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
     </div>
   );

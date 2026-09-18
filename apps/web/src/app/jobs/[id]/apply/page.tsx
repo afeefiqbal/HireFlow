@@ -5,6 +5,7 @@ import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { api } from '@/lib/api';
 import { ApplicationPreparationSummary } from '@ai-job-agent/shared';
+import { ClientDate } from '@/components/ClientDate';
 import {
   ArrowLeft,
   FileText,
@@ -580,7 +581,7 @@ export default function ApplicationPreparationPage() {
                     <CheckCircle2 className="h-6 w-6 text-emerald-400 shrink-0 mt-0.5" />
                     <div>
                       <div className="font-bold text-emerald-400">Application Submitted</div>
-                      <div className="text-xs text-slate-400 mt-1">You marked this job as APPLIED on {new Date(job.application.appliedDate || job.application.lastUpdated || Date.now()).toLocaleDateString()}.</div>
+                      <div className="text-xs text-slate-400 mt-1">You marked this job as APPLIED on <ClientDate date={job.application.appliedDate || job.application.lastUpdated} />.</div>
                       {(job.applicationUrl || (job.application as any).applicationUrl) && (
                         <a href={job.applicationUrl || (job.application as any).applicationUrl} target="_blank" rel="noreferrer" className="text-xs text-emerald-300 hover:underline mt-2 inline-block">View Posting</a>
                       )}

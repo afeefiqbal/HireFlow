@@ -118,4 +118,96 @@ export class ProfileController {
       return res.status(500).json({ success: false, message: error.message });
     }
   }
+
+  static async uploadResume(req: Request, res: Response) {
+    try {
+      const { text } = req.body;
+      if (!text || typeof text !== 'string') {
+        return res.status(400).json({ success: false, message: 'Resume text is required' });
+      }
+
+      const { ProfileIngestionService } = await import('../services/profile-ingestion.service');
+      const preview = await ProfileIngestionService.parseResumeText(text);
+
+      return res.json({
+        success: true,
+        data: preview,
+        message: 'Resume parsed successfully into candidate preview',
+      });
+    } catch (error: any) {
+      console.error('Error uploading/parsing resume:', error);
+      return res.status(500).json({ success: false, message: error.message });
+    }
+  }
+
+  static async commitResume(req: Request, res: Response) {
+    try {
+      const { preview, overwrite } = req.body;
+      if (!preview || !preview.fullName) {
+        return res.status(400).json({ success: false, message: 'Valid preview data is required' });
+      }
+
+      const { ProfileIngestionService } = await import('../services/profile-ingestion.service');
+      const updated = await ProfileIngestionService.syncToCandidateProfile(preview, {
+        overwrite: Boolean(overwrite),
+      });
+
+      return res.json({
+        success: true,
+        data: updated,
+        message: 'Candidate Ground Truth updated successfully from resume',
+      });
+    } catch (error: any) {
+      console.error('Error committing resume to profile:', error);
+      return res.status(500).json({ success: false, message: error.message });
+    }
+  }
+
+  static async getAutoApplyConfig(req: Request, res: Response) {
+    try {
+      const profile = await prisma.candidateProfile.findFirst();
+      const rawConfig = (profile?.autoApplyConfig as any) || {};
+
+      const config = {
+        enabled: Boolean(rawConfig.enabled),
+        autonomousThreshold: typeof rawConfig.autonomousThreshold === 'number' ? rawConfig.autonomousThreshold : 85,
+        dailyLimit: typeof rawConfig.dailyLimit === 'number' ? rawConfig.dailyLimit : 5,
+      };
+
+      return res.json({ success: true, data: config });
+    } catch (error: any) {
+      console.error('Error fetching auto-apply config:', error);
+      return res.status(500).json({ success: false, message: error.message });
+    }
+  }
+
+  static async updateAutoApplyConfig(req: Request, res: Response) {
+    try {
+      const { enabled, autonomousThreshold, dailyLimit } = req.body;
+      const profile = await prisma.candidateProfile.findFirst();
+      if (!profile) {
+        return res.status(404).json({ success: false, message: 'Candidate profile not found' });
+      }
+
+      const newConfig = {
+        enabled: Boolean(enabled),
+        autonomousThreshold: typeof autonomousThreshold === 'number' ? autonomousThreshold : 85,
+        dailyLimit: typeof dailyLimit === 'number' ? dailyLimit : 5,
+      };
+
+      await prisma.candidateProfile.update({
+        where: { id: profile.id },
+        data: { autoApplyConfig: newConfig as any },
+      });
+
+      return res.json({
+        success: true,
+        data: newConfig,
+        message: 'Auto-apply configuration saved successfully',
+      });
+    } catch (error: any) {
+      console.error('Error updating auto-apply config:', error);
+      return res.status(500).json({ success: false, message: error.message });
+    }
+  }
 }

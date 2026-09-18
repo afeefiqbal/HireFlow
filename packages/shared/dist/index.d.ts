@@ -520,3 +520,267 @@ export interface ApplicationQueueGroup {
     offer?: Job[];
     archived?: Job[];
 }
+export type InterviewStatus = 'PLANNED' | 'SCHEDULED' | 'IN_PROGRESS' | 'COMPLETED' | 'CANCELLED';
+export type InterviewRoundType = 'SCREENING_CALL' | 'TECHNICAL_SCREEN' | 'TECHNICAL_ROUND' | 'SYSTEM_DESIGN' | 'BEHAVIORAL_CULTURE' | 'EXECUTIVE_FINAL' | 'CUSTOM';
+export type InterviewRoundStatus = 'SCHEDULED' | 'COMPLETED' | 'CANCELLED';
+export type QuestionCategory = 'BEHAVIORAL' | 'TECHNICAL' | 'SYSTEM_DESIGN' | 'PROJECT_DEEP_DIVE' | 'ROLE_SPECIFIC' | 'COMPANY_SPECIFIC' | 'SCREENING' | 'FOLLOW_UP';
+export type QuestionSource = 'PREDICTED' | 'AI_GENERATED' | 'USER_PROVIDED' | 'ACTUAL_INTERVIEW';
+export type EvidenceAttribution = 'AI_VERIFIED' | 'USER_PROVIDED' | 'USER_INPUT_REQUIRED' | 'USER_REVIEW_REQUIRED';
+export interface InterviewRoundRecord {
+    id: string;
+    interviewId: string;
+    roundType: InterviewRoundType;
+    title: string;
+    sequence: number;
+    status: InterviewRoundStatus;
+    scheduledAt?: string | null;
+    completedAt?: string | null;
+    interviewerName?: string | null;
+    interviewerTitle?: string | null;
+    meetingUrl?: string | null;
+    notes?: string | null;
+    createdAt: string;
+    updatedAt: string;
+}
+export interface InterviewQuestionItem {
+    id: string;
+    interviewId: string;
+    roundId?: string | null;
+    category: QuestionCategory;
+    source: QuestionSource;
+    questionText: string;
+    suggestedAnswer?: string | null;
+    starSituation?: string | null;
+    starTask?: string | null;
+    starAction?: string | null;
+    starResult?: string | null;
+    resultAttribution: EvidenceAttribution;
+    unverifiedClaims?: string[];
+    relevanceReason?: string | null;
+    userNotes?: string | null;
+    createdAt: string;
+    updatedAt: string;
+}
+export interface STARAnswerItem {
+    question: string;
+    situation: {
+        text: string;
+        attribution: EvidenceAttribution;
+    };
+    task: {
+        text: string;
+        attribution: EvidenceAttribution;
+    };
+    action: {
+        text: string;
+        attribution: EvidenceAttribution;
+    };
+    result: {
+        text: string;
+        attribution: EvidenceAttribution;
+    };
+    targetProjectOrCompany?: string;
+    unverifiedClaims?: string[];
+}
+export interface CompanyIntelligenceBrief {
+    companyName: string;
+    industry?: string;
+    knownTechStack: string[];
+    engineeringSignals: string[];
+    roleExpectations: string[];
+    evidenceNotes: string[];
+}
+export interface TechnologyRevisionTopic {
+    technology: string;
+    status: 'DIRECT' | 'PARTIAL' | 'NOT_VERIFIED' | 'NOT_RETRIEVED';
+    relevanceToRole: string;
+    revisionTopics: string[];
+    candidateEvidence?: string | null;
+}
+export interface InterviewPrepKitData {
+    id: string;
+    interviewId: string;
+    roundId?: string | null;
+    versionNum: number;
+    modelUsed?: string;
+    promptVersion?: string;
+    companyBrief: CompanyIntelligenceBrief;
+    roleBrief: {
+        title: string;
+        seniority: string;
+        roleFamily: string;
+        coreExpectations: string[];
+    };
+    techTopics: TechnologyRevisionTopic[];
+    projectDeepDives: Array<{
+        projectName: string;
+        technologies: string[];
+        description: string;
+        likelyQuestions: string[];
+    }>;
+    starBlueprints: STARAnswerItem[];
+    systemDesignTopics?: string[];
+    questionsToAsk: string[];
+    createdAt: string;
+}
+export interface MockQnAItem {
+    questionId?: string;
+    question: string;
+    answer?: string;
+    feedback?: {
+        relevance: string;
+        completeness: string;
+        technicalAccuracy: string;
+        clarity: string;
+        unverifiedClaims?: string[];
+        suggestions: string[];
+    };
+}
+export interface MockSessionRecord {
+    id: string;
+    interviewId: string;
+    roundId?: string | null;
+    roundType: InterviewRoundType;
+    status: 'ACTIVE' | 'COMPLETED' | 'ABANDONED';
+    qna: MockQnAItem[];
+    feedbackSummary?: {
+        overallStrengths: string[];
+        keyAreasToImprove: string[];
+        unverifiedClaimsFound: string[];
+    } | null;
+    createdAt: string;
+    completedAt?: string | null;
+}
+export interface InterviewDebriefRecord {
+    id: string;
+    interviewId: string;
+    roundId?: string | null;
+    candidateReflection: string;
+    questionsAsked: string[];
+    technicalTopics: string[];
+    behavioralTopics: string[];
+    whatWentWell?: string | null;
+    whatWasDifficult?: string | null;
+    topicsToStudy: string[];
+    interviewerFeedback?: string | null;
+    aiObservedSummary?: string | null;
+    aiSuggestions: string[];
+    nextSteps?: string | null;
+    followUpDate?: string | null;
+    outcome?: string | null;
+    createdAt: string;
+}
+export interface InterviewRecord {
+    id: string;
+    applicationId: string;
+    status: InterviewStatus;
+    overallOutcome?: string | null;
+    notes?: string | null;
+    createdAt: string;
+    updatedAt: string;
+    application?: {
+        id: string;
+        jobId: string;
+        status: ApplicationStatus;
+        job: Job;
+        snapshotJson?: ApplicationSnapshot | null;
+    };
+    rounds: InterviewRoundRecord[];
+    prepKits?: InterviewPrepKitData[];
+    questions?: InterviewQuestionItem[];
+    mockSessions?: MockSessionRecord[];
+    debriefs?: InterviewDebriefRecord[];
+}
+export interface InterviewStatsSummary {
+    totalInterviews: number;
+    activeInterviews: number;
+    completedRounds: number;
+    upcomingRounds: number;
+    mockSessionsPracticed: number;
+    questionsRecorded: number;
+    debriefsCompleted: number;
+}
+export type OpportunityTier = 'DISCOVERED' | 'DASHBOARD_QUALIFIED' | 'AUTO_PREPARED' | 'AUTO_APPLY_ELIGIBLE' | 'APPLIED';
+export type SubmissionMechanism = 'GREENHOUSE_DIRECT' | 'LEVER_DIRECT' | 'MANUAL_EXTERNAL';
+export interface SubmissionReceipt {
+    receiptId: string;
+    submittedAt: string;
+    mechanism: SubmissionMechanism;
+    confirmationData?: unknown;
+}
+export interface SandboxTestResult {
+    testedAt: string;
+    isValid: boolean;
+    targetMechanism: string;
+    validationErrors: string[];
+    diagnosticInfo?: Record<string, unknown>;
+}
+export interface AutoApplyConfig {
+    enabled: boolean;
+    autonomousThreshold: number;
+    dailyLimit: number;
+}
+export interface QualifiedOpportunity {
+    job: Job;
+    matchScore: number;
+    roleFamilyPass: boolean;
+    tier: OpportunityTier;
+    tierReason: string;
+    atsMechanism: SubmissionMechanism;
+    autoApplyEligible: boolean;
+    autoApplyIneligibleReason?: string;
+    preparationStatus: {
+        cvReady: boolean;
+        coverLetterReady: boolean;
+        screeningReady: boolean;
+        pendingQuestionsCount: number;
+    };
+    applicationStatus?: ApplicationStatus | null;
+    applicationId?: string | null;
+    submissionReceipt?: SubmissionReceipt | null;
+}
+export interface ParsedResumePreview {
+    fullName: string;
+    headline: string;
+    yearsOfExperience: number;
+    targetRoles: string[];
+    targetLocations: string[];
+    phone?: string | null;
+    location?: string | null;
+    linkedin?: string | null;
+    github?: string | null;
+    portfolio?: string | null;
+    skills: Array<{
+        name: string;
+        category: string;
+        level: string;
+    }>;
+    experiences: Array<{
+        company: string;
+        role: string;
+        startDate: string;
+        endDate?: string | null;
+        isCurrent: boolean;
+        description?: string | null;
+        technologies: string[];
+    }>;
+    projects: Array<{
+        title: string;
+        description?: string | null;
+        technologies: string[];
+        url?: string | null;
+    }>;
+    commonAnswers?: {
+        visaSponsorship?: string;
+        workAuthorization?: string;
+        noticePeriod?: string;
+        expectedSalary?: string;
+        relocation?: string;
+    };
+}
+export interface AutoApplyEligibilityResult {
+    isEligible: boolean;
+    reason: string;
+    adapterType: SubmissionMechanism;
+    requiresUserInputCount: number;
+}

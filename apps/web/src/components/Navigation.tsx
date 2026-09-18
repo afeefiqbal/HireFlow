@@ -15,6 +15,7 @@ import {
   Zap,
   Layers,
   BarChart3,
+  Video,
 } from 'lucide-react';
 
 const NAV_ITEMS = [
@@ -22,6 +23,7 @@ const NAV_ITEMS = [
   { href: '/jobs', label: 'Jobs', icon: Briefcase },
   { href: '/matches', label: 'Matches', icon: Sparkles },
   { href: '/application-queue', label: 'Queue', icon: KanbanSquare },
+  { href: '/interviews', label: 'Interviews', icon: Video },
   { href: '/analytics', label: 'Analytics', icon: BarChart3 },
   { href: '/applications', label: 'Tracking', icon: Layers },
   { href: '/resume', label: 'Resume', icon: FileText },
@@ -45,7 +47,7 @@ export const Navigation: React.FC = () => {
               <div className="flex items-center gap-2">
                 <span className="text-base font-bold tracking-tight text-white">AI JOB AGENT</span>
                 <span className="rounded bg-teal-500/20 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-teal-300">
-                  V2 Active
+                  V6 Active
                 </span>
               </div>
               <p className="text-[11px] text-slate-400">Private Dashboard · Afeef Iqbal</p>

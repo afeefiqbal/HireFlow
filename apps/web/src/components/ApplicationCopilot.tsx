@@ -24,6 +24,7 @@ import {
   ScreeningQuestionItem,
 } from '@ai-job-agent/shared';
 import { api } from '@/lib/api';
+import { ClientDate } from '@/components/ClientDate';
 
 interface ApplicationCopilotProps {
   isOpen: boolean;
@@ -289,7 +290,7 @@ export default function ApplicationCopilot({
                 LOCKED APPLICATION SNAPSHOT
               </div>
               <span className="text-[10px] font-mono text-teal-400/80">
-                {new Date(applicationSnapshot.appliedDate).toLocaleDateString()}
+                <ClientDate date={applicationSnapshot.appliedDate} />
               </span>
             </div>
             <p className="text-[11px] text-slate-400 leading-relaxed">
@@ -759,7 +760,7 @@ export default function ApplicationCopilot({
               <div className="p-3 rounded bg-slate-950 border border-slate-800 space-y-1">
                 <div className="text-slate-400">Submission Timestamp</div>
                 <div className="font-mono text-teal-300">
-                  {new Date(applicationSnapshot.appliedDate).toLocaleString()}
+                  <ClientDate date={applicationSnapshot.appliedDate} type="datetime" />
                 </div>
                 <div className="text-slate-400 mt-2">Resume Artifact at Submission</div>
                 <div className="font-mono text-slate-200">

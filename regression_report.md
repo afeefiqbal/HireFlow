@@ -1,6 +1,6 @@
 # AI Job Agent — Regression Test Report
 
-**Generated**: 2026-09-17 06:23:16
+**Generated**: 2026-09-17 11:04:16
 **Mode**: Development
 **Smart Model**: openai/gpt-oss-120b
 **Fast Model**: openai/gpt-oss-20b
@@ -11,22 +11,22 @@
 
 | Job | Task | Tokens | Status |
 | :--- | :--- | :--- | :--- |
-| Laravel Senior Backend Developer (m/w/d) | JOB_MATCHING | ~1368 | ✅ |
-| Laravel Senior Backend Developer (m/w/d) | RESUME_GENERATION | ~2278 | ✅ |
-| Laravel Senior Backend Developer (m/w/d) | COVER_LETTER | ~1368 | ✅ |
-| Laravel Senior Backend Developer (m/w/d) | SCREENING_QUESTION | ~1368 | ✅ |
-| Senior Backend Developer (Node.js) | JOB_MATCHING | ~1240 | ✅ |
-| Senior Backend Developer (Node.js) | RESUME_GENERATION | ~2150 | ✅ |
-| Senior Backend Developer (Node.js) | COVER_LETTER | ~1240 | ✅ |
-| Senior Backend Developer (Node.js) | SCREENING_QUESTION | ~1240 | ✅ |
-| Senior / Staff Fullstack Engineer | JOB_MATCHING | ~1287 | ✅ |
-| Senior / Staff Fullstack Engineer | RESUME_GENERATION | ~2197 | ✅ |
-| Senior / Staff Fullstack Engineer | COVER_LETTER | ~1287 | ✅ |
-| Senior / Staff Fullstack Engineer | SCREENING_QUESTION | ~1287 | ✅ |
-| Senior Professional Services Project Man | JOB_MATCHING | ~1175 | ✅ |
-| Senior Professional Services Project Man | RESUME_GENERATION | ~2085 | ✅ |
-| Senior Professional Services Project Man | COVER_LETTER | ~1175 | ✅ |
-| Senior Professional Services Project Man | SCREENING_QUESTION | ~1175 | ✅ |
+| Laravel Senior Backend Developer (m/w/d) | JOB_MATCHING | ~1621 | ✅ |
+| Laravel Senior Backend Developer (m/w/d) | RESUME_GENERATION | ~2835 | ✅ |
+| Laravel Senior Backend Developer (m/w/d) | COVER_LETTER | ~1621 | ✅ |
+| Laravel Senior Backend Developer (m/w/d) | SCREENING_QUESTION | ~1621 | ✅ |
+| Senior Node Engineer | JOB_MATCHING | ~1144 | ✅ |
+| Senior Node Engineer | RESUME_GENERATION | ~2359 | ✅ |
+| Senior Node Engineer | COVER_LETTER | ~1144 | ✅ |
+| Senior Node Engineer | SCREENING_QUESTION | ~1144 | ✅ |
+| Senior / Staff Fullstack Engineer | JOB_MATCHING | ~1640 | ✅ |
+| Senior / Staff Fullstack Engineer | RESUME_GENERATION | ~2854 | ✅ |
+| Senior / Staff Fullstack Engineer | COVER_LETTER | ~1640 | ✅ |
+| Senior / Staff Fullstack Engineer | SCREENING_QUESTION | ~1640 | ✅ |
+| Senior Professional Services Project Man | JOB_MATCHING | ~1230 | ✅ |
+| Senior Professional Services Project Man | RESUME_GENERATION | ~2445 | ✅ |
+| Senior Professional Services Project Man | COVER_LETTER | ~1230 | ✅ |
+| Senior Professional Services Project Man | SCREENING_QUESTION | ~1230 | ✅ |
 
 ✅ **PASS** — All 16 context builds passed structural validation
 
@@ -37,7 +37,7 @@
 | Job | Tech Score | Rec | Missing | Status |
 | :--- | :--- | :--- | :--- | :--- |
 | Laravel Senior Backend Developer (m | 99 | APPLY | 0 | ✅ |
-| Senior Backend Developer (Node.js) | 90 | APPLY | 0 | ✅ |
+| Senior Node Engineer | 80 | REVIEW | 0 | ✅ |
 | Senior / Staff Fullstack Engineer | 67 | APPLY | 1 | ✅ |
 | Senior Professional Services Projec | 78 | APPLY | 0 | ✅ |
 
@@ -49,10 +49,10 @@
 
 | Job | Tech Score | Rec | Validation |
 | :--- | :--- | :--- | :--- |
-| Laravel Senior Backend Developer (m | 65 | REVIEW | ❌ hallucination detected |
-| Senior Backend Developer (Node.js) | 65 | REVIEW | ✅  |
-| Senior / Staff Fullstack Engineer | 70 | REVIEW | ✅  |
-| Senior Professional Services Projec | 100 | SKIP | ✅  |
+| Laravel Senior Backend Developer (m | 75 | REVIEW | ✅  |
+| Senior Node Engineer | 100 | APPLY | ✅  |
+| Senior / Staff Fullstack Engineer | 60 | REVIEW | ✅  |
+| Senior Professional Services Projec | 78 | APPLY | ✅  |
 
 > **Token Budget** — Used: 10,000 / 200,000 — Remaining: 190,000
 
@@ -64,19 +64,19 @@
 
 | Question | Source | Answer Preview | Valid |
 | :--- | :--- | :--- | :--- |
-| How many years of professional software developmen... | 🟢 AI | I have 7 years of professional software development experien... | ✅ |
-| Describe your hands-on experience with relational ... | 🟡 User |  | ✅ |
+| How many years of professional software developmen... | 🟢 AI | I have 8 years of professional software development experien... | ✅ |
+| Describe your hands-on experience with relational ... | 🟢 AI | I have hands-on experience with MySQL and relational databas... | ✅ |
 | Will you now or in the future require visa sponsor... | 🟡 User |  | ✅ |
 | What is your expected annual salary for this role? | 🟡 User |  | ✅ |
 | What is your current notice period or earliest ava... | 🟡 User |  | ✅ |
 
 ✅ **PASS** — All 5 screening answers passed validation
-### Job: Senior Backend Developer (Node.js)
+### Job: Senior Node Engineer
 
 | Question | Source | Answer Preview | Valid |
 | :--- | :--- | :--- | :--- |
-| How many years of professional software developmen... | 🟢 AI | I have 7 years of professional software development experien... | ✅ |
-| Describe your hands-on experience with relational ... | 🟡 User |  | ✅ |
+| How many years of professional software developmen... | 🟢 AI | I have 8 years of professional software development experien... | ✅ |
+| Describe your hands-on experience with relational ... | 🟢 AI | I have hands-on experience with MySQL and relational databas... | ✅ |
 | Will you now or in the future require visa sponsor... | 🟡 User |  | ✅ |
 | What is your expected annual salary for this role? | 🟡 User |  | ✅ |
 | What is your current notice period or earliest ava... | 🟡 User |  | ✅ |
@@ -95,11 +95,11 @@
 | Has Experiences | ✅ |
 | Has Skills | ✅ |
 | Has Summary | ✅ |
-| Projects Count | 3 |
+| Projects Count | 0 |
 | Hallucination Check | ✅ Clean |
 
 ✅ **PASS** — Resume for "Laravel Senior Backend Developer (m/w/d) - Skaliere mit uns auf Millionen-Traffic" passed all checks
-### Job: Senior Backend Developer (Node.js) at OmniCloud Labs
+### Job: Senior Node Engineer at TestCo_1789643016886
 
 | Check | Result |
 | :--- | :--- |
@@ -109,7 +109,7 @@
 | Projects Count | 1 |
 | Hallucination Check | ✅ Clean |
 
-✅ **PASS** — Resume for "Senior Backend Developer (Node.js)" passed all checks
+✅ **PASS** — Resume for "Senior Node Engineer" passed all checks
 > **Token Budget** — Used: 25,000 / 200,000 — Remaining: 175,000
 
 ---
@@ -121,21 +121,21 @@
 | Check | Result |
 | :--- | :--- |
 | Has Opening | ✅ |
-| Has Full Text | ✅ (1487 chars) |
+| Has Full Text | ✅ (1582 chars) |
 | Hallucination Check | ❌ million |
 | Tone Check | ✅ Professional |
 
 ❌ **FAIL** — Cover letter for "Laravel Senior Backend Developer (m/w/d) - Skaliere mit uns auf Millionen-Traffic" has issues
-### Job: Senior Backend Developer (Node.js) at OmniCloud Labs
+### Job: Senior Node Engineer at TestCo_1789643016886
 
 | Check | Result |
 | :--- | :--- |
 | Has Opening | ✅ |
-| Has Full Text | ✅ (1141 chars) |
+| Has Full Text | ✅ (1216 chars) |
 | Hallucination Check | ✅ Clean |
 | Tone Check | ✅ Professional |
 
-✅ **PASS** — Cover letter for "Senior Backend Developer (Node.js)" passed all checks
+✅ **PASS** — Cover letter for "Senior Node Engineer" passed all checks
 > **Token Budget** — Used: 33,000 / 200,000 — Remaining: 167,000
 
 ---

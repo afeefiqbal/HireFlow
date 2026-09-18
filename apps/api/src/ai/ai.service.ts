@@ -24,6 +24,10 @@ export class AiService {
     return this.enabled && this.provider !== null;
   }
 
+  static getProvider(): AIProvider | null {
+    return this.provider;
+  }
+
   private static generateCacheKey(operation: string, data: any): string {
     const hash = crypto.createHash('sha256').update(JSON.stringify(data)).digest('hex');
     return `${operation}:${hash}`;
@@ -68,15 +72,15 @@ export class AiService {
           outputTokens,
           latencyMs,
           status,
-          error
-        }
+          error,
+        },
       });
     } catch (e) {
       console.error('[AiService] Failed to track usage', e);
     }
   }
 
-  private static async executeWithCacheAndTracking<T>(
+  static async executeWithCacheAndTracking<T>(
     operation: string,
     jobId: string | null,
     cachePayload: any,

@@ -118,18 +118,18 @@ export class DashboardController {
             salaryCurrency: j.salaryCurrency,
             visaStatus: j.visaStatus,
             techStack: j.techStack,
+            description: j.description,
             applicationUrl: j.applicationUrl,
-            match: j.matches[0]
-              ? {
-                  overallMatch: j.matches[0].overallMatch,
-                  recommendation: j.matches[0].recommendation,
-                  strongMatches: j.matches[0].strongMatches,
-                  missingRequirements: j.matches[0].missingRequirements,
-                  concerns: j.matches[0].concerns,
-                }
-              : null,
+            canonicalUrl: j.canonicalUrl,
+            source: j.source,
+            overallMatch: j.matches[0]?.overallMatch || 0,
+            recommendation: j.matches[0]?.recommendation || 'SKIP',
             applicationStatus: j.application?.status || null,
           })),
+          qualifiedOpportunities: await (async () => {
+            const { ContinuousDiscoveryService } = await import('../services/continuous-discovery.service');
+            return ContinuousDiscoveryService.getQualifiedOpportunities();
+          })(),
         },
       });
     } catch (error: any) {

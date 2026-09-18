@@ -39,7 +39,7 @@ export class ResumeService {
     const cvData: TailoredCvData = {
       jobId,
       versionName,
-      fullName: 'Afeef Iqbal',
+      fullName: profile.fullName || 'Afeef Iqbal',
       targetRole: cvGeneratedJson.targetRole || 'Senior Software Engineer',
       summary: cvGeneratedJson.summary || '',
       primarySkills: cvGeneratedJson.primarySkills || [],

@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { api } from '@/lib/api';
+import { ParsedResumePreview, AutoApplyConfig } from '@ai-job-agent/shared';
 import {
   User,
   ShieldCheck,
@@ -17,11 +18,20 @@ import {
   HelpCircle,
   Save,
   Sparkles,
+  UploadCloud,
+  FileText,
+  RefreshCw,
+  Sliders,
+  Zap,
+  Check,
+  AlertTriangle,
 } from 'lucide-react';
 
 export default function ProfilePage() {
   const [profile, setProfile] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+
+  // Common Answers state
   const [commonAnswers, setCommonAnswers] = useState<any>({
     visaSponsorship: '',
     workAuthorization: '',
@@ -32,21 +42,44 @@ export default function ProfilePage() {
   const [savingAnswers, setSavingAnswers] = useState(false);
   const [savedSuccess, setSavedSuccess] = useState(false);
 
-  useEffect(() => {
-    async function load() {
-      try {
-        const data = await api.getProfile();
-        setProfile(data);
-        if (data.commonAnswers) {
-          setCommonAnswers(data.commonAnswers);
-        }
-      } catch (err) {
-        console.error('Failed to load profile:', err);
-      } finally {
-        setLoading(false);
+  // Resume Ingestion state
+  const [resumeText, setResumeText] = useState('');
+  const [parsingResume, setParsingResume] = useState(false);
+  const [parsedPreview, setParsedPreview] = useState<ParsedResumePreview | null>(null);
+  const [committingResume, setCommittingResume] = useState(false);
+  const [overwriteMaster, setOverwriteMaster] = useState(false);
+  const [resumeSuccessMsg, setResumeSuccessMsg] = useState<string | null>(null);
+  const [resumeErrorMsg, setResumeErrorMsg] = useState<string | null>(null);
+
+  // Auto-Apply Settings state
+  const [autoApplyConfig, setAutoApplyConfig] = useState<AutoApplyConfig>({
+    enabled: false,
+    autonomousThreshold: 85,
+    dailyLimit: 5,
+  });
+  const [savingConfig, setSavingConfig] = useState(false);
+  const [configSuccess, setConfigSuccess] = useState(false);
+
+  const loadData = async () => {
+    try {
+      const [data, config] = await Promise.all([
+        api.getProfile(),
+        api.getAutoApplyConfig().catch(() => ({ enabled: false, autonomousThreshold: 85, dailyLimit: 5 })),
+      ]);
+      setProfile(data);
+      if (data.commonAnswers) {
+        setCommonAnswers(data.commonAnswers);
       }
+      setAutoApplyConfig(config);
+    } catch (err) {
+      console.error('Failed to load profile:', err);
+    } finally {
+      setLoading(false);
     }
-    load();
+  };
+
+  useEffect(() => {
+    loadData();
   }, []);
 
   const handleSaveCommonAnswers = async () => {
@@ -59,6 +92,67 @@ export default function ProfilePage() {
       alert(`Failed to save common answers: ${err.message}`);
     } finally {
       setSavingAnswers(false);
+    }
+  };
+
+  const handleParseResume = async () => {
+    if (!resumeText.trim()) {
+      setResumeErrorMsg('Please paste resume text or upload a file first.');
+      return;
+    }
+    setParsingResume(true);
+    setResumeErrorMsg(null);
+    try {
+      const preview = await api.uploadResume(resumeText);
+      setParsedPreview(preview);
+    } catch (err: any) {
+      setResumeErrorMsg(err.message || 'Failed to parse resume');
+    } finally {
+      setParsingResume(false);
+    }
+  };
+
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const text = event.target?.result as string;
+      setResumeText(text);
+    };
+    reader.readAsText(file);
+  };
+
+  const handleCommitResume = async () => {
+    if (!parsedPreview) return;
+    setCommittingResume(true);
+    setResumeErrorMsg(null);
+    try {
+      await api.commitResume(parsedPreview, overwriteMaster);
+      setResumeSuccessMsg('Master Ground Truth successfully synchronized from resume!');
+      setTimeout(() => setResumeSuccessMsg(null), 5000);
+      setParsedPreview(null);
+      setResumeText('');
+      await loadData();
+    } catch (err: any) {
+      setResumeErrorMsg(err.message || 'Failed to commit resume to profile');
+    } finally {
+      setCommittingResume(false);
+    }
+  };
+
+  const handleSaveAutoApplyConfig = async () => {
+    setSavingConfig(true);
+    try {
+      const updated = await api.updateAutoApplyConfig(autoApplyConfig);
+      setAutoApplyConfig(updated);
+      setConfigSuccess(true);
+      setTimeout(() => setConfigSuccess(false), 3500);
+    } catch (err: any) {
+      alert(`Failed to save auto-apply settings: ${err.message}`);
+    } finally {
+      setSavingConfig(false);
     }
   };
 
@@ -78,21 +172,21 @@ export default function ProfilePage() {
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
           <div className="flex items-center gap-4">
             <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-teal-500/20 border border-teal-500/40 text-teal-300 text-2xl font-black">
-              AI
+              {profile?.fullName?.slice(0, 2)?.toUpperCase() || 'AI'}
             </div>
             <div>
               <div className="flex items-center gap-2">
                 <h1 className="text-2xl font-extrabold text-white">{profile?.fullName}</h1>
                 <span className="rounded bg-teal-500/20 px-2 py-0.5 text-xs font-semibold text-teal-300 border border-teal-500/30 flex items-center gap-1">
                   <ShieldCheck className="h-3.5 w-3.5" />
-                  Verified Truth
+                  Verified Ground Truth
                 </span>
               </div>
               <p className="text-sm font-semibold text-teal-400 mt-0.5">
                 {profile?.headline}
               </p>
               <p className="text-xs text-slate-400 mt-1">
-                7+ years professional software development experience
+                {profile?.yearsOfExperience}+ years professional experience · {profile?.location}
               </p>
             </div>
           </div>
@@ -110,302 +204,386 @@ export default function ProfilePage() {
             </span>
           </div>
         </div>
-
-        {/* Anti-hallucination constraint alert */}
-        <div className="mt-6 rounded-lg border border-teal-500/20 bg-[#09111c] p-3 text-xs text-slate-300 flex items-start gap-2.5">
-          <ShieldCheck className="h-4 w-4 text-teal-400 shrink-0 mt-0.5" />
-          <p>
-            <strong className="text-teal-300">AI Integrity Enforcement:</strong> This verified profile serves as the absolute ground truth. The AI matching engine and tailoring pipelines are strictly forbidden from inventing employers, modifying dates, assuming unverified technologies, or fabricating history to bridge career gaps.
-          </p>
-        </div>
       </div>
 
-      {/* Target Roles & Target Locations */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div className="rounded-xl border border-slate-800 bg-[#0f172a] p-5">
-          <h3 className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-3 flex items-center gap-1.5">
-            <Briefcase className="h-4 w-4 text-teal-400" />
-            Target Positions
-          </h3>
-          <div className="flex flex-wrap gap-2">
-            {profile?.targetRoles?.map((role: string) => (
-              <span
-                key={role}
-                className="rounded-lg border border-slate-700 bg-slate-800 px-3 py-1.5 text-xs font-semibold text-white"
-              >
-                {role}
-              </span>
-            ))}
-          </div>
-        </div>
-
-        <div className="rounded-xl border border-slate-800 bg-[#0f172a] p-5">
-          <h3 className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-3 flex items-center gap-1.5">
-            <MapPin className="h-4 w-4 text-purple-400" />
-            Target Locations
-          </h3>
-          <div className="flex flex-wrap gap-2">
-            {profile?.targetLocations?.map((loc: string) => (
-              <span
-                key={loc}
-                className="rounded-lg border border-slate-700 bg-slate-800 px-3 py-1.5 text-xs font-semibold text-white"
-              >
-                {loc}
-              </span>
-            ))}
-          </div>
-        </div>
-      </div>
-
-      {/* Global Common Answers Bank */}
-      <div id="common-answers" className="rounded-xl border border-teal-500/30 bg-[#0c1424] p-6 space-y-5 shadow-lg">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-800 pb-4">
+      {/* ============================================================ */}
+      {/* SECTION 1: RESUME & PROFILE SYNC (Ingestion & Ground Truth) */}
+      {/* ============================================================ */}
+      <div className="rounded-xl border border-teal-500/30 bg-[#0f172a] p-6 space-y-5">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-800 pb-4">
           <div>
-            <h2 className="text-base font-bold text-white flex items-center gap-2">
-              <MessageSquare className="h-5 w-5 text-teal-400" />
-              Global Common Answers Bank
-              <span className="rounded bg-teal-950 px-2 py-0.5 text-[10px] font-bold text-teal-300 border border-teal-800/50">
-                USER AUTHORITATIVE
-              </span>
+            <h2 className="text-lg font-bold text-white flex items-center gap-2">
+              <UploadCloud className="h-5 w-5 text-teal-400" />
+              Resume & Profile Sync
             </h2>
-            <p className="text-xs text-slate-400 mt-1">
-              Configure your standard answers once. When new jobs are analyzed, HireFlow deterministically pre-fills sensitive screening questions with the <span className="text-indigo-300 font-bold">USER PROVIDED</span> badge.
+            <p className="text-xs text-slate-400 mt-0.5">
+              Upload or update your resume once. HIREflow extracts candidate ground truth for autonomous matching and preparation.
             </p>
           </div>
+          <label className="cursor-pointer inline-flex items-center gap-2 rounded-lg bg-teal-600/30 border border-teal-500/50 px-3 py-2 text-xs font-semibold text-teal-300 hover:bg-teal-600/50 transition-colors">
+            <FileText className="h-4 w-4" />
+            <span>Upload File (.txt / .json)</span>
+            <input type="file" accept=".txt,.json,.md,.pdf" onChange={handleFileUpload} className="hidden" />
+          </label>
+        </div>
 
-          <div className="flex items-center gap-2">
-            {savedSuccess && (
-              <span className="text-xs font-bold text-emerald-400 flex items-center gap-1">
-                <CheckCircle2 className="h-4 w-4" /> Saved!
-              </span>
-            )}
+        {resumeSuccessMsg && (
+          <div className="flex items-center gap-2 rounded-lg bg-teal-950/60 border border-teal-500/50 px-4 py-3 text-xs text-teal-200">
+            <Check className="h-4 w-4 text-teal-400" />
+            <span>{resumeSuccessMsg}</span>
+          </div>
+        )}
+
+        {resumeErrorMsg && (
+          <div className="flex items-center gap-2 rounded-lg bg-rose-950/60 border border-rose-500/50 px-4 py-3 text-xs text-rose-200">
+            <AlertTriangle className="h-4 w-4 text-rose-400" />
+            <span>{resumeErrorMsg}</span>
+          </div>
+        )}
+
+        {/* Input Text Area */}
+        <div className="space-y-2">
+          <label className="text-xs font-semibold text-slate-300">
+            Paste Resume Content or Uploaded Document Text
+          </label>
+          <textarea
+            value={resumeText}
+            onChange={(e) => setResumeText(e.target.value)}
+            placeholder="Paste your updated resume text here (experience, skills, projects, contact details)..."
+            rows={5}
+            className="w-full rounded-lg border border-slate-700 bg-slate-900/90 p-3 text-xs text-slate-200 placeholder-slate-500 focus:border-teal-500 focus:outline-none"
+          />
+          <div className="flex justify-end">
             <button
-              onClick={handleSaveCommonAnswers}
-              disabled={savingAnswers}
-              className="inline-flex items-center gap-1.5 rounded-lg bg-teal-600 hover:bg-teal-500 disabled:opacity-50 px-4 py-2 text-xs font-bold text-white transition-colors shadow-md shadow-teal-950/50"
+              onClick={handleParseResume}
+              disabled={parsingResume || !resumeText.trim()}
+              className="inline-flex items-center gap-2 rounded-lg bg-teal-600 px-4 py-2 text-xs font-bold text-white hover:bg-teal-500 disabled:opacity-50 transition-colors"
             >
-              <Save className="h-3.5 w-3.5" />
-              {savingAnswers ? 'Saving...' : 'Save Common Answers'}
+              {parsingResume ? (
+                <>
+                  <RefreshCw className="h-3.5 w-3.5 animate-spin" />
+                  Extracting Ground Truth...
+                </>
+              ) : (
+                <>
+                  <Sparkles className="h-3.5 w-3.5" />
+                  Extract & Preview Ground Truth
+                </>
+              )}
             </button>
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-          {/* Visa Sponsorship */}
+        {/* Extracted Preview & Diff Card */}
+        {parsedPreview && (
+          <div className="rounded-lg border border-slate-700 bg-slate-900/80 p-5 space-y-4">
+            <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+              <div>
+                <span className="text-[10px] font-bold uppercase tracking-wider text-teal-400">Extracted Ground Truth Preview</span>
+                <h3 className="text-sm font-bold text-white">{parsedPreview.fullName} — {parsedPreview.headline}</h3>
+                <p className="text-xs text-slate-400">{parsedPreview.yearsOfExperience} yrs experience · {parsedPreview.skills.length} skills identified</p>
+              </div>
+              <div className="flex items-center gap-3">
+                <label className="flex items-center gap-2 text-xs text-slate-300 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={overwriteMaster}
+                    onChange={(e) => setOverwriteMaster(e.target.checked)}
+                    className="rounded border-slate-700 bg-slate-900 text-teal-600 focus:ring-teal-500"
+                  />
+                  <span>Replace existing history</span>
+                </label>
+                <button
+                  onClick={handleCommitResume}
+                  disabled={committingResume}
+                  className="inline-flex items-center gap-2 rounded-lg bg-emerald-600 px-4 py-2 text-xs font-bold text-white hover:bg-emerald-500 transition-colors"
+                >
+                  {committingResume ? (
+                    <RefreshCw className="h-3.5 w-3.5 animate-spin" />
+                  ) : (
+                    <CheckCircle2 className="h-3.5 w-3.5" />
+                  )}
+                  Commit to Master Profile
+                </button>
+              </div>
+            </div>
+
+            {/* Preview Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
+              <div className="space-y-2">
+                <span className="font-semibold text-slate-300">Identified Skills ({parsedPreview.skills.length}):</span>
+                <div className="flex flex-wrap gap-1">
+                  {parsedPreview.skills.map((s) => (
+                    <span key={s.name} className="rounded bg-teal-950/60 border border-teal-800/60 px-2 py-0.5 text-[11px] text-teal-300">
+                      {s.name} ({s.level})
+                    </span>
+                  ))}
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <span className="font-semibold text-slate-300">Experience Timeline ({parsedPreview.experiences.length}):</span>
+                <ul className="space-y-1 text-slate-400">
+                  {parsedPreview.experiences.slice(0, 4).map((e, idx) => (
+                    <li key={idx} className="flex justify-between">
+                      <span className="text-slate-200 font-medium">{e.role} @ {e.company}</span>
+                      <span className="text-slate-500 text-[11px]">{e.startDate} – {e.endDate || 'Present'}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* ============================================================ */}
+      {/* SECTION 2: AUTO-APPLY SAFETY & GOVERNANCE SETTINGS */}
+      {/* ============================================================ */}
+      <div className="rounded-xl border border-slate-800 bg-[#0f172a] p-6 space-y-4">
+        <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+          <div>
+            <h2 className="text-base font-bold text-white flex items-center gap-2">
+              <Sliders className="h-5 w-5 text-teal-400" />
+              Autonomous Auto-Apply Settings
+            </h2>
+            <p className="text-xs text-slate-400 mt-0.5">
+              Configure safety guardrails for autonomous background applications.
+            </p>
+          </div>
+          {configSuccess && (
+            <span className="text-xs font-semibold text-teal-400 flex items-center gap-1">
+              <Check className="h-3.5 w-3.5" /> Saved
+            </span>
+          )}
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-5 pt-2">
+          {/* Toggle Enabled */}
+          <div className="rounded-lg border border-slate-800 bg-slate-900/60 p-4 space-y-2">
+            <div className="flex items-center justify-between">
+              <label className="text-xs font-bold text-white">Autonomous Submission</label>
+              <input
+                type="checkbox"
+                checked={autoApplyConfig.enabled}
+                onChange={(e) => setAutoApplyConfig({ ...autoApplyConfig, enabled: e.target.checked })}
+                className="h-4 w-4 rounded border-slate-700 bg-slate-900 text-teal-600 focus:ring-teal-500"
+              />
+            </div>
+            <p className="text-[11px] text-slate-400 leading-relaxed">
+              When enabled, HIREflow automatically submits eligible applications through supported ATS systems without asking for confirmation.
+            </p>
+          </div>
+
+          {/* Autonomous Threshold */}
+          <div className="rounded-lg border border-slate-800 bg-slate-900/60 p-4 space-y-2">
+            <div className="flex items-center justify-between">
+              <label className="text-xs font-bold text-white">Autonomous Threshold</label>
+              <span className="rounded bg-teal-500/20 px-2 py-0.5 text-xs font-bold text-teal-300">
+                {autoApplyConfig.autonomousThreshold}%
+              </span>
+            </div>
+            <input
+              type="range"
+              min={80}
+              max={95}
+              step={1}
+              value={autoApplyConfig.autonomousThreshold}
+              onChange={(e) => setAutoApplyConfig({ ...autoApplyConfig, autonomousThreshold: Number(e.target.value) })}
+              className="w-full accent-teal-500"
+            />
+            <p className="text-[11px] text-slate-400">
+              Only opportunities with a match score &ge; {autoApplyConfig.autonomousThreshold}% will be autonomously submitted.
+            </p>
+          </div>
+
+          {/* Daily Limit */}
+          <div className="rounded-lg border border-slate-800 bg-slate-900/60 p-4 space-y-2">
+            <div className="flex items-center justify-between">
+              <label className="text-xs font-bold text-white">Daily Application Limit</label>
+              <span className="rounded bg-slate-800 px-2 py-0.5 text-xs font-bold text-slate-300">
+                {autoApplyConfig.dailyLimit} / day
+              </span>
+            </div>
+            <input
+              type="number"
+              min={1}
+              max={20}
+              value={autoApplyConfig.dailyLimit}
+              onChange={(e) => setAutoApplyConfig({ ...autoApplyConfig, dailyLimit: Math.max(1, Number(e.target.value)) })}
+              className="w-full rounded border border-slate-700 bg-slate-900 p-1.5 text-xs text-white focus:border-teal-500 focus:outline-none"
+            />
+            <p className="text-[11px] text-slate-400">
+              Maximum number of real applications submitted per 24 hours.
+            </p>
+          </div>
+        </div>
+
+        <div className="flex justify-end pt-2">
+          <button
+            onClick={handleSaveAutoApplyConfig}
+            disabled={savingConfig}
+            className="inline-flex items-center gap-2 rounded-lg bg-teal-600 px-4 py-2 text-xs font-bold text-white hover:bg-teal-500 disabled:opacity-50 transition-colors"
+          >
+            {savingConfig ? <RefreshCw className="h-3.5 w-3.5 animate-spin" /> : <Save className="h-3.5 w-3.5" />}
+            Save Auto-Apply Configuration
+          </button>
+        </div>
+      </div>
+
+      {/* Common Answers Bank */}
+      <div className="rounded-xl border border-slate-800 bg-[#0f172a] p-6 space-y-5">
+        <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+          <div>
+            <h2 className="text-base font-bold text-white flex items-center gap-2">
+              <MessageSquare className="h-5 w-5 text-teal-400" />
+              Common Answers Bank
+            </h2>
+            <p className="text-xs text-slate-400 mt-0.5">
+              Authoritative answers used to pre-fill application screening questions without hallucination.
+            </p>
+          </div>
+          {savedSuccess && (
+            <span className="text-xs font-semibold text-teal-400 flex items-center gap-1">
+              <Check className="h-3.5 w-3.5" /> Saved
+            </span>
+          )}
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="space-y-1.5">
-            <label className="block text-xs font-bold uppercase tracking-wider text-slate-300">
-              Visa Sponsorship Statement
-            </label>
-            <textarea
-              rows={2}
+            <label className="text-xs font-semibold text-slate-300">Visa Sponsorship Requirement</label>
+            <input
+              type="text"
               value={commonAnswers.visaSponsorship || ''}
               onChange={(e) => setCommonAnswers({ ...commonAnswers, visaSponsorship: e.target.value })}
-              placeholder="e.g. Yes, I will require visa sponsorship (EU Blue Card support for Germany & EU)."
-              className="w-full rounded-lg border border-slate-700 bg-slate-900/90 px-3 py-2 text-xs text-slate-200 placeholder-slate-500 focus:outline-none focus:border-teal-500 transition-colors"
+              className="w-full rounded-lg border border-slate-700 bg-slate-900 p-2.5 text-xs text-slate-200 focus:border-teal-500 focus:outline-none"
             />
-            <p className="text-[10px] text-slate-500">Auto-fills questions containing &quot;visa&quot;, &quot;sponsor&quot;, or &quot;work permit&quot;.</p>
           </div>
 
-          {/* Work Authorization */}
           <div className="space-y-1.5">
-            <label className="block text-xs font-bold uppercase tracking-wider text-slate-300">
-              Work Authorization Declaration
-            </label>
-            <textarea
-              rows={2}
+            <label className="text-xs font-semibold text-slate-300">Work Authorization Status</label>
+            <input
+              type="text"
               value={commonAnswers.workAuthorization || ''}
               onChange={(e) => setCommonAnswers({ ...commonAnswers, workAuthorization: e.target.value })}
-              placeholder="e.g. Indian citizen. Requires visa sponsorship / EU Blue Card for European work authorization."
-              className="w-full rounded-lg border border-slate-700 bg-slate-900/90 px-3 py-2 text-xs text-slate-200 placeholder-slate-500 focus:outline-none focus:border-teal-500 transition-colors"
+              className="w-full rounded-lg border border-slate-700 bg-slate-900 p-2.5 text-xs text-slate-200 focus:border-teal-500 focus:outline-none"
             />
-            <p className="text-[10px] text-slate-500">Auto-fills questions asking about legal authorization or work rights.</p>
           </div>
 
-          {/* Notice Period & Availability */}
           <div className="space-y-1.5">
-            <label className="block text-xs font-bold uppercase tracking-wider text-slate-300">
-              Notice Period &amp; Earliest Availability
-            </label>
+            <label className="text-xs font-semibold text-slate-300">Notice Period / Earliest Start Date</label>
             <input
               type="text"
               value={commonAnswers.noticePeriod || ''}
               onChange={(e) => setCommonAnswers({ ...commonAnswers, noticePeriod: e.target.value })}
-              placeholder="e.g. 30 days / 1 month notice period."
-              className="w-full rounded-lg border border-slate-700 bg-slate-900/90 px-3 py-2 text-xs text-slate-200 placeholder-slate-500 focus:outline-none focus:border-teal-500 transition-colors"
+              className="w-full rounded-lg border border-slate-700 bg-slate-900 p-2.5 text-xs text-slate-200 focus:border-teal-500 focus:outline-none"
             />
-            <p className="text-[10px] text-slate-500">Auto-fills questions containing &quot;notice period&quot;, &quot;start date&quot;, or &quot;availability&quot;.</p>
           </div>
 
-          {/* Expected Salary */}
           <div className="space-y-1.5">
-            <label className="block text-xs font-bold uppercase tracking-wider text-slate-300">
-              Expected Annual Gross Salary
-            </label>
+            <label className="text-xs font-semibold text-slate-300">Expected Annual Gross Compensation</label>
             <input
               type="text"
               value={commonAnswers.expectedSalary || ''}
               onChange={(e) => setCommonAnswers({ ...commonAnswers, expectedSalary: e.target.value })}
-              placeholder="e.g. €75,000 – €85,000 gross/year (negotiable based on location & equity)."
-              className="w-full rounded-lg border border-slate-700 bg-slate-900/90 px-3 py-2 text-xs text-slate-200 placeholder-slate-500 focus:outline-none focus:border-teal-500 transition-colors"
+              className="w-full rounded-lg border border-slate-700 bg-slate-900 p-2.5 text-xs text-slate-200 focus:border-teal-500 focus:outline-none"
             />
-            <p className="text-[10px] text-slate-500">Auto-fills questions asking for expected salary, pay, or compensation.</p>
           </div>
+        </div>
 
-          {/* Relocation Readiness */}
-          <div className="space-y-1.5 md:col-span-2">
-            <label className="block text-xs font-bold uppercase tracking-wider text-slate-300">
-              Relocation Readiness Statement
-            </label>
-            <input
-              type="text"
-              value={commonAnswers.relocation || ''}
-              onChange={(e) => setCommonAnswers({ ...commonAnswers, relocation: e.target.value })}
-              placeholder="e.g. Yes, fully prepared and eager to relocate to Germany, Netherlands, or across the EU."
-              className="w-full rounded-lg border border-slate-700 bg-slate-900/90 px-3 py-2 text-xs text-slate-200 placeholder-slate-500 focus:outline-none focus:border-teal-500 transition-colors"
-            />
-            <p className="text-[10px] text-slate-500">Auto-fills questions asking if you are open or willing to relocate.</p>
-          </div>
+        <div className="flex justify-end pt-2">
+          <button
+            onClick={handleSaveCommonAnswers}
+            disabled={savingAnswers}
+            className="inline-flex items-center gap-2 rounded-lg bg-teal-600 px-4 py-2 text-xs font-bold text-white hover:bg-teal-500 disabled:opacity-50 transition-colors"
+          >
+            {savingAnswers ? <RefreshCw className="h-3.5 w-3.5 animate-spin" /> : <Save className="h-3.5 w-3.5" />}
+            Save Common Answers
+          </button>
         </div>
       </div>
 
-      {/* Verified Skills Taxonomy */}
+      {/* Verified Skills Breakdown */}
       <div className="rounded-xl border border-slate-800 bg-[#0f172a] p-6 space-y-4">
-        <h2 className="text-base font-bold text-white flex items-center gap-2">
-          <Layers className="h-5 w-5 text-teal-400" />
-          Verified Skills Taxonomy
-        </h2>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {/* Primary Technologies */}
-          <div className="space-y-2">
-            <span className="text-xs uppercase font-bold text-teal-400 tracking-wider">
-              Primary Technologies (Core 7+ Yrs Mastery)
-            </span>
-            <div className="flex flex-wrap gap-2">
-              {profile?.primarySkills?.map((skill: string) => (
-                <span
-                  key={skill}
-                  className="rounded-md border border-teal-500/40 bg-teal-950/40 px-3 py-1 text-xs font-bold text-teal-300 flex items-center gap-1.5"
-                >
-                  <CheckCircle2 className="h-3.5 w-3.5 text-teal-400" />
-                  {skill}
-                </span>
-              ))}
-            </div>
-          </div>
-
-          {/* Additional Technologies */}
-          <div className="space-y-2">
-            <span className="text-xs uppercase font-bold text-blue-400 tracking-wider">
-              Additional Verified Production Technologies
-            </span>
-            <div className="flex flex-wrap gap-2">
-              {profile?.additionalSkills?.map((skill: string) => (
-                <span
-                  key={skill}
-                  className="rounded-md border border-slate-700 bg-slate-800 px-3 py-1 text-xs font-medium text-slate-200"
-                >
-                  {skill}
-                </span>
-              ))}
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Verified Employment Timeline */}
-      <div className="rounded-xl border border-slate-800 bg-[#0f172a] p-6 space-y-6">
         <div className="flex items-center justify-between border-b border-slate-800 pb-3">
           <h2 className="text-base font-bold text-white flex items-center gap-2">
-            <Calendar className="h-5 w-5 text-teal-400" />
-            Verified Career Progression (Chronological)
+            <Layers className="h-5 w-5 text-teal-400" />
+            Verified Skills Ground Truth ({profile?.skills?.length || 0})
           </h2>
-          <span className="text-xs text-slate-500">5 Verified Employers · 1 Explicit Break</span>
+          <span className="text-xs text-slate-500">Database Synchronized</span>
         </div>
 
-        <div className="space-y-6">
-          {/* Pixbit Solutions (Current) */}
-          <div className="relative pl-6 border-l-2 border-teal-500 space-y-1">
-            <div className="absolute -left-[9px] top-0 h-4 w-4 rounded-full bg-teal-500 ring-4 ring-[#0f172a]" />
-            <div className="flex flex-wrap items-center justify-between gap-2">
-              <h3 className="text-sm font-bold text-white">Senior Software Developer · Pixbit Solutions</h3>
-              <span className="rounded bg-teal-500/20 px-2 py-0.5 text-[11px] font-semibold text-teal-300 border border-teal-500/30">
-                Jul 2025 – Present (Current)
-              </span>
+        <div className="space-y-3">
+          <div>
+            <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">Primary Skills</span>
+            <div className="mt-2 flex flex-wrap gap-1.5">
+              {profile?.skills
+                ?.filter((s: any) => s.category === 'primary')
+                .map((skill: any) => (
+                  <span
+                    key={skill.id}
+                    className="inline-flex items-center gap-1.5 rounded-lg border border-teal-500/30 bg-teal-950/40 px-3 py-1 text-xs font-medium text-teal-300"
+                  >
+                    <CheckCircle2 className="h-3 w-3 text-teal-400" />
+                    {skill.name}
+                  </span>
+                ))}
             </div>
-            <p className="text-xs text-slate-300">
-              Overseeing full-stack architectural design, code reviews, and high-performance system delivery across modern Laravel and Node.js ecosystems.
-            </p>
-            <div className="pt-1 flex flex-wrap gap-1">
-              {['Laravel', 'PHP', 'Node.js', 'Vue.js', 'React', 'Docker', 'PostgreSQL', 'AWS'].map((t) => (
-                <span key={t} className="rounded bg-slate-800 px-2 py-0.5 text-[10px] text-slate-300">
-                  {t}
+          </div>
+
+          <div>
+            <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">Additional Technologies & Tools</span>
+            <div className="mt-2 flex flex-wrap gap-1.5">
+              {profile?.skills
+                ?.filter((s: any) => s.category !== 'primary')
+                .map((skill: any) => (
+                  <span
+                    key={skill.id}
+                    className="inline-flex items-center gap-1.5 rounded-lg border border-slate-700 bg-slate-800/60 px-3 py-1 text-xs font-medium text-slate-300"
+                  >
+                    {skill.name}
+                  </span>
+                ))}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Chronological Experience Timeline */}
+      <div className="rounded-xl border border-slate-800 bg-[#0f172a] p-6 space-y-4">
+        <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+          <h2 className="text-base font-bold text-white flex items-center gap-2">
+            <Briefcase className="h-5 w-5 text-teal-400" />
+            Verified Career Timeline
+          </h2>
+          <span className="text-xs text-slate-500">Chronological Strict Order</span>
+        </div>
+
+        <div className="space-y-4 pt-2">
+          {profile?.experiences?.map((exp: any) => (
+            <div key={exp.id} className="relative pl-6 border-l-2 border-teal-500/40 space-y-1">
+              <div className="absolute -left-[9px] top-0 h-4 w-4 rounded-full bg-teal-500 ring-4 ring-[#0f172a]" />
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <h3 className="text-sm font-bold text-white">{exp.role} · {exp.company}</h3>
+                <span className="text-xs font-semibold text-teal-400">
+                  {exp.startDate} – {exp.endDate || (exp.isCurrent ? 'Present' : 'Ended')}
                 </span>
-              ))}
-            </div>
-          </div>
-
-          {/* GAP TRANSPARENCY BANNER */}
-          <div className="relative pl-6 border-l-2 border-dashed border-amber-500/50 my-4">
-            <div className="absolute -left-[7px] top-2 h-3 w-3 rounded-full bg-amber-500 ring-4 ring-[#0f172a]" />
-            <div className="rounded-lg border border-amber-500/30 bg-amber-950/20 p-3 text-xs text-amber-200">
-              <div className="flex items-center gap-1.5 font-bold mb-1">
-                <AlertCircle className="h-3.5 w-3.5 text-amber-400" />
-                <span>Verified Career Break / Independent Learning Period: Aug 2024 – Jul 2025</span>
               </div>
-              <p className="text-slate-400 text-[11px]">
-                Strict Anti-Hallucination Policy: This period is deliberately un-invented. The AI will never fabricate a stealth role or fictional freelance entity.
-              </p>
+              {exp.description && (
+                <p className="text-xs text-slate-300 leading-relaxed">{exp.description}</p>
+              )}
+              {exp.technologies?.length > 0 && (
+                <div className="flex flex-wrap gap-1 pt-1">
+                  {exp.technologies.map((t: string) => (
+                    <span key={t} className="rounded bg-slate-800 px-2 py-0.5 text-[10px] text-slate-300">
+                      {t}
+                    </span>
+                  ))}
+                </div>
+              )}
             </div>
-          </div>
-
-          {/* Lilac Infotech */}
-          <div className="relative pl-6 border-l-2 border-slate-700 space-y-1">
-            <div className="absolute -left-[9px] top-0 h-4 w-4 rounded-full bg-slate-700 ring-4 ring-[#0f172a]" />
-            <div className="flex flex-wrap items-center justify-between gap-2">
-              <h3 className="text-sm font-bold text-white">Software Engineer · Lilac Infotech Pvt. Ltd.</h3>
-              <span className="text-xs text-slate-400">Jul 2023 – Aug 2024</span>
-            </div>
-            <p className="text-xs text-slate-300">
-              Designed scalable microservices and modular monolithic applications. Handled complex business logic, database migrations, and AWS deployment automation.
-            </p>
-          </div>
-
-          {/* Pentacodes */}
-          <div className="relative pl-6 border-l-2 border-slate-700 space-y-1">
-            <div className="absolute -left-[9px] top-0 h-4 w-4 rounded-full bg-slate-700 ring-4 ring-[#0f172a]" />
-            <div className="flex flex-wrap items-center justify-between gap-2">
-              <h3 className="text-sm font-bold text-white">Software Developer · Pentacodes</h3>
-              <span className="text-xs text-slate-400">Jul 2022 – Jun 2023</span>
-            </div>
-            <p className="text-xs text-slate-300">
-              Architected high-throughput REST APIs and webhook ingestion pipelines. Dockerized services and contributed to backend reliability improvements.
-            </p>
-          </div>
-
-          {/* D5N Digital */}
-          <div className="relative pl-6 border-l-2 border-slate-700 space-y-1">
-            <div className="absolute -left-[9px] top-0 h-4 w-4 rounded-full bg-slate-700 ring-4 ring-[#0f172a]" />
-            <div className="flex flex-wrap items-center justify-between gap-2">
-              <h3 className="text-sm font-bold text-white">Software Developer · D5N Digital</h3>
-              <span className="text-xs text-slate-400">Dec 2020 – Jul 2022</span>
-            </div>
-            <p className="text-xs text-slate-300">
-              Built full-stack applications with Laravel backend and Vue.js frontends. Integrated third-party payment gateways and CRM endpoints.
-            </p>
-          </div>
-
-          {/* Crabviz */}
-          <div className="relative pl-6 border-l-2 border-slate-700 space-y-1">
-            <div className="absolute -left-[9px] top-0 h-4 w-4 rounded-full bg-slate-700 ring-4 ring-[#0f172a]" />
-            <div className="flex flex-wrap items-center justify-between gap-2">
-              <h3 className="text-sm font-bold text-white">Software Engineer · Crabviz Private Limited</h3>
-              <span className="text-xs text-slate-400">Dec 2018 – Sep 2020</span>
-            </div>
-            <p className="text-xs text-slate-300">
-              Engineered backend services and RESTful APIs with Laravel and MySQL. Optimized database schema queries.
-            </p>
-          </div>
+          ))}
         </div>
       </div>
 
@@ -414,7 +592,7 @@ export default function ProfilePage() {
         <div className="flex items-center justify-between border-b border-slate-800 pb-3">
           <h2 className="text-base font-bold text-white flex items-center gap-2">
             <Code2 className="h-5 w-5 text-teal-400" />
-            Verified Projects
+            Verified Projects ({profile?.projects?.length || 0})
           </h2>
           <span className="text-xs text-slate-500">Database Extensible</span>
         </div>
@@ -433,11 +611,8 @@ export default function ProfilePage() {
               </div>
               <p className="text-xs text-slate-300 leading-relaxed">{proj.description}</p>
               <div className="pt-2 flex flex-wrap gap-1 border-t border-slate-800/80">
-                {proj.technologies.map((t: string) => (
-                  <span
-                    key={t}
-                    className="rounded bg-slate-800 px-2 py-0.5 text-[10px] font-medium text-slate-300"
-                  >
+                {proj.technologies?.map((t: string) => (
+                  <span key={t} className="rounded bg-slate-800 px-2 py-0.5 text-[10px] font-medium text-slate-300">
                     {t}
                   </span>
                 ))}

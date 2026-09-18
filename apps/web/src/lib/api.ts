@@ -10,6 +10,20 @@ import {
   ApplicationDetailRecord,
   ApplicationAnalytics,
   ApplicationTimelineItem,
+  InterviewRecord,
+  InterviewRoundRecord,
+  InterviewQuestionItem,
+  InterviewPrepKitData,
+  STARAnswerItem,
+  MockSessionRecord,
+  InterviewDebriefRecord,
+  InterviewStatsSummary,
+  ParsedResumePreview,
+  AutoApplyConfig,
+  QualifiedOpportunity,
+  AutoApplyEligibilityResult,
+  SubmissionReceipt,
+  SandboxTestResult,
 } from '@ai-job-agent/shared';
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api';
@@ -242,5 +256,194 @@ export const api = {
     return fetchJson<ScreeningQuestionItem[]>(`/jobs/${jobId}/screening/sync-common`, {
       method: 'POST',
     });
+  },
+
+  // ==========================================
+  // V6 INTERVIEW INTELLIGENCE
+  // ==========================================
+
+  async getInterviews(filters?: { status?: string; company?: string; roundType?: string }): Promise<InterviewRecord[]> {
+    const params = new URLSearchParams();
+    if (filters?.status && filters.status !== 'ALL') params.append('status', filters.status);
+    if (filters?.company) params.append('company', filters.company);
+    if (filters?.roundType && filters.roundType !== 'ALL') params.append('roundType', filters.roundType);
+    const qs = params.toString() ? `?${params.toString()}` : '';
+    return fetchJson<InterviewRecord[]>(`/interviews${qs}`);
+  },
+
+  async getInterviewStats(): Promise<InterviewStatsSummary> {
+    return fetchJson<InterviewStatsSummary>('/interviews/stats');
+  },
+
+  async getOrCreateInterviewForApplication(applicationId: string): Promise<InterviewRecord> {
+    return fetchJson<InterviewRecord>(`/applications/${applicationId}/interview`, {
+      method: 'POST',
+    });
+  },
+
+  async getInterviewById(id: string): Promise<InterviewRecord> {
+    return fetchJson<InterviewRecord>(`/interviews/${id}`);
+  },
+
+  async updateInterview(id: string, data: any): Promise<InterviewRecord> {
+    return fetchJson<InterviewRecord>(`/interviews/${id}`, {
+      method: 'PATCH',
+      body: JSON.stringify(data),
+    });
+  },
+
+  async createInterviewRound(interviewId: string, data: any): Promise<InterviewRoundRecord> {
+    return fetchJson<InterviewRoundRecord>(`/interviews/${interviewId}/rounds`, {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  },
+
+  async updateInterviewRound(roundId: string, data: any): Promise<InterviewRoundRecord> {
+    return fetchJson<InterviewRoundRecord>(`/interview-rounds/${roundId}`, {
+      method: 'PATCH',
+      body: JSON.stringify(data),
+    });
+  },
+
+  async deleteInterviewRound(roundId: string): Promise<{ success: boolean }> {
+    return fetchJson<{ success: boolean }>(`/interview-rounds/${roundId}`, {
+      method: 'DELETE',
+    });
+  },
+
+  async generatePrepKit(interviewId: string, roundId?: string, forceRefresh = false): Promise<InterviewPrepKitData> {
+    return fetchJson<InterviewPrepKitData>(`/interviews/${interviewId}/prep-kit/generate`, {
+      method: 'POST',
+      body: JSON.stringify({ roundId, forceRefresh }),
+    });
+  },
+
+  async listInterviewQuestions(interviewId: string, roundId?: string): Promise<InterviewQuestionItem[]> {
+    const qs = roundId ? `?roundId=${roundId}` : '';
+    return fetchJson<InterviewQuestionItem[]>(`/interviews/${interviewId}/questions${qs}`);
+  },
+
+  async addInterviewQuestion(interviewId: string, data: any): Promise<InterviewQuestionItem> {
+    return fetchJson<InterviewQuestionItem>(`/interviews/${interviewId}/questions`, {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  },
+
+  async generatePredictedQuestions(interviewId: string, roundId?: string): Promise<InterviewQuestionItem[]> {
+    return fetchJson<InterviewQuestionItem[]>(`/interviews/${interviewId}/questions/generate`, {
+      method: 'POST',
+      body: JSON.stringify({ roundId }),
+    });
+  },
+
+  async generateSTARAnswer(question: string, targetProjectTitle?: string): Promise<STARAnswerItem> {
+    return fetchJson<STARAnswerItem>('/interviews/star/generate', {
+      method: 'POST',
+      body: JSON.stringify({ question, targetProjectTitle }),
+    });
+  },
+
+  async startMockSession(interviewId: string, roundType: string, roundId?: string): Promise<MockSessionRecord> {
+    return fetchJson<MockSessionRecord>(`/interviews/${interviewId}/mock-sessions`, {
+      method: 'POST',
+      body: JSON.stringify({ roundType, roundId }),
+    });
+  },
+
+  async submitMockAnswer(sessionId: string, questionIndex: number, answer: string): Promise<MockSessionRecord> {
+    return fetchJson<MockSessionRecord>(`/mock-sessions/${sessionId}/answer`, {
+      method: 'POST',
+      body: JSON.stringify({ questionIndex, answer }),
+    });
+  },
+
+  async completeMockSession(sessionId: string): Promise<MockSessionRecord> {
+    return fetchJson<MockSessionRecord>(`/mock-sessions/${sessionId}/complete`, {
+      method: 'POST',
+    });
+  },
+
+  async submitInterviewDebrief(interviewId: string, data: any): Promise<InterviewDebriefRecord> {
+    return fetchJson<InterviewDebriefRecord>(`/interviews/${interviewId}/debrief`, {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  },
+
+  // Autonomous Workflow & Auto-Apply
+  async uploadResume(text: string): Promise<ParsedResumePreview> {
+    return fetchJson<ParsedResumePreview>('/profile/upload-resume', {
+      method: 'POST',
+      body: JSON.stringify({ text }),
+    });
+  },
+
+  async commitResume(preview: ParsedResumePreview, overwrite?: boolean): Promise<any> {
+    return fetchJson('/profile/commit-resume', {
+      method: 'POST',
+      body: JSON.stringify({ preview, overwrite }),
+    });
+  },
+
+  async getAutoApplyConfig(): Promise<AutoApplyConfig> {
+    return fetchJson<AutoApplyConfig>('/profile/auto-apply-config');
+  },
+
+  async updateAutoApplyConfig(config: AutoApplyConfig): Promise<AutoApplyConfig> {
+    return fetchJson<AutoApplyConfig>('/profile/auto-apply-config', {
+      method: 'PUT',
+      body: JSON.stringify(config),
+    });
+  },
+
+  async autoApply(jobId: string, dryRun?: boolean): Promise<{
+    success: boolean;
+    mode: 'LIVE' | 'SANDBOX';
+    receipt?: SubmissionReceipt;
+    sandboxResult?: SandboxTestResult;
+    message?: string;
+  }> {
+    return fetchJson(`/jobs/${jobId}/auto-apply`, {
+      method: 'POST',
+      body: JSON.stringify({ dryRun }),
+    });
+  },
+
+  async evaluateAutoApplyEligibility(jobId: string): Promise<AutoApplyEligibilityResult> {
+    return fetchJson<AutoApplyEligibilityResult>(`/jobs/${jobId}/auto-apply/eligibility`);
+  },
+
+  async autoPrepare(jobId: string): Promise<any> {
+    return fetchJson(`/jobs/${jobId}/auto-prepare`, {
+      method: 'POST',
+    });
+  },
+
+  async runContinuousDiscovery(): Promise<{
+    scanned: number;
+    newJobs: number;
+    analyzed: number;
+    tier1Count: number;
+    tier2Count: number;
+    tier3Count: number;
+    autoAppliedCount: number;
+  }> {
+    return fetchJson('/discovery/continuous/run', {
+      method: 'POST',
+    });
+  },
+
+  async getContinuousDiscoveryStatus(): Promise<{
+    isRunningCycle: boolean;
+    lastRunTimestamp: string | null;
+    isWorkerActive: boolean;
+  }> {
+    return fetchJson('/discovery/continuous/status');
+  },
+
+  async getQualifiedOpportunities(): Promise<QualifiedOpportunity[]> {
+    return fetchJson<QualifiedOpportunity[]>('/discovery/qualified-opportunities');
   },
 };

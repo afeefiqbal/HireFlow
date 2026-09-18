@@ -8,6 +8,7 @@ import {
   ApplicationDetailRecord,
   ApplicationStatus,
 } from '@ai-job-agent/shared';
+import { ClientDate } from '@/components/ClientDate';
 import {
   ArrowLeft,
   Building2,
@@ -27,6 +28,7 @@ import {
   Send,
   XCircle,
   Tag,
+  Video,
 } from 'lucide-react';
 
 export default function ApplicationDetailPage() {
@@ -79,6 +81,7 @@ export default function ApplicationDetailPage() {
         'USER'
       );
       showToast(`Status transitioned to ${toStatus}`);
+      window.dispatchEvent(new CustomEvent('hireflow:application-updated'));
       await fetchDetail();
     } catch (err: any) {
       alert(`Status transition rejected: ${err.message}`);
@@ -93,6 +96,7 @@ export default function ApplicationDetailPage() {
       await api.addApplicationNote(detail.id, noteContent.trim());
       setNoteContent('');
       showToast('Note added to application timeline');
+      window.dispatchEvent(new CustomEvent('hireflow:application-updated'));
       await fetchDetail();
     } catch (err: any) {
       alert(`Failed to add note: ${err.message}`);
@@ -118,6 +122,7 @@ export default function ApplicationDetailPage() {
       await api.setFollowUpDate(detail.id, targetDate);
       setCustomFollowUpDate('');
       showToast(clear ? 'Follow-up cleared' : 'Follow-up date updated');
+      window.dispatchEvent(new CustomEvent('hireflow:application-updated'));
       await fetchDetail();
     } catch (err: any) {
       alert(`Failed to set follow-up: ${err.message}`);
@@ -228,13 +233,22 @@ export default function ApplicationDetailPage() {
           <ArrowLeft className="h-4 w-4" />
           Back to Application Queue
         </Link>
-        <Link
-          href={`/jobs/${detail.jobId}/apply`}
-          className="inline-flex items-center gap-1.5 rounded-lg bg-teal-600/20 border border-teal-500/40 px-3 py-1.5 text-xs font-semibold text-teal-300 hover:bg-teal-600/30 transition-colors"
-        >
-          <Sparkles className="h-3.5 w-3.5" />
-          Open Preparation Copilot
-        </Link>
+        <div className="flex items-center gap-2">
+          <Link
+            href={`/applications/${detail.id}/interview`}
+            className="inline-flex items-center gap-1.5 rounded-lg bg-purple-600/20 border border-purple-500/40 px-3 py-1.5 text-xs font-semibold text-purple-300 hover:bg-purple-600/30 transition-colors shadow-sm"
+          >
+            <Video className="h-3.5 w-3.5" />
+            Interview Cockpit
+          </Link>
+          <Link
+            href={`/jobs/${detail.jobId}/apply`}
+            className="inline-flex items-center gap-1.5 rounded-lg bg-teal-600/20 border border-teal-500/40 px-3 py-1.5 text-xs font-semibold text-teal-300 hover:bg-teal-600/30 transition-colors"
+          >
+            <Sparkles className="h-3.5 w-3.5" />
+            Open Preparation Copilot
+          </Link>
+        </div>
       </div>
 
       {/* Job Ground Truth Header */}
@@ -394,9 +408,11 @@ export default function ApplicationDetailPage() {
                     Submission Status: {healthChecklist.isApplied ? 'Applied' : 'Pending Confirmation'}
                   </div>
                   <div className="text-[11px] text-slate-400">
-                    {healthChecklist.appliedDate
-                      ? `Applied on ${new Date(healthChecklist.appliedDate).toLocaleDateString()}`
-                      : 'Human confirmation required'}
+                    {healthChecklist.appliedDate ? (
+                      <>Applied on <ClientDate date={healthChecklist.appliedDate} /></>
+                    ) : (
+                      'Human confirmation required'
+                    )}
                   </div>
                 </div>
               </div>
@@ -412,7 +428,7 @@ export default function ApplicationDetailPage() {
               </h2>
               {snapshotJson?.appliedDate && (
                 <span className="text-xs text-emerald-400 font-mono">
-                  Applied: {new Date(snapshotJson.appliedDate).toLocaleDateString()}
+                  Applied: <ClientDate date={snapshotJson.appliedDate} />
                 </span>
               )}
             </div>
@@ -507,7 +523,7 @@ export default function ApplicationDetailPage() {
                 <div className="p-2.5 rounded-lg bg-slate-900 border border-slate-800 mb-3 space-y-1">
                   <div className="text-slate-400">Scheduled for:</div>
                   <div className="font-bold text-white flex items-center justify-between">
-                    <span>{new Date(detail.nextFollowUpAt).toLocaleDateString()}</span>
+                    <span><ClientDate date={detail.nextFollowUpAt} /></span>
                     <span
                       className={`px-2 py-0.5 rounded text-[11px] font-semibold ${
                         healthChecklist.followUpStatus === 'TODAY'
@@ -610,7 +626,7 @@ export default function ApplicationDetailPage() {
                   <div key={note.id} className="p-2.5 rounded-lg bg-slate-900/90 border border-slate-800/80 space-y-1">
                     <div className="text-slate-200">{note.content}</div>
                     <div className="text-[10px] text-slate-500">
-                      {new Date(note.createdAt).toLocaleString()}
+                      <ClientDate date={note.createdAt} type="datetime" />
                     </div>
                   </div>
                 ))
@@ -634,13 +650,13 @@ export default function ApplicationDetailPage() {
                     <div className="flex items-center justify-between text-[11px]">
                       <span className="font-semibold text-slate-200">{event.type}</span>
                       <span className="text-[10px] text-slate-500">
-                        {new Date(event.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                        <ClientDate date={event.timestamp} type="time" />
                       </span>
                     </div>
                     {event.note && <div className="text-slate-400 text-[11px]">{event.note}</div>}
                     <div className="text-[10px] text-slate-500 flex items-center justify-between">
                       <span>Source: {event.source || 'USER'}</span>
-                      <span>{new Date(event.timestamp).toLocaleDateString()}</span>
+                      <span><ClientDate date={event.timestamp} type="date" /></span>
                     </div>
                   </div>
                 ))

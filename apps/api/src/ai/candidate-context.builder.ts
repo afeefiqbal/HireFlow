@@ -3,7 +3,8 @@ export type ContextTaskType =
   | 'JOB_MATCHING'
   | 'SCREENING_QUESTION'
   | 'COVER_LETTER'
-  | 'RESUME_GENERATION';
+  | 'RESUME_GENERATION'
+  | 'INTERVIEW_PREP';
 
 const TECHNOLOGIES = [
   'laravel', 'php', 'node', 'nodejs', 'node.js', 'react', 'vue', 'vue.js',
@@ -184,6 +185,29 @@ export class CandidateContextBuilder {
           CORE_CONTEXT: core,
           RELEVANT_CONTEXT: relevant,
           FULL_VERIFIED_TIMELINE: this.buildFullContext(profile).experience
+        };
+        break;
+      }
+
+      case 'INTERVIEW_PREP': {
+        const relevant = this.buildRelevantContext(profile, targetText);
+        finalContext = {
+          CORE_CONTEXT: core,
+          RELEVANT_CONTEXT: relevant,
+          FULL_VERIFIED_PROJECTS: (profile.projects || []).map((p: any) => ({
+            title: p.title,
+            description: p.description,
+            technologies: p.technologies,
+            verified: p.verified
+          })),
+          FULL_VERIFIED_TIMELINE: (profile.experiences || []).map((e: any) => ({
+            company: e.company,
+            role: e.role,
+            startDate: e.startDate,
+            endDate: e.endDate,
+            technologies: e.technologies,
+            description: e.description
+          }))
         };
         break;
       }

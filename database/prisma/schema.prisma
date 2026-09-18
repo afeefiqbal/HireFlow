@@ -37,6 +37,7 @@ model CandidateProfile {
   github                  String?       @default("https://github.com/afeefiqbal")
   portfolio               String?
   commonAnswers           Json?         @map("common_answers")
+  autoApplyConfig         Json?         @map("auto_apply_config")
   createdAt               DateTime      @default(now()) @map("created_at")
   updatedAt               DateTime      @updatedAt @map("updated_at")
   coverLetters            CoverLetter[]
@@ -329,14 +330,17 @@ model Application {
   applicationUrl String?             @map("application_url")
   notes          String?
   interviewDates String[]            @map("interview_dates")
-  snapshotJson   Json?               @map("snapshot_json")
-  nextFollowUpAt DateTime?           @map("next_follow_up_at")
+  snapshotJson      Json?               @map("snapshot_json")
+  submissionReceipt Json?               @map("submission_receipt")
+  sandboxResult     Json?               @map("sandbox_result")
+  nextFollowUpAt    DateTime?           @map("next_follow_up_at")
   lastActivityAt DateTime            @default(now()) @map("last_activity_at")
   createdAt      DateTime            @default(now()) @map("created_at")
   updatedAt      DateTime            @updatedAt @map("updated_at")
   answers        ApplicationAnswer[]
   events         ApplicationEvent[]
   notesList      ApplicationNote[]
+  interview      Interview?
   job            Job                 @relation(fields: [jobId], references: [id], onDelete: Cascade)
 
   @@index([status])
@@ -455,3 +459,199 @@ enum ApplicationStatus {
   WITHDRAWN
   EXPIRED
 }
+
+// ==========================================
+// V6 INTERVIEW INTELLIGENCE DOMAIN
+// ==========================================
+
+enum InterviewStatus {
+  PLANNED
+  SCHEDULED
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+}
+
+enum InterviewRoundType {
+  SCREENING_CALL
+  TECHNICAL_SCREEN
+  TECHNICAL_ROUND
+  SYSTEM_DESIGN
+  BEHAVIORAL_CULTURE
+  EXECUTIVE_FINAL
+  CUSTOM
+}
+
+enum InterviewRoundStatus {
+  SCHEDULED
+  COMPLETED
+  CANCELLED
+}
+
+enum QuestionCategory {
+  BEHAVIORAL
+  TECHNICAL
+  SYSTEM_DESIGN
+  PROJECT_DEEP_DIVE
+  ROLE_SPECIFIC
+  COMPANY_SPECIFIC
+  SCREENING
+  FOLLOW_UP
+}
+
+enum QuestionSource {
+  PREDICTED
+  AI_GENERATED
+  USER_PROVIDED
+  ACTUAL_INTERVIEW
+}
+
+enum EvidenceAttribution {
+  AI_VERIFIED
+  USER_PROVIDED
+  USER_INPUT_REQUIRED
+  USER_REVIEW_REQUIRED
+}
+
+model Interview {
+  id             String                 @id @default(uuid())
+  applicationId  String                 @unique @map("application_id")
+  status         InterviewStatus        @default(PLANNED)
+  overallOutcome String?                @map("overall_outcome")
+  notes          String?
+  createdAt      DateTime               @default(now()) @map("created_at")
+  updatedAt      DateTime               @updatedAt @map("updated_at")
+  application    Application            @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  rounds         InterviewRound[]
+  prepKits       InterviewPrepKit[]
+  questions      InterviewQuestion[]
+  mockSessions   MockInterviewSession[]
+  debriefs       InterviewDebrief[]
+
+  @@index([applicationId])
+  @@index([status])
+  @@map("interviews")
+}
+
+model InterviewRound {
+  id               String                 @id @default(uuid())
+  interviewId      String                 @map("interview_id")
+  roundType        InterviewRoundType     @default(SCREENING_CALL) @map("round_type")
+  title            String
+  sequence         Int                    @default(1)
+  status           InterviewRoundStatus   @default(SCHEDULED)
+  scheduledAt      DateTime?              @map("scheduled_at")
+  completedAt      DateTime?              @map("completed_at")
+  interviewerName  String?                @map("interviewer_name")
+  interviewerTitle String?                @map("interviewer_title")
+  meetingUrl       String?                @map("meeting_url")
+  notes            String?
+  createdAt        DateTime               @default(now()) @map("created_at")
+  updatedAt        DateTime               @updatedAt @map("updated_at")
+  interview        Interview              @relation(fields: [interviewId], references: [id], onDelete: Cascade)
+  prepKits         InterviewPrepKit[]
+  questions        InterviewQuestion[]
+  mockSessions     MockInterviewSession[]
+  debriefs         InterviewDebrief[]
+
+  @@index([interviewId])
+  @@index([status])
+  @@index([scheduledAt])
+  @@map("interview_rounds")
+}
+
+model InterviewQuestion {
+  id                String              @id @default(uuid())
+  interviewId       String              @map("interview_id")
+  roundId           String?             @map("round_id")
+  category          QuestionCategory    @default(ROLE_SPECIFIC)
+  source            QuestionSource      @default(PREDICTED)
+  questionText      String              @map("question_text")
+  suggestedAnswer   String?             @map("suggested_answer")
+  starSituation     String?             @map("star_situation")
+  starTask          String?             @map("star_task")
+  starAction        String?             @map("star_action")
+  starResult        String?             @map("star_result")
+  resultAttribution EvidenceAttribution @default(USER_INPUT_REQUIRED) @map("result_attribution")
+  unverifiedClaims  String[]            @default([]) @map("unverified_claims")
+  relevanceReason   String?             @map("relevance_reason")
+  userNotes         String?             @map("user_notes")
+  createdAt         DateTime            @default(now()) @map("created_at")
+  updatedAt         DateTime            @updatedAt @map("updated_at")
+  interview         Interview           @relation(fields: [interviewId], references: [id], onDelete: Cascade)
+  round             InterviewRound?     @relation(fields: [roundId], references: [id], onDelete: SetNull)
+
+  @@index([interviewId])
+  @@index([roundId])
+  @@index([category])
+  @@index([source])
+  @@map("interview_questions")
+}
+
+model InterviewPrepKit {
+  id                   String          @id @default(uuid())
+  interviewId          String          @map("interview_id")
+  roundId              String?         @map("round_id")
+  versionNum           Int             @default(1) @map("version_num")
+  modelUsed            String?         @map("model_used")
+  promptVersion        String?         @map("prompt_version")
+  companyBriefJson     Json            @map("company_brief_json")
+  roleBriefJson        Json            @map("role_brief_json")
+  techTopicsJson       Json            @map("tech_topics_json")
+  projectDeepDivesJson Json            @map("project_deep_dives_json")
+  starBlueprintsJson   Json            @map("star_blueprints_json")
+  systemDesignJson     Json?           @map("system_design_json")
+  questionsToAsk       String[]        @map("questions_to_ask")
+  createdAt            DateTime        @default(now()) @map("created_at")
+  interview            Interview       @relation(fields: [interviewId], references: [id], onDelete: Cascade)
+  round                InterviewRound? @relation(fields: [roundId], references: [id], onDelete: SetNull)
+
+  @@index([interviewId])
+  @@index([roundId])
+  @@map("interview_prep_kits")
+}
+
+model MockInterviewSession {
+  id              String             @id @default(uuid())
+  interviewId     String             @map("interview_id")
+  roundId         String?            @map("round_id")
+  roundType       InterviewRoundType @map("round_type")
+  status          String             @default("ACTIVE")
+  qnaJson         Json               @map("qna_json")
+  feedbackSummary Json?              @map("feedback_summary")
+  createdAt       DateTime           @default(now()) @map("created_at")
+  completedAt     DateTime?          @map("completed_at")
+  interview       Interview          @relation(fields: [interviewId], references: [id], onDelete: Cascade)
+  round           InterviewRound?    @relation(fields: [roundId], references: [id], onDelete: SetNull)
+
+  @@index([interviewId])
+  @@index([roundId])
+  @@map("mock_interview_sessions")
+}
+
+model InterviewDebrief {
+  id                  String          @id @default(uuid())
+  interviewId         String          @map("interview_id")
+  roundId             String?         @map("round_id")
+  candidateReflection String          @map("candidate_reflection")
+  questionsAsked      String[]        @map("questions_asked")
+  technicalTopics     String[]        @map("technical_topics")
+  behavioralTopics    String[]        @map("behavioral_topics")
+  whatWentWell        String?         @map("what_went_well")
+  whatWasDifficult    String?         @map("what_was_difficult")
+  topicsToStudy       String[]        @default([]) @map("topics_to_study")
+  interviewerFeedback String?         @map("interviewer_feedback")
+  aiObservedSummary   String?         @map("ai_observed_summary")
+  aiSuggestions       String[]        @default([]) @map("ai_suggestions")
+  nextSteps           String?         @map("next_steps")
+  followUpDate        DateTime?       @map("follow_up_date")
+  outcome             String?
+  createdAt           DateTime        @default(now()) @map("created_at")
+  interview           Interview       @relation(fields: [interviewId], references: [id], onDelete: Cascade)
+  round               InterviewRound? @relation(fields: [roundId], references: [id], onDelete: SetNull)
+
+  @@index([interviewId])
+  @@index([roundId])
+  @@map("interview_debriefs")
+}
+

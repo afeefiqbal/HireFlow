@@ -272,4 +272,87 @@ export class PreparationService {
       archived,
     };
   }
+
+  /**
+   * Orchestrates automatic preparation of all application materials for qualified opportunities:
+   * 1. Tailored CV
+   * 2. Tailored Cover Letter
+   * 3. Screening Questions
+   * 4. Updates Application status to PREPARING or READY_TO_APPLY
+   */
+  static async autoPrepareApplication(jobId: string): Promise<ApplicationPreparationSummary> {
+    const job = await prisma.job.findUnique({
+      where: { id: jobId },
+      include: {
+        resumeVersions: { take: 1, orderBy: { createdAt: 'desc' } },
+        coverLetters: { take: 1, orderBy: { createdAt: 'desc' } },
+        screeningQuestions: true,
+        application: true,
+      },
+    });
+    if (!job) throw new Error(`Job not found: ${jobId}`);
+
+    // 1. Generate CV if not already generated
+    const { ResumeService } = await import('./resume.service');
+    if (job.resumeVersions.length === 0) {
+      await ResumeService.generateTailoredCv(jobId);
+    }
+
+    // 2. Generate Cover Letter if not already generated
+    const { CoverLetterService } = await import('./cover-letter.service');
+    if (job.coverLetters.length === 0) {
+      await CoverLetterService.generateCoverLetter(jobId);
+    }
+
+    // 3. Generate Screening Questions if not already generated
+    const { ScreeningService } = await import('./screening.service');
+    if (job.screeningQuestions.length === 0) {
+      await ScreeningService.analyzeScreeningQuestions(jobId);
+    }
+
+    // 4. Check for pending user input
+    const questions = await prisma.screeningQuestion.findMany({ where: { jobId } });
+    const pendingUserInput = questions.filter((q) => q.requiresUserInput && !q.userAnswer).length;
+
+    // 5. Update Application record status to PREPARING or READY_TO_APPLY if safe
+    const application = await prisma.application.findUnique({ where: { jobId } });
+    const targetStatus = pendingUserInput === 0 ? 'READY_TO_APPLY' : 'PREPARING';
+
+    if (!application) {
+      await prisma.application.create({
+        data: {
+          jobId,
+          status: targetStatus,
+          lastActivityAt: new Date(),
+          events: {
+            create: {
+              type: 'STATUS_CHANGED',
+              toStatus: targetStatus,
+              source: 'AUTO_PREPARATION_ENGINE',
+              note: `Application automatically prepared (${targetStatus})`,
+            },
+          },
+        },
+      });
+    } else if (['DISCOVERED', 'SHORTLISTED', 'SAVED'].includes(application.status)) {
+      await prisma.application.update({
+        where: { jobId },
+        data: {
+          status: targetStatus,
+          lastActivityAt: new Date(),
+          events: {
+            create: {
+              type: 'STATUS_CHANGED',
+              fromStatus: application.status,
+              toStatus: targetStatus,
+              source: 'AUTO_PREPARATION_ENGINE',
+              note: `Application automatically prepared (${targetStatus})`,
+            },
+          },
+        },
+      });
+    }
+
+    return this.getApplicationPreparation(jobId);
+  }
 }

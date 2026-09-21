@@ -130,17 +130,17 @@ export default function CoverLetterEditorPage() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 print:space-y-0 print:p-0 print:m-0">
       {/* Toast */}
       {toastMessage && (
-        <div className="fixed bottom-6 right-6 z-50 flex items-center gap-2 rounded-lg bg-[#00b074] px-4 py-3 text-sm font-semibold text-white shadow-xl animate-bounce">
+        <div className="fixed bottom-6 right-6 z-50 flex items-center gap-2 rounded-lg bg-[#00b074] px-4 py-3 text-sm font-semibold text-white shadow-xl animate-bounce print:hidden">
           <ShieldCheck className="h-5 w-5" />
           <span>{toastMessage}</span>
         </div>
       )}
 
       {/* Navigation & Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200 pb-4">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200 pb-4 print:hidden">
         <div className="flex items-center gap-3">
           <Link
             href={`/jobs/${id}/apply`}
@@ -193,7 +193,7 @@ export default function CoverLetterEditorPage() {
       </div>
 
       {/* Target Role & Candidate Info */}
-      <div className="rounded-xl border border-slate-200 bg-white p-4 flex flex-col md:flex-row md:items-center justify-between gap-3 text-xs shadow-xs">
+      <div className="rounded-xl border border-slate-200 bg-white p-4 flex flex-col md:flex-row md:items-center justify-between gap-3 text-xs shadow-xs print:hidden">
         <div>
           <span className="text-slate-500 block uppercase tracking-wider text-[10px] font-bold">Target Position</span>
           <span className="text-slate-900 font-bold text-sm">{job?.title}</span>
@@ -205,9 +205,9 @@ export default function CoverLetterEditorPage() {
       </div>
 
       {/* Two Column Workspace: Left (Editor) vs Right (Clean Formal Preview) */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 print:block print:w-full print:m-0 print:p-0">
         {/* Left: Interactive Editor */}
-        <div className="rounded-xl border border-slate-200 bg-white p-5 space-y-4 shadow-xs">
+        <div className="rounded-xl border border-slate-200 bg-white p-5 space-y-4 shadow-xs print:hidden">
           <div className="flex items-center justify-between border-b border-slate-100 pb-3">
             <h3 className="text-sm font-bold text-slate-900 flex items-center gap-2">
               <Edit3 className="h-4 w-4 text-[#00b074]" />
@@ -238,8 +238,8 @@ export default function CoverLetterEditorPage() {
         </div>
 
         {/* Right: Formal Letter Paper Preview */}
-        <div className="space-y-4">
-          <div className="flex items-center justify-between">
+        <div className="space-y-4 print:space-y-0 print:w-full print:m-0 print:p-0">
+          <div className="flex items-center justify-between print:hidden">
             <span className="text-xs font-bold uppercase tracking-wider text-slate-600 flex items-center gap-1.5">
               <Eye className="h-4 w-4 text-[#00b074]" />
               Document Preview
@@ -247,7 +247,7 @@ export default function CoverLetterEditorPage() {
             <span className="text-[11px] text-slate-400">A4 Document Standard</span>
           </div>
 
-          <div className="rounded-xl border border-slate-200 bg-white text-slate-900 p-8 shadow-md space-y-5 font-serif text-xs leading-relaxed print:border-none print:shadow-none print:p-0">
+          <div id="cover-letter-document" className="rounded-xl border border-slate-200 bg-white text-slate-900 p-8 shadow-md space-y-5 font-serif text-xs leading-relaxed print:border-none print:shadow-none print:w-full print:m-0">
             {/* Sender details */}
             <div className="border-b border-slate-300 pb-3 font-sans space-y-0.5">
               <div className="text-base font-bold text-slate-900">Afeef Iqbal</div>

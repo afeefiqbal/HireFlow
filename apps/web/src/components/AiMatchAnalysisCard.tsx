@@ -17,14 +17,19 @@ interface AiMatchAnalysisCardProps {
 }
 
 export const AiMatchAnalysisCard: React.FC<AiMatchAnalysisCardProps> = ({ match }) => {
+  if (!match) return null;
+
   const getRecommendationBadge = () => {
-    switch (match.recommendation) {
+    const rec = match.recommendation || '';
+    switch (rec.toUpperCase()) {
       case 'APPLY':
+      case 'APPLY_NOW':
         return {
           label: 'RECOMMENDED: APPLY',
           className: 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40',
         };
       case 'REVIEW':
+      case 'CAUTION':
         return {
           label: 'CAUTION: REVIEW FIRST',
           className: 'bg-amber-500/20 text-amber-300 border-amber-500/40',
@@ -36,13 +41,35 @@ export const AiMatchAnalysisCard: React.FC<AiMatchAnalysisCardProps> = ({ match 
         };
       default:
         return {
-          label: match.recommendation,
+          label: rec || 'EVALUATED',
           className: 'bg-slate-700 text-slate-200 border-slate-600',
         };
     }
   };
 
   const badge = getRecommendationBadge();
+
+  const overallScore = match.overall_match ?? (match as any).overallMatch ?? 0;
+  const technicalScore = match.technical_match ?? (match as any).technicalMatch ?? 0;
+  const experienceScore = match.experience_match ?? (match as any).experienceMatch ?? 0;
+  const locationScore = match.location_match ?? (match as any).locationMatch ?? 0;
+  const visaCompat: string = match.visa_compatibility || (match as any).visaCompatibility || 'unknown';
+
+  const strongMatches: string[] = Array.isArray(match.strong_matches)
+    ? match.strong_matches
+    : Array.isArray((match as any).strongMatches)
+    ? (match as any).strongMatches
+    : [];
+
+  const missingRequirements: string[] = Array.isArray(match.missing_requirements)
+    ? match.missing_requirements
+    : Array.isArray((match as any).missingRequirements)
+    ? (match as any).missingRequirements
+    : [];
+
+  const concerns: string[] = Array.isArray(match.concerns) ? match.concerns : [];
+
+  const reasoning: string[] = Array.isArray(match.reasoning) ? match.reasoning : [];
 
   return (
     <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-xs">
@@ -68,7 +95,7 @@ export const AiMatchAnalysisCard: React.FC<AiMatchAnalysisCardProps> = ({ match 
         <div className="flex items-center gap-4">
           <div className="text-right">
             <div className="text-xs uppercase font-semibold text-slate-400 tracking-wider">Overall Match</div>
-            <div className="text-3xl font-black tracking-tight text-[#009a65]">{match.overall_match}%</div>
+            <div className="text-3xl font-black tracking-tight text-[#009a65]">{overallScore}%</div>
           </div>
           <div className={`rounded-lg border px-3 py-2 text-xs font-bold uppercase tracking-wider ${badge.className}`}>
             {badge.label}
@@ -85,12 +112,12 @@ export const AiMatchAnalysisCard: React.FC<AiMatchAnalysisCardProps> = ({ match 
               <Cpu className="h-3.5 w-3.5 text-[#00b074]" />
               Technical
             </span>
-            <span className="font-bold text-slate-900">{match.technical_match}%</span>
+            <span className="font-bold text-slate-900">{technicalScore}%</span>
           </div>
           <div className="mt-2 h-1.5 w-full rounded-full bg-slate-200 overflow-hidden">
             <div
               className="h-full bg-[#00b074] rounded-full"
-              style={{ width: `${match.technical_match}%` }}
+              style={{ width: `${technicalScore}%` }}
             />
           </div>
         </div>
@@ -102,12 +129,12 @@ export const AiMatchAnalysisCard: React.FC<AiMatchAnalysisCardProps> = ({ match 
               <Clock className="h-3.5 w-3.5 text-blue-600" />
               Experience
             </span>
-            <span className="font-bold text-slate-900">{match.experience_match}%</span>
+            <span className="font-bold text-slate-900">{experienceScore}%</span>
           </div>
           <div className="mt-2 h-1.5 w-full rounded-full bg-slate-200 overflow-hidden">
             <div
               className="h-full bg-blue-500 rounded-full"
-              style={{ width: `${match.experience_match}%` }}
+              style={{ width: `${experienceScore}%` }}
             />
           </div>
         </div>
@@ -119,12 +146,12 @@ export const AiMatchAnalysisCard: React.FC<AiMatchAnalysisCardProps> = ({ match 
               <MapPin className="h-3.5 w-3.5 text-purple-600" />
               Location
             </span>
-            <span className="font-bold text-slate-900">{match.location_match}%</span>
+            <span className="font-bold text-slate-900">{locationScore}%</span>
           </div>
           <div className="mt-2 h-1.5 w-full rounded-full bg-slate-200 overflow-hidden">
             <div
               className="h-full bg-purple-500 rounded-full"
-              style={{ width: `${match.location_match}%` }}
+              style={{ width: `${locationScore}%` }}
             />
           </div>
         </div>
@@ -138,22 +165,22 @@ export const AiMatchAnalysisCard: React.FC<AiMatchAnalysisCardProps> = ({ match 
             </span>
             <span
               className={`font-bold capitalize ${
-                match.visa_compatibility === 'compatible'
+                visaCompat === 'compatible' || visaCompat === 'HIGHLY_COMPATIBLE'
                   ? 'text-[#009a65]'
-                  : match.visa_compatibility === 'incompatible'
+                  : visaCompat === 'incompatible'
                   ? 'text-rose-600'
                   : 'text-amber-600'
               }`}
             >
-              {match.visa_compatibility}
+              {visaCompat}
             </span>
           </div>
           <div className="mt-2 h-1.5 w-full rounded-full bg-slate-200 overflow-hidden">
             <div
               className={`h-full rounded-full ${
-                match.visa_compatibility === 'compatible'
+                visaCompat === 'compatible' || visaCompat === 'HIGHLY_COMPATIBLE'
                   ? 'w-full bg-[#00b074]'
-                  : match.visa_compatibility === 'incompatible'
+                  : visaCompat === 'incompatible'
                   ? 'w-1/4 bg-rose-500'
                   : 'w-2/3 bg-amber-500'
               }`}
@@ -168,10 +195,10 @@ export const AiMatchAnalysisCard: React.FC<AiMatchAnalysisCardProps> = ({ match 
         <div className="rounded-xl border border-emerald-200 bg-emerald-50/40 p-3.5">
           <div className="flex items-center gap-1.5 text-xs font-bold text-emerald-800 mb-2">
             <CheckCircle2 className="h-4 w-4 text-[#00b074]" />
-            <span>Strong Matches ({match.strong_matches.length})</span>
+            <span>Strong Matches ({strongMatches.length})</span>
           </div>
           <div className="flex flex-wrap gap-1.5">
-            {match.strong_matches.map((item) => (
+            {strongMatches.map((item) => (
               <span
                 key={item}
                 className="rounded-md bg-white border border-emerald-200 px-2 py-0.5 text-xs font-semibold text-[#009a65] shadow-2xs"
@@ -179,7 +206,7 @@ export const AiMatchAnalysisCard: React.FC<AiMatchAnalysisCardProps> = ({ match 
                 {item}
               </span>
             ))}
-            {match.strong_matches.length === 0 && (
+            {strongMatches.length === 0 && (
               <span className="text-xs text-slate-400 italic">No direct primary overlaps</span>
             )}
           </div>
@@ -189,10 +216,10 @@ export const AiMatchAnalysisCard: React.FC<AiMatchAnalysisCardProps> = ({ match 
         <div className="rounded-xl border border-rose-200 bg-rose-50/40 p-3.5">
           <div className="flex items-center gap-1.5 text-xs font-bold text-rose-800 mb-2">
             <XCircle className="h-4 w-4 text-rose-500" />
-            <span>Missing Requirements ({match.missing_requirements.length})</span>
+            <span>Missing Requirements ({missingRequirements.length})</span>
           </div>
           <div className="flex flex-wrap gap-1.5">
-            {match.missing_requirements.map((item) => (
+            {missingRequirements.map((item) => (
               <span
                 key={item}
                 className="rounded-md bg-white border border-rose-200 px-2 py-0.5 text-xs font-semibold text-rose-700 shadow-2xs"
@@ -200,7 +227,7 @@ export const AiMatchAnalysisCard: React.FC<AiMatchAnalysisCardProps> = ({ match 
                 {item}
               </span>
             ))}
-            {match.missing_requirements.length === 0 && (
+            {missingRequirements.length === 0 && (
               <span className="text-xs text-[#009a65] font-bold">None! 100% requirements fulfilled</span>
             )}
           </div>
@@ -210,16 +237,16 @@ export const AiMatchAnalysisCard: React.FC<AiMatchAnalysisCardProps> = ({ match 
         <div className="rounded-xl border border-amber-200 bg-amber-50/40 p-3.5">
           <div className="flex items-center gap-1.5 text-xs font-bold text-amber-800 mb-2">
             <AlertTriangle className="h-4 w-4 text-amber-600" />
-            <span>Potential Concerns ({match.concerns.length})</span>
+            <span>Potential Concerns ({concerns.length})</span>
           </div>
           <ul className="space-y-1 text-xs text-slate-700">
-            {match.concerns.map((item, idx) => (
+            {concerns.map((item, idx) => (
               <li key={idx} className="flex items-start gap-1">
                 <span className="text-amber-500 font-bold">•</span>
                 <span>{item}</span>
               </li>
             ))}
-            {match.concerns.length === 0 && (
+            {concerns.length === 0 && (
               <span className="text-xs text-[#009a65] font-bold">Zero friction points detected</span>
             )}
           </ul>
@@ -233,7 +260,7 @@ export const AiMatchAnalysisCard: React.FC<AiMatchAnalysisCardProps> = ({ match 
           AI Audit Reasoning &amp; Evidence
         </h4>
         <ul className="space-y-2">
-          {match.reasoning.map((r, i) => (
+          {reasoning.map((r, i) => (
             <li key={i} className="flex items-start gap-2 text-xs text-slate-700">
               <span className="flex h-4 w-4 items-center justify-center rounded-full bg-emerald-100 text-[10px] font-bold text-[#009a65] shrink-0 mt-0.5">
                 {i + 1}
@@ -241,6 +268,9 @@ export const AiMatchAnalysisCard: React.FC<AiMatchAnalysisCardProps> = ({ match 
               <span>{r}</span>
             </li>
           ))}
+          {reasoning.length === 0 && (
+            <li className="text-xs text-slate-400 italic">No specific reasoning notes recorded.</li>
+          )}
         </ul>
       </div>
     </div>

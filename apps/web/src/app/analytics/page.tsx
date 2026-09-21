@@ -77,11 +77,15 @@ export default function AnalyticsDashboardPage() {
     offer: 0,
   };
 
-  const conversion = analytics?.conversionMetrics || {
+  const conversion = analytics?.conversionMetrics || analytics?.conversions || {
     applicationRate: { numerator: 0, denominator: 0, percentage: null, insufficientData: true },
     interviewRate: { numerator: 0, denominator: 0, percentage: null, insufficientData: true },
     offerRate: { numerator: 0, denominator: 0, percentage: null, insufficientData: true },
   };
+
+  const appRate = conversion.applicationRate || { numerator: 0, denominator: 0, percentage: null, insufficientData: true };
+  const intRate = conversion.interviewRate || { numerator: 0, denominator: 0, percentage: null, insufficientData: true };
+  const offRate = conversion.offerRate || { numerator: 0, denominator: 0, percentage: null, insufficientData: true };
 
   const timeMetrics = analytics?.timeMetrics || {
     avgDaysToApply: null,
@@ -92,6 +96,14 @@ export default function AnalyticsDashboardPage() {
     medianDaysToOffer: null,
     insufficientData: true,
   };
+
+  const breakdowns = analytics?.breakdowns;
+  const sourceBreakdowns = breakdowns?.source || [];
+  const roleFamilyBreakdowns = breakdowns?.roleFamily || [];
+  const technologyBreakdowns = breakdowns?.technology || breakdowns?.technologies || [];
+  const remoteBreakdowns = breakdowns?.remote || [];
+  const visaBreakdowns = breakdowns?.visa || [];
+  const freshnessBreakdowns = breakdowns?.freshness || [];
 
   return (
     <div className="space-y-6 pb-12">
@@ -298,15 +310,15 @@ export default function AnalyticsDashboardPage() {
                 <div className="flex items-center justify-between">
                   <span className="text-xs font-bold text-slate-800">Application Rate</span>
                   <span className="text-sm font-black text-[#009a65]">
-                    {conversion.applicationRate.percentage != null
-                      ? `${conversion.applicationRate.percentage}%`
+                    {appRate.percentage != null
+                      ? `${appRate.percentage}%`
                       : 'Insufficient Data'}
                   </span>
                 </div>
                 <div className="text-[11px] text-slate-500 flex items-center justify-between">
                   <span>Applied / Discovered</span>
                   <span className="font-mono text-slate-700 font-bold">
-                    {conversion.applicationRate.numerator} / {conversion.applicationRate.denominator}
+                    {appRate.numerator} / {appRate.denominator}
                   </span>
                 </div>
               </div>
@@ -316,15 +328,15 @@ export default function AnalyticsDashboardPage() {
                 <div className="flex items-center justify-between">
                   <span className="text-xs font-bold text-slate-800">Interview Rate</span>
                   <span className="text-sm font-black text-purple-700">
-                    {conversion.interviewRate.percentage != null
-                      ? `${conversion.interviewRate.percentage}%`
+                    {intRate.percentage != null
+                      ? `${intRate.percentage}%`
                       : 'Insufficient Data'}
                   </span>
                 </div>
                 <div className="text-[11px] text-slate-500 flex items-center justify-between">
                   <span>Interview / Applied</span>
                   <span className="font-mono text-slate-700 font-bold">
-                    {conversion.interviewRate.numerator} / {conversion.interviewRate.denominator}
+                    {intRate.numerator} / {intRate.denominator}
                   </span>
                 </div>
               </div>
@@ -334,15 +346,15 @@ export default function AnalyticsDashboardPage() {
                 <div className="flex items-center justify-between">
                   <span className="text-xs font-bold text-slate-800">Offer Rate</span>
                   <span className="text-sm font-black text-amber-700">
-                    {conversion.offerRate.percentage != null
-                      ? `${conversion.offerRate.percentage}%`
+                    {offRate.percentage != null
+                      ? `${offRate.percentage}%`
                       : 'Insufficient Data'}
                   </span>
                 </div>
                 <div className="text-[11px] text-slate-500 flex items-center justify-between">
                   <span>Offer / Applied</span>
                   <span className="font-mono text-slate-700 font-bold">
-                    {conversion.offerRate.numerator} / {conversion.offerRate.denominator}
+                    {offRate.numerator} / {offRate.denominator}
                   </span>
                 </div>
               </div>
@@ -418,7 +430,7 @@ export default function AnalyticsDashboardPage() {
             Job Source Distribution
           </div>
           <div className="space-y-2">
-            {(analytics?.breakdowns.source || []).map((item) => (
+            {sourceBreakdowns.map((item) => (
               <div key={item.key} className="flex items-center justify-between text-xs">
                 <span className="text-slate-600 truncate max-w-[140px] font-medium">{item.key}</span>
                 <span className="font-bold text-slate-900">
@@ -426,7 +438,7 @@ export default function AnalyticsDashboardPage() {
                 </span>
               </div>
             ))}
-            {(!analytics?.breakdowns.source || analytics.breakdowns.source.length === 0) && (
+            {sourceBreakdowns.length === 0 && (
               <div className="text-xs text-slate-400 italic py-2">No source data</div>
             )}
           </div>
@@ -442,7 +454,7 @@ export default function AnalyticsDashboardPage() {
             Role Family Distribution
           </div>
           <div className="space-y-2">
-            {(analytics?.breakdowns.roleFamily || []).map((item) => (
+            {roleFamilyBreakdowns.map((item) => (
               <div key={item.key} className="flex items-center justify-between text-xs">
                 <span className="text-slate-600 truncate max-w-[140px] font-medium">{item.key}</span>
                 <span className="font-bold text-slate-900">
@@ -450,7 +462,7 @@ export default function AnalyticsDashboardPage() {
                 </span>
               </div>
             ))}
-            {(!analytics?.breakdowns.roleFamily || analytics.breakdowns.roleFamily.length === 0) && (
+            {roleFamilyBreakdowns.length === 0 && (
               <div className="text-xs text-slate-400 italic py-2">No role family data</div>
             )}
           </div>
@@ -466,7 +478,7 @@ export default function AnalyticsDashboardPage() {
             Top Technologies (V4 Normalized)
           </div>
           <div className="space-y-2">
-            {(analytics?.breakdowns.technology || []).slice(0, 7).map((item) => (
+            {technologyBreakdowns.slice(0, 7).map((item) => (
               <div key={item.key} className="flex items-center justify-between text-xs">
                 <span className="text-slate-600 truncate max-w-[140px] font-medium">{item.key}</span>
                 <span className="font-bold text-slate-900">
@@ -474,7 +486,7 @@ export default function AnalyticsDashboardPage() {
                 </span>
               </div>
             ))}
-            {(!analytics?.breakdowns.technology || analytics.breakdowns.technology.length === 0) && (
+            {technologyBreakdowns.length === 0 && (
               <div className="text-xs text-slate-400 italic py-2">No technology data</div>
             )}
           </div>
@@ -490,7 +502,7 @@ export default function AnalyticsDashboardPage() {
             Workplace / Remote Distribution
           </div>
           <div className="space-y-2">
-            {(analytics?.breakdowns.remote || []).map((item) => (
+            {remoteBreakdowns.map((item) => (
               <div key={item.key} className="flex items-center justify-between text-xs">
                 <span className="text-slate-600 truncate max-w-[140px] font-medium">{item.key}</span>
                 <span className="font-bold text-slate-900">
@@ -498,7 +510,7 @@ export default function AnalyticsDashboardPage() {
                 </span>
               </div>
             ))}
-            {(!analytics?.breakdowns.remote || analytics.breakdowns.remote.length === 0) && (
+            {remoteBreakdowns.length === 0 && (
               <div className="text-xs text-slate-400 italic py-2">No remote setup data</div>
             )}
           </div>
@@ -514,7 +526,7 @@ export default function AnalyticsDashboardPage() {
             Visa Policy Distribution
           </div>
           <div className="space-y-2">
-            {(analytics?.breakdowns.visa || []).map((item) => (
+            {visaBreakdowns.map((item) => (
               <div key={item.key} className="flex items-center justify-between text-xs">
                 <span className="text-slate-600 truncate max-w-[140px] font-medium">{item.key}</span>
                 <span className="font-bold text-slate-900">
@@ -522,7 +534,7 @@ export default function AnalyticsDashboardPage() {
                 </span>
               </div>
             ))}
-            {(!analytics?.breakdowns.visa || analytics.breakdowns.visa.length === 0) && (
+            {visaBreakdowns.length === 0 && (
               <div className="text-xs text-slate-400 italic py-2">No visa data</div>
             )}
           </div>
@@ -538,7 +550,7 @@ export default function AnalyticsDashboardPage() {
             Freshness Distribution at Discovery
           </div>
           <div className="space-y-2">
-            {(analytics?.breakdowns.freshness || []).map((item) => (
+            {freshnessBreakdowns.map((item) => (
               <div key={item.key} className="flex items-center justify-between text-xs">
                 <span className="text-slate-600 truncate max-w-[140px] font-medium">{item.key}</span>
                 <span className="font-bold text-slate-900">
@@ -546,7 +558,7 @@ export default function AnalyticsDashboardPage() {
                 </span>
               </div>
             ))}
-            {(!analytics?.breakdowns.freshness || analytics.breakdowns.freshness.length === 0) && (
+            {freshnessBreakdowns.length === 0 && (
               <div className="text-xs text-slate-400 italic py-2">No freshness data</div>
             )}
           </div>

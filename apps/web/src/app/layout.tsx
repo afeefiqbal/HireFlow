@@ -15,14 +15,16 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className="bg-slate-50 text-slate-900 min-h-screen flex flex-col font-sans selection:bg-emerald-100 selection:text-emerald-900 antialiased" suppressHydrationWarning>
-        <Navigation />
-        <main className="flex-1 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <body className="bg-slate-50 text-slate-900 min-h-screen flex flex-col font-sans selection:bg-emerald-100 selection:text-emerald-900 antialiased print:bg-white print:text-black" suppressHydrationWarning>
+        <div className="print:hidden">
+          <Navigation />
+        </div>
+        <main className="flex-1 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 print:p-0 print:m-0 print:max-w-none print:w-full">
           {children}
         </main>
         
         {/* JobEntry Inspired Dark Corporate Footer */}
-        <footer className="border-t border-slate-800 bg-[#1e293b] text-slate-300 py-12 mt-12">
+        <footer className="border-t border-slate-800 bg-[#1e293b] text-slate-300 py-12 mt-12 print:hidden">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8 pb-8 border-b border-slate-700/80">
               {/* Col 1: Brand & Purpose */}

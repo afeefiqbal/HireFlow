@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { useParams, useRouter } from 'next/navigation';
+import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { api } from '@/lib/api';
 import { TailoredCvData, AtsAnalysisResult, Job } from '@ai-job-agent/shared';
@@ -25,8 +25,10 @@ import {
 
 export default function ResumeEditorPage() {
   const params = useParams();
+  const searchParams = useSearchParams();
   const router = useRouter();
   const id = params.id as string; // jobId
+  const isPrint = searchParams.get('print') === 'true';
 
   const [job, setJob] = useState<Job | null>(null);
   const [cvData, setCvData] = useState<TailoredCvData | null>(null);
@@ -60,6 +62,15 @@ export default function ResumeEditorPage() {
       fetchResumeData();
     }
   }, [id]);
+
+  useEffect(() => {
+    if (isPrint && !loading && cvData) {
+      const timer = setTimeout(() => {
+        window.print();
+      }, 600);
+      return () => clearTimeout(timer);
+    }
+  }, [isPrint, loading, cvData]);
 
   const showToast = (msg: string) => {
     setToastMessage(msg);
@@ -167,7 +178,7 @@ export default function ResumeEditorPage() {
   const atsScore = atsAnalysis?.overallCoverage || 85;
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 print:space-y-0 print:p-0 print:m-0">
       {/* Toast */}
       {toastMessage && (
         <div className="fixed bottom-6 right-6 z-50 flex items-center gap-2 rounded-lg bg-[#00b074] px-4 py-3 text-sm font-semibold text-white shadow-xl animate-bounce">
@@ -273,7 +284,7 @@ export default function ResumeEditorPage() {
       </div>
 
       {/* Split Workstation: Left (Editor) vs Right (Live Clean Single-Column ATS Resume) */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 print:block print:w-full print:m-0 print:p-0">
         {/* Left Column: Form Editor */}
         {(activeTab === 'split' || activeTab === 'edit') && (
           <div className="space-y-5 rounded-xl border border-slate-200 bg-white p-5 print:hidden shadow-xs">
@@ -314,7 +325,7 @@ export default function ResumeEditorPage() {
               </label>
               <input
                 type="text"
-                value={cvData.primarySkills.join(', ')}
+                value={(cvData.primarySkills || []).join(', ')}
                 onChange={(e) => handlePrimarySkillsChange(e.target.value)}
                 className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-xs text-slate-900 focus:border-[#00b074] focus:outline-none"
               />
@@ -327,7 +338,7 @@ export default function ResumeEditorPage() {
               </label>
               <input
                 type="text"
-                value={cvData.additionalSkills.join(', ')}
+                value={(cvData.additionalSkills || []).join(', ')}
                 onChange={(e) => handleAdditionalSkillsChange(e.target.value)}
                 className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-xs text-slate-900 focus:border-[#00b074] focus:outline-none"
               />
@@ -338,7 +349,7 @@ export default function ResumeEditorPage() {
               <label className="text-[11px] font-bold uppercase tracking-wider text-slate-500">
                 Work Experience Bullets (Tailored Emphasis)
               </label>
-              {cvData.experiences.map((exp, eIdx) => (
+              {(cvData.experiences || []).map((exp, eIdx) => (
                 <div key={eIdx} className="rounded-xl bg-slate-50 border border-slate-200 p-3.5 space-y-2">
                   <div className="flex justify-between items-center text-xs">
                     <span className="font-bold text-slate-900">{exp.role}</span>
@@ -349,7 +360,7 @@ export default function ResumeEditorPage() {
                   </div>
 
                   <div className="space-y-2 pt-1">
-                    {exp.bullets.map((bullet, bIdx) => (
+                    {(exp.bullets || []).map((bullet, bIdx) => (
                       <textarea
                         key={bIdx}
                         rows={2}
@@ -366,117 +377,116 @@ export default function ResumeEditorPage() {
         )}
 
         {/* Right Column: Live ATS Single-Column Document Preview */}
-        {(activeTab === 'split' || activeTab === 'preview') && (
-          <div className="space-y-4 print:space-y-0 print:col-span-full print:m-0 print:w-[8.5in]">
-            <div className="flex items-center justify-between print:hidden">
-              <span className="text-xs font-bold uppercase tracking-wider text-slate-600 flex items-center gap-1.5">
-                <Eye className="h-4 w-4 text-[#00b074]" />
-                Live Single-Column ATS Format
-              </span>
-              <span className="text-[11px] text-slate-400">Standard ATS readable fonts &amp; layout</span>
+        <div className={`space-y-4 print:space-y-0 print:col-span-full print:m-0 print:w-full print:block ${activeTab === 'edit' ? 'hidden print:block' : ''}`}>
+          <div className="flex items-center justify-between print:hidden">
+            <span className="text-xs font-bold uppercase tracking-wider text-slate-600 flex items-center gap-1.5">
+              <Eye className="h-4 w-4 text-[#00b074]" />
+              Live Single-Column ATS Format
+            </span>
+            <span className="text-[11px] text-slate-400">Standard ATS readable fonts &amp; layout</span>
+          </div>
+
+          {/* Resume Document Paper */}
+          <div id="resume-document" className="rounded-xl border border-slate-200 bg-white text-slate-900 p-8 shadow-md space-y-5 font-sans print:border-none print:shadow-none print:w-full print:m-0">
+            {/* Header */}
+            <div className="text-center border-b border-slate-300 pb-4 space-y-1">
+              <h1 className="text-2xl font-black tracking-tight text-slate-900 uppercase">
+                {cvData.fullName || 'Afeef Iqbal'}
+              </h1>
+              <div className="text-xs font-bold text-slate-700 tracking-wide uppercase">
+                {cvData.targetRole}
+              </div>
+              <div className="text-[11px] text-slate-600 flex flex-wrap justify-center items-center gap-3 pt-1">
+                <span>Alappuzha, Kerala, India</span>
+                <span>•</span>
+                <span>afeef@example.com</span>
+                <span>•</span>
+                <span>linkedin.com/in/afeef-iqbal</span>
+                <span>•</span>
+                <span>github.com/afeefiqbal</span>
+              </div>
             </div>
 
-            {/* Resume Document Paper */}
-            <div className="rounded-xl border border-slate-200 bg-white text-slate-900 p-8 shadow-md space-y-5 font-sans print:border-none print:shadow-none print:p-0">
-              {/* Header */}
-              <div className="text-center border-b border-slate-300 pb-4 space-y-1">
-                <h1 className="text-2xl font-black tracking-tight text-slate-900 uppercase">
-                  {cvData.fullName}
-                </h1>
-                <div className="text-xs font-bold text-slate-700 tracking-wide uppercase">
-                  {cvData.targetRole}
-                </div>
-                <div className="text-[11px] text-slate-600 flex flex-wrap justify-center items-center gap-3 pt-1">
-                  <span>Alappuzha, Kerala, India</span>
-                  <span>•</span>
-                  <span>afeef@example.com</span>
-                  <span>•</span>
-                  <span>linkedin.com/in/afeef-iqbal</span>
-                  <span>•</span>
-                  <span>github.com/afeefiqbal</span>
-                </div>
-              </div>
+            {/* Section: Professional Summary */}
+            <div className="space-y-1.5">
+              <h2 className="text-xs font-black uppercase tracking-wider text-slate-900 border-b border-slate-400 pb-0.5">
+                Professional Summary
+              </h2>
+              <p className="text-xs text-slate-800 leading-relaxed text-justify">
+                {cvData.summary}
+              </p>
+            </div>
 
-              {/* Section: Professional Summary */}
-              <div className="space-y-1.5">
-                <h2 className="text-xs font-black uppercase tracking-wider text-slate-900 border-b border-slate-400 pb-0.5">
-                  Professional Summary
-                </h2>
-                <p className="text-xs text-slate-800 leading-relaxed text-justify">
-                  {cvData.summary}
-                </p>
-              </div>
-
-              {/* Section: Technical Competencies */}
-              <div className="space-y-1.5">
-                <h2 className="text-xs font-black uppercase tracking-wider text-slate-900 border-b border-slate-400 pb-0.5">
-                  Technical Core Competencies
-                </h2>
-                <div className="space-y-1 text-xs text-slate-800">
-                  <div className="flex">
-                    <span className="font-bold w-36 shrink-0 text-slate-900">Primary Skills:</span>
-                    <span className="text-slate-700">{cvData.primarySkills.join(', ')}</span>
-                  </div>
-                  <div className="flex">
-                    <span className="font-bold w-36 shrink-0 text-slate-900">Additional Tech:</span>
-                    <span className="text-slate-700">{cvData.additionalSkills.join(', ')}</span>
-                  </div>
+            {/* Section: Technical Competencies */}
+            <div className="space-y-1.5">
+              <h2 className="text-xs font-black uppercase tracking-wider text-slate-900 border-b border-slate-400 pb-0.5">
+                Technical Core Competencies
+              </h2>
+              <div className="space-y-1 text-xs text-slate-800">
+                <div className="flex">
+                  <span className="font-bold w-36 shrink-0 text-slate-900">Primary Skills:</span>
+                  <span className="text-slate-700">{(cvData.primarySkills || []).join(', ')}</span>
+                </div>
+                <div className="flex">
+                  <span className="font-bold w-36 shrink-0 text-slate-900">Additional Tech:</span>
+                  <span className="text-slate-700">{(cvData.additionalSkills || []).join(', ')}</span>
                 </div>
               </div>
+            </div>
 
-              {/* Section: Work Experience */}
-              <div className="space-y-3">
-                <h2 className="text-xs font-black uppercase tracking-wider text-slate-900 border-b border-slate-400 pb-0.5">
-                  Professional Experience
-                </h2>
+            {/* Section: Work Experience */}
+            <div className="space-y-3">
+              <h2 className="text-xs font-black uppercase tracking-wider text-slate-900 border-b border-slate-400 pb-0.5">
+                Professional Experience
+              </h2>
 
-                {cvData.experiences.map((exp, idx) => (
-                  <div key={idx} className="space-y-1">
-                    <div className="flex justify-between items-baseline text-xs">
-                      <div>
-                        <span className="font-bold text-slate-900">{exp.role}</span>
-                        <span className="text-slate-700"> — {exp.company}</span>
-                      </div>
-                      <div className="text-[11px] font-semibold text-slate-600 text-right">
-                        {exp.period}
-                      </div>
+              {(cvData.experiences || []).map((exp, idx) => (
+                <div key={idx} className="space-y-1">
+                  <div className="flex justify-between items-baseline text-xs">
+                    <div>
+                      <span className="font-bold text-slate-900">{exp.role}</span>
+                      <span className="text-slate-700"> — {exp.company}</span>
                     </div>
-                    <p className="text-[11.5px] text-slate-600 italic">{exp.summary}</p>
-                    <ul className="list-disc list-outside pl-4 space-y-1 text-[11.5px] text-slate-700 leading-relaxed">
-                      {exp.bullets.map((b, bIdx) => (
-                        <li key={bIdx}>{typeof b === 'string' ? b : b.text}</li>
-                      ))}
-                    </ul>
+                    <div className="text-[11px] font-semibold text-slate-600 text-right">
+                      {exp.period}
+                    </div>
+                  </div>
+                  {exp.summary && <p className="text-[11.5px] text-slate-600 italic">{exp.summary}</p>}
+                  <ul className="list-disc list-outside pl-4 space-y-1 text-[11.5px] text-slate-700 leading-relaxed">
+                    {(exp.bullets || []).map((b, bIdx) => (
+                      <li key={bIdx}>{typeof b === 'string' ? b : b.text}</li>
+                    ))}
+                  </ul>
+                </div>
+              ))}
+            </div>
+
+            {/* Section: Projects */}
+            {cvData.projects && cvData.projects.length > 0 && (
+              <div className="space-y-2">
+                <h2 className="text-xs font-black uppercase tracking-wider text-slate-900 border-b border-slate-400 pb-0.5">
+                  Selected Key Projects
+                </h2>
+                {cvData.projects.map((proj, pIdx) => (
+                  <div key={pIdx} className="space-y-0.5 text-xs">
+                    <div className="font-bold text-slate-900">
+                      {proj.title}{' '}
+                      <span className="font-normal text-slate-600">
+                        ({(proj.technologies || []).join(', ')})
+                      </span>
+                    </div>
+                    <p className="text-[11px] text-slate-700">{proj.description}</p>
                   </div>
                 ))}
               </div>
+            )}
 
-              {/* Section: Projects */}
-              {cvData.projects && cvData.projects.length > 0 && (
-                <div className="space-y-2">
-                  <h2 className="text-xs font-black uppercase tracking-wider text-slate-900 border-b border-slate-400 pb-0.5">
-                    Selected Key Projects
-                  </h2>
-                  {cvData.projects.map((proj, pIdx) => (
-                    <div key={pIdx} className="space-y-0.5 text-xs">
-                      <div className="font-bold text-slate-900">
-                        {proj.title}{' '}
-                        <span className="font-normal text-slate-600">
-                          ({proj.technologies.join(', ')})
-                        </span>
-                      </div>
-                      <p className="text-[11px] text-slate-700">{proj.description}</p>
-                    </div>
-                  ))}
-                </div>
-              )}
-
-              {/* Section: Education */}
-              <div className="space-y-1">
-                <h2 className="text-xs font-black uppercase tracking-wider text-slate-900 border-b border-slate-400 pb-0.5">
-                  Education
-                </h2>
-                <div className="flex justify-between text-xs text-slate-800">
+            {/* Section: Education */}
+            <div className="space-y-1">
+              <h2 className="text-xs font-black uppercase tracking-wider text-slate-900 border-b border-slate-400 pb-0.5">
+                Education
+              </h2>
+              <div className="flex justify-between text-xs text-slate-800">
                   <div>
                     <span className="font-bold">Bachelor of Science in Computer Science</span> — University of Kerala
                   </div>
@@ -485,8 +495,7 @@ export default function ResumeEditorPage() {
               </div>
             </div>
           </div>
-        )}
+        </div>
       </div>
-    </div>
   );
 }

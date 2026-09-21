@@ -145,32 +145,32 @@ export default function JobsPage() {
     <div className="space-y-6">
       {/* Toast */}
       {toastMessage && (
-        <div className="fixed bottom-6 right-6 z-50 flex items-center gap-2 rounded-lg bg-teal-600 px-4 py-3 text-sm font-semibold text-white shadow-xl animate-bounce">
+        <div className="fixed bottom-6 right-6 z-50 flex items-center gap-2 rounded-xl bg-[#00b074] px-5 py-3 text-sm font-bold text-white shadow-xl animate-fadeIn">
           <ShieldCheck className="h-5 w-5" />
           <span>{toastMessage}</span>
         </div>
       )}
 
       {/* Page Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-800 pb-5">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200 pb-5">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-white flex items-center gap-2.5">
+          <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-slate-900 flex items-center gap-3">
             Real Job Discovery Engine
-            <span className="rounded bg-teal-500/20 px-2 py-0.5 text-xs font-semibold text-teal-300 border border-teal-500/30">
-              {jobs.length} Available
+            <span className="rounded-full bg-emerald-50 px-3 py-0.5 text-xs font-bold text-[#009a65] border border-emerald-200">
+              {jobs.length} Active Positions
             </span>
           </h1>
-          <p className="text-xs text-slate-400 mt-1">
-            Real postings from Greenhouse, Lever, Ashby, and European tech career portals filtered for Afeef Iqbal.
+          <p className="text-xs sm:text-sm text-slate-500 mt-1">
+            Real postings ingested from Greenhouse, Lever, Ashby, and European tech career portals filtered for Afeef Iqbal.
           </p>
         </div>
 
-        <div className="flex flex-wrap items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2.5">
           {/* Run Discovery Button */}
           <button
             onClick={handleRunDiscovery}
             disabled={discovering}
-            className="inline-flex items-center gap-1.5 rounded-lg bg-teal-600 px-3.5 py-2 text-xs font-bold text-white hover:bg-teal-500 transition-colors shadow-lg shadow-teal-900/30 disabled:opacity-50"
+            className="inline-flex items-center gap-1.5 rounded-lg bg-[#00b074] hover:bg-[#009a65] px-4 py-2 text-xs font-bold text-white transition-all shadow-xs disabled:opacity-50"
           >
             <Radio className={`h-3.5 w-3.5 ${discovering ? 'animate-pulse' : ''}`} />
             {discovering ? 'Scanning ATS Boards...' : 'Run Real Discovery'}
@@ -182,17 +182,17 @@ export default function JobsPage() {
             onClick={() => setFreshOnly(!freshOnly)}
             className={`inline-flex items-center gap-1.5 rounded-lg px-3.5 py-2 text-xs font-bold transition-all border ${
               freshOnly
-                ? 'bg-teal-500/20 text-teal-300 border-teal-500/50 shadow-glow-primary'
-                : 'bg-slate-800 text-slate-400 border-slate-700'
+                ? 'bg-emerald-50 text-[#009a65] border-emerald-300 shadow-2xs'
+                : 'bg-white text-slate-600 border-slate-200'
             }`}
           >
-            <Flame className={`h-4 w-4 ${freshOnly ? 'text-teal-400' : 'text-slate-500'}`} />
+            <Flame className={`h-4 w-4 ${freshOnly ? 'text-[#00b074]' : 'text-slate-400'}`} />
             <span>Strict &lt;24h Filter: {freshOnly ? 'ON' : 'OFF'}</span>
           </button>
 
           <button
             onClick={fetchJobs}
-            className="rounded-lg border border-slate-700 bg-slate-800 p-2 text-slate-300 hover:bg-slate-700 transition-colors"
+            className="rounded-lg border border-slate-200 bg-white p-2 text-slate-600 hover:bg-slate-50 transition-colors shadow-2xs"
             title="Refresh jobs"
           >
             <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
@@ -200,34 +200,34 @@ export default function JobsPage() {
         </div>
       </div>
 
-      {/* Filter Matrix Card */}
-      <div className="rounded-xl border border-slate-800 bg-[#0f172a] p-4 shadow-sm space-y-4">
+      {/* Filter Matrix Card - JobEntry Clean White Box */}
+      <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-xs space-y-4">
         {/* Top Search Bar */}
         <div className="relative">
-          <Search className="absolute left-3.5 top-3 h-4 w-4 text-slate-400" />
+          <Search className="absolute left-3.5 top-3.5 h-4 w-4 text-[#00b074]" />
           <input
             type="text"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Search by job title, company, technology, or keywords..."
-            className="w-full rounded-lg border border-slate-800 bg-slate-900/90 pl-10 pr-4 py-2.5 text-sm text-white placeholder-slate-500 focus:border-teal-500 focus:outline-none"
+            className="w-full rounded-xl border border-slate-200 bg-slate-50 pl-10 pr-4 py-2.5 text-sm text-slate-900 placeholder-slate-400 focus:border-[#00b074] focus:bg-white focus:outline-none transition-colors"
           />
         </div>
 
         {/* V4 Ground Truth Row */}
-        <div className="rounded-lg bg-slate-900/60 p-3 border border-slate-800/80">
-          <div className="text-[11px] font-semibold text-teal-400 uppercase tracking-wider mb-2 flex items-center gap-1.5">
-            <Sparkles className="h-3.5 w-3.5" />
-            <span>V4 Canonical Ground Truth Filters</span>
+        <div className="rounded-xl bg-emerald-50/40 p-4 border border-emerald-100">
+          <div className="text-[11px] font-bold text-[#009a65] uppercase tracking-wider mb-2.5 flex items-center gap-1.5">
+            <Sparkles className="h-3.5 w-3.5 text-[#00b074]" />
+            <span>Ground Truth Compatibility Filters</span>
           </div>
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 text-xs">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
             {/* Role Family */}
             <div>
-              <label className="block text-[11px] font-semibold text-slate-400 mb-1">Role Family</label>
+              <label className="block text-[11px] font-bold text-slate-600 mb-1">Role Family</label>
               <select
                 value={selectedRoleFamily}
                 onChange={(e) => setSelectedRoleFamily(e.target.value)}
-                className="w-full rounded-md border border-slate-700 bg-slate-800 px-2.5 py-1.5 text-slate-200 focus:border-teal-500 focus:outline-none"
+                className="w-full rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-slate-800 font-medium focus:border-[#00b074] focus:outline-none"
               >
                 <option value="">All Role Families</option>
                 <option value="SOFTWARE_ENGINEERING">Software Engineering</option>
@@ -242,11 +242,11 @@ export default function JobsPage() {
 
             {/* Seniority */}
             <div>
-              <label className="block text-[11px] font-semibold text-slate-400 mb-1">Seniority Level</label>
+              <label className="block text-[11px] font-bold text-slate-600 mb-1">Seniority Level</label>
               <select
                 value={selectedSeniority}
                 onChange={(e) => setSelectedSeniority(e.target.value)}
-                className="w-full rounded-md border border-slate-700 bg-slate-800 px-2.5 py-1.5 text-slate-200 focus:border-teal-500 focus:outline-none"
+                className="w-full rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-slate-800 font-medium focus:border-[#00b074] focus:outline-none"
               >
                 <option value="">All Seniorities</option>
                 <option value="LEAD">Lead / Staff / Principal</option>
@@ -259,14 +259,14 @@ export default function JobsPage() {
 
             {/* Work Setup */}
             <div>
-              <label className="block text-[11px] font-semibold text-slate-400 mb-1">Work Setup</label>
+              <label className="block text-[11px] font-bold text-slate-600 mb-1">Work Setup</label>
               <select
                 value={selectedRemoteType}
                 onChange={(e) => setSelectedRemoteType(e.target.value)}
-                className="w-full rounded-md border border-slate-700 bg-slate-800 px-2.5 py-1.5 text-slate-200 focus:border-teal-500 focus:outline-none"
+                className="w-full rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-slate-800 font-medium focus:border-[#00b074] focus:outline-none"
               >
                 <option value="">Any Setup</option>
-                <option value="REMOTE">Remote</option>
+                <option value="REMOTE">Remote Only</option>
                 <option value="HYBRID">Hybrid</option>
                 <option value="ONSITE">On-site</option>
               </select>
@@ -274,11 +274,11 @@ export default function JobsPage() {
 
             {/* Freshness Tier */}
             <div>
-              <label className="block text-[11px] font-semibold text-slate-400 mb-1">Freshness Tier</label>
+              <label className="block text-[11px] font-bold text-slate-600 mb-1">Freshness Tier</label>
               <select
                 value={selectedFreshness}
                 onChange={(e) => setSelectedFreshness(e.target.value)}
-                className="w-full rounded-md border border-slate-700 bg-slate-800 px-2.5 py-1.5 text-slate-200 focus:border-teal-500 focus:outline-none"
+                className="w-full rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-slate-800 font-medium focus:border-[#00b074] focus:outline-none"
               >
                 <option value="">All Tiers</option>
                 <option value="FRESH">&lt; 6 hours (Fresh)</option>
@@ -290,15 +290,15 @@ export default function JobsPage() {
           </div>
         </div>
 
-        {/* Detailed Filter Badges & Dropdowns */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-7 gap-2.5 text-xs">
+        {/* Detailed Filter Dropdowns */}
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-7 gap-3 text-xs">
           {/* Target Role */}
           <div>
-            <label className="block text-[11px] font-semibold text-slate-400 mb-1">Keyword Title</label>
+            <label className="block text-[11px] font-bold text-slate-500 mb-1">Keyword Title</label>
             <select
               value={selectedRole}
               onChange={(e) => setSelectedRole(e.target.value)}
-              className="w-full rounded-md border border-slate-800 bg-slate-900 px-2.5 py-1.5 text-slate-200 focus:border-teal-500 focus:outline-none"
+              className="w-full rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-slate-800 font-medium focus:border-[#00b074] focus:outline-none"
             >
               <option value="">All Roles</option>
               <option value="Laravel">Laravel</option>
@@ -311,11 +311,11 @@ export default function JobsPage() {
 
           {/* Technology */}
           <div>
-            <label className="block text-[11px] font-semibold text-slate-400 mb-1">Core Tech</label>
+            <label className="block text-[11px] font-bold text-slate-500 mb-1">Core Tech</label>
             <select
               value={selectedTech}
               onChange={(e) => setSelectedTech(e.target.value)}
-              className="w-full rounded-md border border-slate-800 bg-slate-900 px-2.5 py-1.5 text-slate-200 focus:border-teal-500 focus:outline-none"
+              className="w-full rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-slate-800 font-medium focus:border-[#00b074] focus:outline-none"
             >
               <option value="">All Technologies</option>
               <option value="Laravel">Laravel</option>
@@ -331,11 +331,11 @@ export default function JobsPage() {
 
           {/* Location */}
           <div>
-            <label className="block text-[11px] font-semibold text-slate-400 mb-1">Location</label>
+            <label className="block text-[11px] font-bold text-slate-500 mb-1">Location</label>
             <select
               value={selectedLocation}
               onChange={(e) => setSelectedLocation(e.target.value)}
-              className="w-full rounded-md border border-slate-800 bg-slate-900 px-2.5 py-1.5 text-slate-200 focus:border-teal-500 focus:outline-none"
+              className="w-full rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-slate-800 font-medium focus:border-[#00b074] focus:outline-none"
             >
               <option value="">Any Region</option>
               <option value="Germany">Germany</option>
@@ -348,11 +348,11 @@ export default function JobsPage() {
 
           {/* Source Platform */}
           <div>
-            <label className="block text-[11px] font-semibold text-slate-400 mb-1">Source ATS</label>
+            <label className="block text-[11px] font-bold text-slate-500 mb-1">Source ATS</label>
             <select
               value={selectedSource}
               onChange={(e) => setSelectedSource(e.target.value)}
-              className="w-full rounded-md border border-slate-800 bg-slate-900 px-2.5 py-1.5 text-slate-200 focus:border-teal-500 focus:outline-none"
+              className="w-full rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-slate-800 font-medium focus:border-[#00b074] focus:outline-none"
             >
               <option value="">All Sources</option>
               <option value="Greenhouse">Greenhouse</option>
@@ -364,11 +364,11 @@ export default function JobsPage() {
 
           {/* Visa Sponsorship */}
           <div>
-            <label className="block text-[11px] font-semibold text-slate-400 mb-1">Visa Policy</label>
+            <label className="block text-[11px] font-bold text-slate-500 mb-1">Visa Policy</label>
             <select
               value={visaFilter}
               onChange={(e) => setVisaFilter(e.target.value)}
-              className="w-full rounded-md border border-slate-800 bg-slate-900 px-2.5 py-1.5 text-slate-200 focus:border-teal-500 focus:outline-none"
+              className="w-full rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-slate-800 font-medium focus:border-[#00b074] focus:outline-none"
             >
               <option value="ALL">All Policies</option>
               <option value="OFFERED">Sponsorship Offered</option>
@@ -379,11 +379,11 @@ export default function JobsPage() {
 
           {/* Min Match Score */}
           <div>
-            <label className="block text-[11px] font-semibold text-slate-400 mb-1">AI Assessment</label>
+            <label className="block text-[11px] font-bold text-slate-500 mb-1">AI Assessment</label>
             <select
               value={minMatch}
               onChange={(e) => setMinMatch(Number(e.target.value))}
-              className="w-full rounded-md border border-slate-800 bg-slate-900 px-2.5 py-1.5 text-slate-200 focus:border-teal-500 focus:outline-none"
+              className="w-full rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-slate-800 font-medium focus:border-[#00b074] focus:outline-none"
             >
               <option value={0}>Any Score</option>
               <option value={80}>≥ 80% High</option>
@@ -393,14 +393,14 @@ export default function JobsPage() {
 
           {/* Remote Only Toggle */}
           <div className="flex flex-col justify-end">
-            <label className="flex items-center gap-2 cursor-pointer pb-2 text-slate-300">
+            <label className="flex items-center gap-2 cursor-pointer pb-2 text-slate-700">
               <input
                 type="checkbox"
                 checked={remoteOnly}
                 onChange={(e) => setRemoteOnly(e.target.checked)}
-                className="rounded border-slate-700 bg-slate-800 text-teal-600 focus:ring-teal-500"
+                className="rounded border-slate-300 text-[#00b074] focus:ring-[#00b074]"
               />
-              <span className="font-medium">Remote Only</span>
+              <span className="font-semibold">Remote Only</span>
             </label>
           </div>
         </div>
@@ -419,14 +419,14 @@ export default function JobsPage() {
           selectedSeniority ||
           selectedRemoteType ||
           selectedFreshness) && (
-          <div className="flex items-center justify-between border-t border-slate-800/80 pt-2 text-xs text-slate-400">
+          <div className="flex items-center justify-between border-t border-slate-100 pt-3 text-xs text-slate-500">
             <div className="flex items-center gap-1.5">
               <span>Active filters applied.</span>
-              {!freshOnly && <span className="text-amber-400">(24h filter disabled)</span>}
+              {!freshOnly && <span className="text-amber-600 font-medium">(24h filter disabled)</span>}
             </div>
             <button
               onClick={resetFilters}
-              className="inline-flex items-center gap-1 text-teal-400 hover:text-teal-300 font-semibold"
+              className="inline-flex items-center gap-1 text-[#009a65] hover:text-[#007a50] font-bold"
             >
               <X className="h-3 w-3" />
               Reset All Filters
@@ -442,20 +442,20 @@ export default function JobsPage() {
             {[1, 2, 3, 4].map((i) => (
               <div
                 key={i}
-                className="h-44 rounded-xl border border-slate-800/80 bg-slate-900/40 p-5 animate-pulse"
+                className="h-44 rounded-xl border border-slate-200 bg-white p-5 animate-pulse shadow-xs"
               />
             ))}
           </div>
         ) : jobs.length === 0 ? (
-          <div className="rounded-xl border border-dashed border-slate-800 p-12 text-center text-slate-400">
-            <Filter className="mx-auto h-8 w-8 text-slate-500 mb-2" />
-            <h3 className="text-base font-semibold text-white">No matching jobs found</h3>
+          <div className="rounded-xl border border-dashed border-slate-300 bg-white p-12 text-center text-slate-500 shadow-xs">
+            <Filter className="mx-auto h-8 w-8 text-slate-400 mb-2" />
+            <h3 className="text-base font-bold text-slate-800">No matching jobs found</h3>
             <p className="text-xs text-slate-500 mt-1 max-w-sm mx-auto">
               Try clicking &quot;Run Real Discovery&quot; to scan live public boards, or adjust your filter criteria.
             </p>
             <button
               onClick={resetFilters}
-              className="mt-4 rounded-lg bg-slate-800 px-4 py-2 text-xs font-semibold text-slate-200 hover:bg-slate-700"
+              className="mt-4 rounded-lg bg-slate-900 px-4 py-2 text-xs font-bold text-white hover:bg-slate-800 transition"
             >
               Reset Filters
             </button>

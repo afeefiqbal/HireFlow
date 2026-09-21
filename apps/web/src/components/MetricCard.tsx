@@ -17,34 +17,34 @@ export const MetricCard: React.FC<MetricCardProps> = ({
   variant = 'default',
 }) => {
   const variantStyles = {
-    default: 'text-slate-400 border-slate-800 bg-slate-900/60',
-    emerald: 'text-emerald-400 border-emerald-500/20 bg-emerald-950/20',
-    teal: 'text-teal-400 border-teal-500/20 bg-teal-950/20',
-    amber: 'text-amber-400 border-amber-500/20 bg-amber-950/20',
-    blue: 'text-blue-400 border-blue-500/20 bg-blue-950/20',
-    purple: 'text-purple-400 border-purple-500/20 bg-purple-950/20',
+    default: 'border-slate-200 bg-white text-slate-700',
+    emerald: 'border-emerald-200 bg-white text-emerald-800',
+    teal: 'border-teal-200 bg-white text-teal-800',
+    amber: 'border-amber-200 bg-white text-amber-800',
+    blue: 'border-blue-200 bg-white text-blue-800',
+    purple: 'border-purple-200 bg-white text-purple-800',
   };
 
   const iconBgStyles = {
-    default: 'bg-slate-800 text-slate-300',
-    emerald: 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/30',
-    teal: 'bg-teal-500/10 text-teal-400 border border-teal-500/30',
-    amber: 'bg-amber-500/10 text-amber-400 border border-amber-500/30',
-    blue: 'bg-blue-500/10 text-blue-400 border border-blue-500/30',
-    purple: 'bg-purple-500/10 text-purple-400 border border-purple-500/30',
+    default: 'bg-slate-100 text-slate-600 border border-slate-200',
+    emerald: 'bg-emerald-50 text-[#00b074] border border-emerald-100',
+    teal: 'bg-teal-50 text-teal-600 border border-teal-100',
+    amber: 'bg-amber-50 text-amber-600 border border-amber-100',
+    blue: 'bg-blue-50 text-[#2b9bff] border border-blue-100',
+    purple: 'bg-purple-50 text-purple-600 border border-purple-100',
   };
 
   return (
-    <div className={`rounded-xl border p-4 transition-all hover:border-slate-700 ${variantStyles[variant]}`}>
+    <div className={`rounded-xl border p-5 transition-all shadow-xs hover:shadow-md hover:border-slate-300 ${variantStyles[variant]}`}>
       <div className="flex items-center justify-between">
-        <span className="text-xs font-medium uppercase tracking-wider text-slate-400">{label}</span>
-        <div className={`flex h-8 w-8 items-center justify-center rounded-lg ${iconBgStyles[variant]}`}>
-          <Icon className="h-4 w-4" />
+        <span className="text-xs font-semibold uppercase tracking-wider text-slate-500">{label}</span>
+        <div className={`flex h-10 w-10 items-center justify-center rounded-xl ${iconBgStyles[variant]} shadow-xs`}>
+          <Icon className="h-5 w-5" />
         </div>
       </div>
-      <div className="mt-2 flex items-baseline gap-2">
-        <span className="text-2xl font-bold tracking-tight text-white">{value}</span>
-        {subtext && <span className="text-xs text-slate-400">{subtext}</span>}
+      <div className="mt-3 flex items-baseline gap-2">
+        <span className="text-3xl font-extrabold tracking-tight text-slate-900">{value}</span>
+        {subtext && <span className="text-xs font-medium text-slate-500">{subtext}</span>}
       </div>
     </div>
   );

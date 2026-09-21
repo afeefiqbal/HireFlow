@@ -78,9 +78,14 @@ export const api = {
     const qs = query.toString() ? `?${query.toString()}` : '';
     const res = await fetch(`${API_BASE}/jobs${qs}`);
     const json = await res.json();
+    const jobsList = Array.isArray(json.data)
+      ? json.data
+      : Array.isArray(json.data?.jobs)
+      ? json.data.jobs
+      : [];
     return {
-      jobs: json.data || [],
-      meta: json.meta || {},
+      jobs: jobsList,
+      meta: json.meta || json.data?.meta || {},
     };
   },
 

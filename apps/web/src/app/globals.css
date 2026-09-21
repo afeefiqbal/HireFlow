@@ -3,14 +3,17 @@
 @tailwind utilities;
 
 :root {
-  --background: #090d16;
-  --foreground: #f8fafc;
+  --background: #f8fafc;
+  --foreground: #0f172a;
+  --primary: #00b074;
+  --dark: #2b3940;
+  --light: #effdf5;
 }
 
 body {
   color: var(--foreground);
-  background: var(--background);
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  background-color: var(--background);
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   min-height: 100vh;
   -webkit-font-smoothing: antialiased;
 }
@@ -21,30 +24,64 @@ body {
   height: 6px;
 }
 ::-webkit-scrollbar-track {
-  background: #090d16;
+  background: #f1f5f9;
 }
 ::-webkit-scrollbar-thumb {
-  background: #1e293b;
-  border-radius: 3px;
+  background: #cbd5e1;
+  border-radius: 4px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #334155;
+  background: #94a3b8;
 }
 
-/* Glass & Card effects */
+/* JobEntry Inspired Card & Panel effects */
 .panel-card {
-  background-color: #0f172a;
-  border: 1px solid #1e293b;
+  background-color: #ffffff;
+  border: 1px solid #e2e8f0;
   border-radius: 0.75rem;
-  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.03);
+  transition: all 0.3s ease;
 }
 
 .panel-card:hover {
-  border-color: #334155;
+  border-color: #cbd5e1;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.06);
 }
 
 .panel-elevated {
-  background-color: #151f32;
-  border: 1px solid #283548;
+  background-color: #ffffff;
+  border: 1px solid #e2e8f0;
   border-radius: 0.75rem;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
 }
+
+/* JobEntry Signature Items */
+.job-item {
+  background-color: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 0.75rem;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.03);
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.job-item:hover {
+  border-color: #00b074;
+  box-shadow: 0 8px 30px rgba(0, 176, 116, 0.08);
+  transform: translateY(-2px);
+}
+
+.cat-item {
+  display: block;
+  background-color: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 0.75rem;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.03);
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.cat-item:hover {
+  border-color: #00b074;
+  box-shadow: 0 10px 25px rgba(0, 176, 116, 0.1);
+  transform: translateY(-3px);
+}
+

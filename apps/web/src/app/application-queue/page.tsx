@@ -430,16 +430,16 @@ export default function ApplicationQueuePage() {
       )}
 
       {/* Header & Title */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-800 pb-5">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200 pb-5">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-white flex items-center gap-2.5">
-            <Inbox className="h-6 w-6 text-teal-400" />
+          <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-slate-900 flex items-center gap-2.5">
+            <Inbox className="h-6 w-6 text-[#00b074]" />
             Application Intelligence &amp; Kanban Queue
-            <span className="rounded bg-teal-500/20 px-2 py-0.5 text-xs font-semibold text-teal-300 border border-teal-500/30">
+            <span className="rounded-full bg-emerald-50 px-2.5 py-0.5 text-xs font-bold text-[#009a65] border border-emerald-200">
               V5 Pipeline
             </span>
           </h1>
-          <p className="text-xs text-slate-400 mt-1">
+          <p className="text-xs sm:text-sm text-slate-500 mt-1">
             Drag cards between columns to advance lifecycle states with optimistic updates and strict gate enforcement.
           </p>
         </div>
@@ -448,9 +448,9 @@ export default function ApplicationQueuePage() {
           <button
             onClick={() => fetchQueue(false)}
             disabled={refreshing}
-            className="inline-flex items-center gap-1.5 rounded-lg border border-slate-700 bg-slate-800 hover:bg-slate-700 px-3.5 py-1.5 text-xs font-semibold text-slate-300 transition-colors disabled:opacity-50"
+            className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 px-3.5 py-1.5 text-xs font-bold text-slate-700 transition-colors shadow-2xs disabled:opacity-50"
           >
-            <RefreshCw className={`h-3.5 w-3.5 ${refreshing ? 'animate-spin text-teal-400' : ''}`} />
+            <RefreshCw className={`h-3.5 w-3.5 ${refreshing ? 'animate-spin text-[#00b074]' : ''}`} />
             <span>{refreshing ? 'Syncing...' : 'Sync Board'}</span>
           </button>
         </div>
@@ -458,26 +458,26 @@ export default function ApplicationQueuePage() {
 
       {/* Follow-Up Action Alert Banner */}
       {(followUpStats.overdue > 0 || followUpStats.dueToday > 0) && (
-        <div className="rounded-xl border border-amber-500/40 bg-gradient-to-r from-amber-950/30 via-slate-900 to-rose-950/30 p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-lg">
+        <div className="rounded-xl border border-amber-200 bg-amber-50/70 p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-xs">
           <div className="flex items-center gap-3">
-            <div className="p-2 rounded-lg bg-amber-500/20 text-amber-400 border border-amber-500/30">
+            <div className="p-2 rounded-lg bg-amber-100 text-amber-700 border border-amber-200">
               <BellRing className="h-5 w-5 animate-pulse" />
             </div>
             <div>
-              <div className="font-bold text-sm text-white flex items-center gap-2">
+              <div className="font-bold text-sm text-slate-900 flex items-center gap-2">
                 Action Required: Follow-ups Pending
                 {followUpStats.overdue > 0 && (
-                  <span className="px-1.5 py-0.2 rounded bg-rose-500/30 text-rose-300 text-[10px] font-extrabold border border-rose-500/40">
+                  <span className="px-1.5 py-0.2 rounded bg-rose-100 text-rose-700 text-[10px] font-extrabold border border-rose-200">
                     {followUpStats.overdue} OVERDUE
                   </span>
                 )}
                 {followUpStats.dueToday > 0 && (
-                  <span className="px-1.5 py-0.2 rounded bg-amber-500/30 text-amber-300 text-[10px] font-extrabold border border-amber-500/40">
+                  <span className="px-1.5 py-0.2 rounded bg-amber-100 text-amber-800 text-[10px] font-extrabold border border-amber-200">
                     {followUpStats.dueToday} DUE TODAY
                   </span>
                 )}
               </div>
-              <p className="text-xs text-slate-400 mt-0.5">
+              <p className="text-xs text-slate-600 mt-0.5">
                 Maintain communication cadence with hiring teams to maximize interview conversion.
               </p>
             </div>
@@ -487,8 +487,8 @@ export default function ApplicationQueuePage() {
             onClick={() => setOnlyFollowUpsDue(!onlyFollowUpsDue)}
             className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-colors shrink-0 flex items-center gap-1.5 border ${
               onlyFollowUpsDue
-                ? 'bg-amber-500 text-slate-950 border-amber-400'
-                : 'bg-slate-800 hover:bg-slate-700 text-amber-300 border-amber-500/30'
+                ? 'bg-amber-600 text-white border-amber-700'
+                : 'bg-white hover:bg-slate-50 text-amber-800 border-amber-200'
             }`}
           >
             <Clock className="w-3.5 h-3.5" />
@@ -498,12 +498,12 @@ export default function ApplicationQueuePage() {
       )}
 
       {/* Filter Control Bar */}
-      <div className="rounded-xl border border-slate-800 bg-[#0b1324] p-4 space-y-3">
+      <div className="rounded-xl border border-slate-200 bg-white p-4 space-y-3 shadow-xs">
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2 text-xs font-semibold text-slate-300">
-            <Filter className="h-4 w-4 text-teal-400" />
+          <div className="flex items-center gap-2 text-xs font-bold text-slate-700">
+            <Filter className="h-4 w-4 text-[#00b074]" />
             <span>Kanban Filters</span>
-            <span className="text-slate-500">({totalFilteredCount} matching cards)</span>
+            <span className="text-slate-400 font-medium">({totalFilteredCount} matching cards)</span>
           </div>
 
           {(searchTerm || statusFilter !== 'ALL' || roleFamilyFilter !== 'ALL' || seniorityFilter !== 'ALL' || remoteFilter !== 'ALL' || sourceFilter !== 'ALL' || onlyFollowUpsDue) && (
@@ -517,7 +517,7 @@ export default function ApplicationQueuePage() {
                 setSourceFilter('ALL');
                 setOnlyFollowUpsDue(false);
               }}
-              className="text-[11px] text-teal-400 hover:text-teal-300 font-semibold"
+              className="text-[11px] text-[#009a65] hover:text-[#007a50] font-bold"
             >
               Reset Filters
             </button>
@@ -527,13 +527,13 @@ export default function ApplicationQueuePage() {
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-2.5">
           {/* Search */}
           <div className="relative">
-            <Search className="absolute left-2.5 top-2.5 h-3.5 w-3.5 text-slate-500" />
+            <Search className="absolute left-2.5 top-2.5 h-3.5 w-3.5 text-slate-400" />
             <input
               type="text"
               placeholder="Search company/title..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-8 pr-3 py-1.5 rounded-lg border border-slate-700 bg-slate-900 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-teal-500"
+              className="w-full pl-8 pr-3 py-1.5 rounded-lg border border-slate-200 bg-slate-50 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:border-[#00b074]"
             />
           </div>
 
@@ -541,7 +541,7 @@ export default function ApplicationQueuePage() {
           <select
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
-            className="w-full px-2.5 py-1.5 rounded-lg border border-slate-700 bg-slate-900 text-xs text-white focus:outline-none focus:border-teal-500"
+            className="w-full px-2.5 py-1.5 rounded-lg border border-slate-200 bg-white text-xs text-slate-800 font-medium focus:outline-none focus:border-[#00b074]"
           >
             <option value="ALL">All Columns</option>
             <option value="SHORTLISTED">Shortlisted</option>
@@ -557,7 +557,7 @@ export default function ApplicationQueuePage() {
           <select
             value={roleFamilyFilter}
             onChange={(e) => setRoleFamilyFilter(e.target.value)}
-            className="w-full px-2.5 py-1.5 rounded-lg border border-slate-700 bg-slate-900 text-xs text-white focus:outline-none focus:border-teal-500"
+            className="w-full px-2.5 py-1.5 rounded-lg border border-slate-200 bg-white text-xs text-slate-800 font-medium focus:outline-none focus:border-[#00b074]"
           >
             <option value="ALL">All Role Families</option>
             <option value="SOFTWARE_ENGINEERING">Software Engineering</option>
@@ -570,7 +570,7 @@ export default function ApplicationQueuePage() {
           <select
             value={seniorityFilter}
             onChange={(e) => setSeniorityFilter(e.target.value)}
-            className="w-full px-2.5 py-1.5 rounded-lg border border-slate-700 bg-slate-900 text-xs text-white focus:outline-none focus:border-teal-500"
+            className="w-full px-2.5 py-1.5 rounded-lg border border-slate-200 bg-white text-xs text-slate-800 font-medium focus:outline-none focus:border-[#00b074]"
           >
             <option value="ALL">All Seniorities</option>
             <option value="Junior">Junior</option>
@@ -585,7 +585,7 @@ export default function ApplicationQueuePage() {
           <select
             value={remoteFilter}
             onChange={(e) => setRemoteFilter(e.target.value)}
-            className="w-full px-2.5 py-1.5 rounded-lg border border-slate-700 bg-slate-900 text-xs text-white focus:outline-none focus:border-teal-500"
+            className="w-full px-2.5 py-1.5 rounded-lg border border-slate-200 bg-white text-xs text-slate-800 font-medium focus:outline-none focus:border-[#00b074]"
           >
             <option value="ALL">All Setups</option>
             <option value="REMOTE">Remote</option>
@@ -597,7 +597,7 @@ export default function ApplicationQueuePage() {
           <select
             value={sourceFilter}
             onChange={(e) => setSourceFilter(e.target.value)}
-            className="w-full px-2.5 py-1.5 rounded-lg border border-slate-700 bg-slate-900 text-xs text-white focus:outline-none focus:border-teal-500"
+            className="w-full px-2.5 py-1.5 rounded-lg border border-slate-200 bg-white text-xs text-slate-800 font-medium focus:outline-none focus:border-[#00b074]"
           >
             <option value="ALL">All Sources</option>
             <option value="Greenhouse">Greenhouse</option>

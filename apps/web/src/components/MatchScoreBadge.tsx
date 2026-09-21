@@ -23,33 +23,36 @@ export const MatchScoreBadge: React.FC<MatchScoreBadgeProps> = ({
   // Before AI analysis: Show "Not Analyzed"
   if (overallScore === null || overallScore === undefined) {
     return (
-      <div className="flex items-center gap-1.5 rounded-lg border border-slate-800 bg-slate-900/90 px-3 py-1.5 text-xs text-slate-400">
-        <HelpCircle className="h-3.5 w-3.5 text-slate-500" />
-        <span className="font-medium">Not Analyzed</span>
+      <div className="flex items-center gap-1.5 rounded-lg border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs text-slate-500">
+        <HelpCircle className="h-3.5 w-3.5 text-slate-400" />
+        <span className="font-semibold">Not Analyzed</span>
       </div>
     );
   }
 
   // Color coding
-  let colorClasses = 'border-teal-500/30 bg-teal-950/40 text-teal-300';
-  let badgeClasses = 'bg-teal-500/20 text-teal-300 border-teal-500/40';
+  let colorClasses = 'border-emerald-200 bg-emerald-50/70 text-emerald-800';
+  let badgeClasses = 'bg-[#00b074] text-white border-transparent';
+  let ringClasses = 'text-[#00b074]';
 
   if (overallScore < 65 || recommendation === 'SKIP') {
-    colorClasses = 'border-rose-500/30 bg-rose-950/40 text-rose-300';
-    badgeClasses = 'bg-rose-500/20 text-rose-300 border-rose-500/40';
+    colorClasses = 'border-rose-200 bg-rose-50/70 text-rose-800';
+    badgeClasses = 'bg-rose-600 text-white border-transparent';
+    ringClasses = 'text-rose-600';
   } else if (overallScore < 80 || recommendation === 'REVIEW') {
-    colorClasses = 'border-amber-500/30 bg-amber-950/40 text-amber-300';
-    badgeClasses = 'bg-amber-500/20 text-amber-300 border-amber-500/40';
+    colorClasses = 'border-amber-200 bg-amber-50/70 text-amber-800';
+    badgeClasses = 'bg-amber-600 text-white border-transparent';
+    ringClasses = 'text-amber-600';
   }
 
   // Compact badge for tight spaces
   if (compact) {
     return (
-      <div className={`inline-flex items-center gap-1.5 rounded-lg border px-2.5 py-1 text-xs font-semibold ${colorClasses}`}>
+      <div className={`inline-flex items-center gap-1.5 rounded-lg border px-2.5 py-1 text-xs font-semibold shadow-xs ${colorClasses}`}>
         <Sparkles className="h-3.5 w-3.5" />
-        <span>{overallScore}% Match</span>
+        <span className="font-bold">{overallScore}% Match</span>
         {recommendation && (
-          <span className={`ml-1 rounded px-1.5 py-0.2 text-[10px] uppercase font-bold border ${badgeClasses}`}>
+          <span className={`ml-1 rounded px-1.5 py-0.5 text-[9px] uppercase font-black ${badgeClasses}`}>
             {recommendation}
           </span>
         )}
@@ -57,10 +60,6 @@ export const MatchScoreBadge: React.FC<MatchScoreBadgeProps> = ({
     );
   }
 
-  // Full AI Assessment card as requested:
-  // AI ASSESSMENT
-  // 91%
-  // Technical 94% · Experience 90% · Location 100% · Visa 80%
   const visaScore =
     match?.visa_compatibility === 'compatible'
       ? 100
@@ -69,45 +68,45 @@ export const MatchScoreBadge: React.FC<MatchScoreBadgeProps> = ({
       : 30;
 
   return (
-    <div className={`rounded-xl border p-3 ${colorClasses} shadow-sm max-w-xs text-right sm:text-left`}>
-      <div className="flex items-center justify-between gap-3 border-b border-slate-800/80 pb-1.5 mb-1.5">
-        <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 flex items-center gap-1">
-          <Sparkles className="h-3 w-3 text-teal-400" />
-          AI Assessment
+    <div className={`rounded-xl border p-3.5 shadow-xs max-w-xs text-right sm:text-left ${colorClasses}`}>
+      <div className="flex items-center justify-between gap-3 border-b border-slate-200/80 pb-2 mb-2">
+        <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500 flex items-center gap-1">
+          <Sparkles className="h-3 w-3 text-[#00b074]" />
+          Match Intelligence
         </span>
         {recommendation && (
-          <span className={`rounded px-1.5 py-0.5 text-[9px] font-extrabold uppercase tracking-wider border ${badgeClasses}`}>
+          <span className={`rounded px-1.5 py-0.5 text-[9px] font-black uppercase tracking-wider shadow-xs ${badgeClasses}`}>
             {recommendation}
           </span>
         )}
       </div>
 
       <div className="flex items-baseline justify-between gap-2">
-        <div className="text-2xl font-black tracking-tight text-white">
+        <div className={`text-2xl font-black tracking-tight ${ringClasses}`}>
           {overallScore}%
         </div>
-        <span className="text-[10px] text-slate-400 italic">
-          Based on available information
+        <span className="text-[10px] text-slate-500 font-medium">
+          Ground Truth Verified
         </span>
       </div>
 
       {match && (
-        <div className="mt-2 pt-2 border-t border-slate-800/60 grid grid-cols-2 gap-x-3 gap-y-1 text-[11px]">
-          <div className="flex items-center justify-between text-slate-400">
+        <div className="mt-2.5 pt-2 border-t border-slate-200/80 grid grid-cols-2 gap-x-3 gap-y-1 text-[11px]">
+          <div className="flex items-center justify-between text-slate-600">
             <span>Technical</span>
-            <span className="font-semibold text-slate-200">{match.technical_match}%</span>
+            <span className="font-bold text-slate-900">{match.technical_match}%</span>
           </div>
-          <div className="flex items-center justify-between text-slate-400">
+          <div className="flex items-center justify-between text-slate-600">
             <span>Experience</span>
-            <span className="font-semibold text-slate-200">{match.experience_match}%</span>
+            <span className="font-bold text-slate-900">{match.experience_match}%</span>
           </div>
-          <div className="flex items-center justify-between text-slate-400">
+          <div className="flex items-center justify-between text-slate-600">
             <span>Location</span>
-            <span className="font-semibold text-slate-200">{match.location_match}%</span>
+            <span className="font-bold text-slate-900">{match.location_match}%</span>
           </div>
-          <div className="flex items-center justify-between text-slate-400">
+          <div className="flex items-center justify-between text-slate-600">
             <span>Visa</span>
-            <span className="font-semibold text-slate-200">{visaScore}%</span>
+            <span className="font-bold text-slate-900">{visaScore}%</span>
           </div>
         </div>
       )}

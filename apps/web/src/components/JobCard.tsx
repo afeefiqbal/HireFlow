@@ -41,10 +41,10 @@ export const JobCard: React.FC<JobCardProps> = ({
     if (job.freshnessStatus === 'UNKNOWN' || job.jobAgeHours === null || job.jobAgeHours === undefined) {
       return (
         <span
-          className="inline-flex items-center gap-1 rounded bg-amber-500/10 px-2 py-0.5 text-[11px] font-semibold text-amber-400 border border-amber-500/30"
+          className="inline-flex items-center gap-1 rounded-full bg-amber-50 px-2.5 py-0.5 text-[11px] font-semibold text-amber-700 border border-amber-200"
           title="Posting timestamp could not be verified by ATS source"
         >
-          <AlertTriangle className="h-3 w-3 text-amber-400" />
+          <AlertTriangle className="h-3 w-3 text-amber-600" />
           Posting age unknown
         </span>
       );
@@ -55,8 +55,8 @@ export const JobCard: React.FC<JobCardProps> = ({
 
     if (job.freshnessStatus === 'FRESH' || hours < 6.0) {
       return (
-        <span className="inline-flex items-center gap-1.5 rounded bg-emerald-500/20 px-2.5 py-0.5 text-[11px] font-bold text-emerald-300 border border-emerald-500/50 shadow-sm">
-          <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
+        <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-2.5 py-0.5 text-[11px] font-bold text-[#009a65] border border-emerald-200 shadow-2xs">
+          <span className="h-2 w-2 rounded-full bg-[#00b074] animate-pulse" />
           Fresh &lt;6h ({hoursText})
         </span>
       );
@@ -64,7 +64,7 @@ export const JobCard: React.FC<JobCardProps> = ({
 
     if (job.freshnessStatus === 'RECENT' || hours <= 12.0) {
       return (
-        <span className="inline-flex items-center gap-1.5 rounded bg-teal-500/20 px-2.5 py-0.5 text-[11px] font-bold text-teal-300 border border-teal-500/40">
+        <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50/60 px-2.5 py-0.5 text-[11px] font-bold text-emerald-800 border border-emerald-200">
           Recent ({hoursText})
         </span>
       );
@@ -72,7 +72,7 @@ export const JobCard: React.FC<JobCardProps> = ({
 
     if (job.freshnessStatus === 'TODAY' || hours <= 24.0) {
       return (
-        <span className="inline-flex items-center rounded bg-blue-500/20 px-2 py-0.5 text-[11px] font-semibold text-blue-300 border border-blue-500/30">
+        <span className="inline-flex items-center rounded-full bg-blue-50 px-2.5 py-0.5 text-[11px] font-semibold text-blue-700 border border-blue-200">
           Today ({hoursText})
         </span>
       );
@@ -80,8 +80,8 @@ export const JobCard: React.FC<JobCardProps> = ({
 
     const days = Math.max(1, Math.round(hours / 24));
     return (
-      <span className="inline-flex items-center rounded bg-slate-800 px-2 py-0.5 text-[11px] font-medium text-slate-400 border border-slate-700">
-        Posted {days}d ago (STALE)
+      <span className="inline-flex items-center rounded-full bg-slate-100 px-2.5 py-0.5 text-[11px] font-medium text-slate-600 border border-slate-200">
+        Posted {days}d ago
       </span>
     );
   };
@@ -89,125 +89,136 @@ export const JobCard: React.FC<JobCardProps> = ({
   const salaryText =
     job.salaryMin && job.salaryMax
       ? `€${Math.round(job.salaryMin / 1000)}k–€${Math.round(job.salaryMax / 1000)}k`
-      : 'Competitive / Unspecified';
+      : 'Competitive Salary';
 
   let postedLabel = 'Timestamp unverified';
   if (job.jobAgeHours !== null && job.jobAgeHours !== undefined) {
-    if (job.jobAgeHours < 1) postedLabel = 'Under 1 hour ago';
-    else if (job.jobAgeHours <= 24) postedLabel = `${Math.round(job.jobAgeHours)} hours ago`;
-    else postedLabel = `${Math.round(job.jobAgeHours / 24)} days ago`;
+    if (job.jobAgeHours < 1) postedLabel = 'Under 1h ago';
+    else if (job.jobAgeHours <= 24) postedLabel = `${Math.round(job.jobAgeHours)}h ago`;
+    else postedLabel = `${Math.round(job.jobAgeHours / 24)}d ago`;
   }
 
+  // Company avatar initial letter
+  const companyInitial = job.company ? job.company.charAt(0).toUpperCase() : 'J';
+
   return (
-    <div className="rounded-xl border border-slate-800 bg-[#0f172a] p-5 shadow-card transition-all hover:border-slate-700">
-      {/* Header: Title, Company, Status, and Match Badge */}
+    <div className="job-item p-5 mb-4 bg-white rounded-xl border border-slate-200/80 shadow-xs hover:border-[#00b074] hover:shadow-md transition-all group">
+      {/* Main Row: Company Avatar + Body Info + Match Badge */}
       <div className="flex flex-col lg:flex-row lg:items-start justify-between gap-4">
-        <div className="space-y-2 flex-1">
-          <div className="flex flex-wrap items-center gap-2">
-            <Link
-              href={`/jobs/${job.id}`}
-              className="text-lg font-bold text-white hover:text-teal-400 transition-colors"
-            >
-              {job.title}
-            </Link>
-            {renderAgeBadge()}
-            {job.roleFamily && job.roleFamily !== 'UNKNOWN' && (
-              <span className="rounded bg-indigo-950/70 px-2 py-0.5 text-[10px] font-bold text-indigo-300 border border-indigo-700/50 uppercase">
-                {job.seniority && job.seniority !== 'UNKNOWN' ? `${job.seniority} · ` : ''}
-                {job.roleFamily.replace(/_/g, ' ')}
+        <div className="flex items-start gap-4 flex-1">
+          {/* JobEntry Company Logo / Avatar Container */}
+          <div className="hidden sm:flex h-14 w-14 rounded-xl border border-slate-200 bg-slate-50 items-center justify-center font-black text-slate-700 text-xl flex-shrink-0 shadow-xs group-hover:border-[#00b074]/40 group-hover:bg-emerald-50/40 transition-colors">
+            {companyInitial}
+          </div>
+
+          <div className="space-y-2 flex-1 min-w-0">
+            {/* Title & Status Badges */}
+            <div className="flex flex-wrap items-center gap-2">
+              <Link
+                href={`/jobs/${job.id}`}
+                className="text-lg font-bold text-slate-900 group-hover:text-[#00b074] transition-colors"
+              >
+                {job.title}
+              </Link>
+              {renderAgeBadge()}
+              {job.roleFamily && job.roleFamily !== 'UNKNOWN' && (
+                <span className="rounded-md bg-slate-100 px-2 py-0.5 text-[10px] font-bold text-slate-700 border border-slate-200 uppercase">
+                  {job.seniority && job.seniority !== 'UNKNOWN' ? `${job.seniority} · ` : ''}
+                  {job.roleFamily.replace(/_/g, ' ')}
+                </span>
+              )}
+              {job.remoteType && job.remoteType !== 'UNKNOWN' && (
+                <span
+                  className={`rounded-md px-2 py-0.5 text-[10px] font-bold border uppercase ${
+                    job.remoteType === 'REMOTE'
+                      ? 'bg-emerald-50 text-[#009a65] border-emerald-200'
+                      : job.remoteType === 'HYBRID'
+                      ? 'bg-amber-50 text-amber-700 border-amber-200'
+                      : 'bg-slate-100 text-slate-700 border-slate-200'
+                  }`}
+                >
+                  {job.remoteType}
+                </span>
+              )}
+              {job.application?.status && (
+                <span className="rounded-full bg-blue-50 px-2.5 py-0.5 text-[11px] font-bold text-blue-700 border border-blue-200">
+                  Pipeline: {job.application.status}
+                </span>
+              )}
+            </div>
+
+            {/* JobEntry Signature Meta Info Row */}
+            <div className="flex flex-wrap items-center gap-x-5 gap-y-1 text-xs text-slate-600">
+              <span className="flex items-center gap-1.5 font-semibold text-slate-800">
+                <Building2 className="h-3.5 w-3.5 text-[#00b074]" />
+                {job.company}
               </span>
-            )}
-            {job.remoteType && job.remoteType !== 'UNKNOWN' && (
+              <span className="flex items-center gap-1.5 font-medium">
+                <MapPin className="h-3.5 w-3.5 text-[#00b074]" />
+                {job.location}
+              </span>
+              <span className="flex items-center gap-1.5 font-medium">
+                <Clock className="h-3.5 w-3.5 text-[#00b074]" />
+                {postedLabel}
+              </span>
+              <span className="flex items-center gap-1.5 font-bold text-slate-900">
+                <DollarSign className="h-3.5 w-3.5 text-[#00b074]" />
+                {salaryText}
+              </span>
+            </div>
+
+            {/* Attributes row: Visa, Relocation, Source */}
+            <div className="flex flex-wrap items-center gap-2 text-xs pt-1">
               <span
-                className={`rounded px-2 py-0.5 text-[10px] font-bold border uppercase ${
-                  job.remoteType === 'REMOTE'
-                    ? 'bg-teal-950/60 text-teal-300 border-teal-800/60'
-                    : job.remoteType === 'HYBRID'
-                    ? 'bg-amber-950/60 text-amber-300 border-amber-800/60'
-                    : 'bg-slate-800 text-slate-300 border-slate-700'
+                className={`inline-flex items-center gap-1 rounded-md px-2.5 py-1 border font-medium ${
+                  job.visaSponsorship === 'AVAILABLE' || job.visaStatus === 'OFFERED'
+                    ? 'bg-emerald-50 text-[#009a65] border-emerald-200'
+                    : job.visaSponsorship === 'NOT_AVAILABLE' || job.visaStatus === 'NOT_OFFERED'
+                    ? 'bg-rose-50 text-rose-700 border-rose-200'
+                    : 'bg-slate-50 text-slate-600 border-slate-200'
                 }`}
+                title={job.visaEvidence?.evidence || 'Visa status'}
               >
-                {job.remoteType}
-              </span>
-            )}
-            {job.application?.status && (
-              <span className="rounded bg-blue-500/20 px-2 py-0.5 text-[11px] font-semibold text-blue-300 border border-blue-500/30">
-                Pipeline: {job.application.status}
-              </span>
-            )}
-          </div>
-
-          {/* Company & Meta Info */}
-          <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-slate-400">
-            <span className="flex items-center gap-1 font-medium text-slate-200">
-              <Building2 className="h-3.5 w-3.5 text-slate-400" />
-              {job.company}
-            </span>
-            <span className="flex items-center gap-1">
-              <MapPin className="h-3.5 w-3.5 text-slate-400" />
-              {job.location}
-            </span>
-            <span className="flex items-center gap-1">
-              <Clock className="h-3.5 w-3.5 text-slate-400" />
-              {postedLabel}
-            </span>
-            <span className="flex items-center gap-1 text-emerald-400 font-medium">
-              <DollarSign className="h-3.5 w-3.5" />
-              {salaryText}
-            </span>
-          </div>
-
-          {/* Attributes row: Visa, Relocation, Experience, Clickable Source */}
-          <div className="flex flex-wrap items-center gap-2 text-xs pt-1">
-            <span
-              className={`inline-flex items-center gap-1 rounded-md px-2.5 py-1 border ${
-                job.visaSponsorship === 'AVAILABLE' || job.visaStatus === 'OFFERED'
-                  ? 'bg-emerald-500/10 text-emerald-300 border-emerald-500/30'
+                <Globe2 className="h-3 w-3" />
+                Visa:{' '}
+                {job.visaSponsorship === 'AVAILABLE' || job.visaStatus === 'OFFERED'
+                  ? 'Sponsorship Available'
                   : job.visaSponsorship === 'NOT_AVAILABLE' || job.visaStatus === 'NOT_OFFERED'
-                  ? 'bg-rose-500/10 text-rose-300 border-rose-500/30'
-                  : 'bg-slate-800/80 text-slate-300 border-slate-700'
-              }`}
-              title={job.visaEvidence?.evidence || 'Visa sponsorship status'}
-            >
-              <Globe2 className="h-3 w-3" />
-              Visa:{' '}
-              {job.visaSponsorship === 'AVAILABLE' || job.visaStatus === 'OFFERED'
-                ? 'Sponsorship Available'
-                : job.visaSponsorship === 'NOT_AVAILABLE' || job.visaStatus === 'NOT_OFFERED'
-                ? 'No Sponsorship'
-                : 'Not stated'}
-            </span>
+                  ? 'No Sponsorship'
+                  : 'Not stated'}
+              </span>
 
-            {job.relocation === 'AVAILABLE' && (
-              <span
-                className="inline-flex items-center gap-1 rounded-md px-2.5 py-1 border bg-cyan-950/40 text-cyan-300 border-cyan-700/40 text-xs font-semibold"
-                title={job.relocationEvidence?.evidence || 'Relocation assistance offered'}
+              {job.relocation === 'AVAILABLE' && (
+                <span
+                  className="inline-flex items-center gap-1 rounded-md px-2.5 py-1 border bg-teal-50 text-teal-800 border-teal-200 text-xs font-semibold"
+                  title={job.relocationEvidence?.evidence || 'Relocation offered'}
+                >
+                  ✓ Relocation Assistance
+                </span>
+              )}
+
+              {job.experienceRequired && (
+                <span className="rounded-md border border-slate-200 bg-slate-50 px-2.5 py-1 text-slate-600 font-medium">
+                  Exp: {job.experienceRequired}
+                </span>
+              )}
+
+              {/* Clickable Source */}
+              <a
+                href={job.sourceUrl || job.canonicalUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1 rounded-md border border-slate-200 bg-slate-50 px-2.5 py-1 text-[11px] font-medium text-slate-700 hover:text-[#00b074] hover:border-emerald-300 transition-colors"
+                title={`View on source board: ${job.source}`}
               >
-                ✓ Relocation Assistance
-              </span>
-            )}
-
-            {job.experienceRequired && (
-              <span className="rounded-md border border-slate-700 bg-slate-800/60 px-2.5 py-1 text-slate-300">
-                Exp: {job.experienceRequired}
-              </span>
-            )}
-
-            {/* Clickable Source as requested */}
-            <a
-              href={job.sourceUrl || job.canonicalUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-1 rounded-md border border-teal-500/30 bg-slate-900 px-2.5 py-1 text-[11px] font-medium text-teal-400 hover:text-teal-300 hover:border-teal-400 transition-colors"
-              title={`View on source board: ${job.source}`}
-            >
-              <span>Source: <strong>{job.source || 'Company Careers'}</strong></span>
-              <ExternalLink className="h-3 w-3 ml-0.5 text-teal-500" />
-            </a>
+                <span>Board: <strong>{job.source || 'Company ATS'}</strong></span>
+                <ExternalLink className="h-3 w-3 ml-0.5 text-slate-400 group-hover:text-[#00b074]" />
+              </a>
+            </div>
           </div>
         </div>
 
-        {/* AI Match Assessment Card */}
+        {/* AI Match Assessment Badge */}
         <div className="flex-shrink-0">
           <MatchScoreBadge
             match={match}
@@ -224,13 +235,13 @@ export const JobCard: React.FC<JobCardProps> = ({
           return (
             <span
               key={tech}
-              className={`inline-flex items-center gap-1 rounded px-2 py-0.5 text-xs font-medium border ${
+              className={`inline-flex items-center gap-1 rounded-md px-2.5 py-0.5 text-xs font-medium border ${
                 isStrongMatch
-                  ? 'bg-teal-950/50 text-teal-300 border-teal-500/40'
-                  : 'bg-slate-800/60 text-slate-300 border-slate-700/60'
+                  ? 'bg-emerald-50 text-[#009a65] border-emerald-200 font-semibold'
+                  : 'bg-slate-100/90 text-slate-700 border-slate-200/80'
               }`}
             >
-              {isStrongMatch && <CheckCircle2 className="h-3 w-3 text-teal-400" />}
+              {isStrongMatch && <CheckCircle2 className="h-3 w-3 text-[#00b074]" />}
               {tech}
             </span>
           );
@@ -243,12 +254,12 @@ export const JobCard: React.FC<JobCardProps> = ({
           <button
             type="button"
             onClick={() => setShowWhy(!showWhy)}
-            className="inline-flex items-center gap-1.5 text-xs font-bold text-teal-400 hover:text-teal-300 transition-colors bg-teal-950/30 border border-teal-500/30 rounded-lg px-2.5 py-1"
+            className="inline-flex items-center gap-1.5 text-xs font-bold text-[#009a65] hover:text-[#007a50] transition-colors bg-emerald-50 border border-emerald-200 rounded-lg px-3 py-1 shadow-2xs"
           >
-            <Sparkles className="h-3.5 w-3.5 text-teal-400" />
+            <Sparkles className="h-3.5 w-3.5 text-[#00b074]" />
             <span>WHY THIS JOB?</span>
             {job.applicationPriority !== undefined && job.applicationPriority !== null && (
-              <span className="ml-1 rounded bg-teal-500/20 px-1.5 py-0.2 text-[10px] font-black text-teal-300 border border-teal-500/30">
+              <span className="ml-1 rounded bg-[#00b074] px-1.5 py-0.2 text-[10px] font-extrabold text-white">
                 Priority: {job.applicationPriority}/9
               </span>
             )}
@@ -256,20 +267,20 @@ export const JobCard: React.FC<JobCardProps> = ({
           </button>
 
           {showWhy && (
-            <div className="mt-2.5 rounded-lg border border-slate-800 bg-[#090f1b] p-4 text-xs space-y-3.5 animate-fadeIn">
+            <div className="mt-2.5 rounded-xl border border-emerald-100 bg-emerald-50/30 p-4 text-xs space-y-3.5">
               {job.whyThisJob ? (
                 <>
                   {/* Priority Reasons */}
                   {Array.isArray(job.whyThisJob.priorityReasons) && job.whyThisJob.priorityReasons.length > 0 && (
                     <div className="space-y-1.5">
-                      <span className="font-bold text-teal-300 uppercase tracking-wider text-[10px] flex items-center gap-1">
-                        <Sparkles className="h-3 w-3" />
+                      <span className="font-bold text-[#009a65] uppercase tracking-wider text-[10px] flex items-center gap-1">
+                        <Sparkles className="h-3 w-3 text-[#00b074]" />
                         Deterministic Match Evidence ({job.whyThisJob.priorityScore || 0}/9 Score)
                       </span>
-                      <ul className="space-y-1 text-slate-300">
+                      <ul className="space-y-1 text-slate-700">
                         {job.whyThisJob.priorityReasons.map((r, i) => (
                           <li key={i} className="flex items-start gap-1.5">
-                            <span className="text-teal-400 font-bold">•</span>
+                            <span className="text-[#00b074] font-bold">•</span>
                             <span>{r}</span>
                           </li>
                         ))}
@@ -277,19 +288,19 @@ export const JobCard: React.FC<JobCardProps> = ({
                     </div>
                   )}
 
-                  {/* 2-Column Grid: Role/Seniority & Technologies */}
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pt-2.5 border-t border-slate-800">
-                    {/* Column 1: Role Family & Seniority Gate */}
+                  {/* 2-Column Grid */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pt-2.5 border-t border-emerald-100">
+                    {/* Column 1: Structural Compatibility */}
                     <div className="space-y-2">
-                      <span className="font-semibold text-slate-300 text-[11px] block">
+                      <span className="font-bold text-slate-700 text-[11px] block">
                         Structural Compatibility
                       </span>
                       <div className="space-y-1.5 text-[11px]">
-                        <div className="flex items-center justify-between rounded bg-slate-900/80 p-2 border border-slate-800">
-                          <span className="text-slate-400">Role Family:</span>
+                        <div className="flex items-center justify-between rounded-lg bg-white p-2 border border-slate-200">
+                          <span className="text-slate-500">Role Family:</span>
                           <span
                             className={`font-bold ${
-                              job.whyThisJob.roleFamily?.status === 'MATCH' ? 'text-emerald-400' : 'text-rose-400'
+                              job.whyThisJob.roleFamily?.status === 'MATCH' ? 'text-emerald-700' : 'text-rose-600'
                             }`}
                           >
                             {job.whyThisJob.roleFamily?.status === 'MATCH' ? '✓' : '⚠'}{' '}
@@ -297,11 +308,11 @@ export const JobCard: React.FC<JobCardProps> = ({
                           </span>
                         </div>
 
-                        <div className="flex items-center justify-between rounded bg-slate-900/80 p-2 border border-slate-800">
-                          <span className="text-slate-400">Seniority:</span>
+                        <div className="flex items-center justify-between rounded-lg bg-white p-2 border border-slate-200">
+                          <span className="text-slate-500">Seniority:</span>
                           <span
                             className={`font-bold ${
-                              job.whyThisJob.seniority?.status === 'MATCH' ? 'text-emerald-400' : 'text-amber-400'
+                              job.whyThisJob.seniority?.status === 'MATCH' ? 'text-emerald-700' : 'text-amber-600'
                             }`}
                           >
                             {job.whyThisJob.seniority?.status === 'MATCH' ? '✓' : '◐'}{' '}
@@ -309,20 +320,20 @@ export const JobCard: React.FC<JobCardProps> = ({
                           </span>
                         </div>
 
-                        <div className="flex items-center justify-between rounded bg-slate-900/80 p-2 border border-slate-800">
-                          <span className="text-slate-400">Work Setup:</span>
-                          <span className="text-slate-200 font-semibold">
+                        <div className="flex items-center justify-between rounded-lg bg-white p-2 border border-slate-200">
+                          <span className="text-slate-500">Work Setup:</span>
+                          <span className="text-slate-800 font-semibold">
                             {job.whyThisJob.workSetup?.remoteType || 'REMOTE'} · {job.whyThisJob.workSetup?.location || job.location}
                           </span>
                         </div>
 
-                        <div className="flex items-center justify-between rounded bg-slate-900/80 p-2 border border-slate-800">
-                          <span className="text-slate-400">Application URL:</span>
+                        <div className="flex items-center justify-between rounded-lg bg-white p-2 border border-slate-200">
+                          <span className="text-slate-500">Application URL:</span>
                           <span
                             className={`font-bold ${
                               job.whyThisJob.applicationUrlQuality?.isAuthenticAts
-                                ? 'text-emerald-400'
-                                : 'text-slate-400'
+                                ? 'text-emerald-700'
+                                : 'text-slate-700'
                             }`}
                           >
                             {job.whyThisJob.applicationUrlQuality?.isAuthenticAts ? '✓ Authentic ATS' : 'Portal Link'}{' '}
@@ -334,19 +345,19 @@ export const JobCard: React.FC<JobCardProps> = ({
 
                     {/* Column 2: 4-State Technology Evidence */}
                     <div className="space-y-2">
-                      <span className="font-semibold text-slate-300 text-[11px] block">
+                      <span className="font-bold text-slate-700 text-[11px] block">
                         Technologies (4-State Evidence)
                       </span>
                       <div className="flex flex-wrap gap-1.5">
                         {(job.whyThisJob.technologies || []).map((item, idx) => (
                           <span
                             key={idx}
-                            className={`inline-flex items-center gap-1 rounded px-2 py-0.5 text-[10px] font-bold border ${
+                            className={`inline-flex items-center gap-1 rounded-md px-2 py-0.5 text-[10px] font-bold border ${
                               item.status === 'DIRECT'
-                                ? 'bg-emerald-950/60 text-emerald-300 border-emerald-500/40'
+                                ? 'bg-emerald-50 text-[#009a65] border-emerald-200'
                                 : item.status === 'PARTIAL'
-                                ? 'bg-amber-950/60 text-amber-300 border-amber-500/40'
-                                : 'bg-slate-900 text-slate-400 border-slate-700/60'
+                                ? 'bg-amber-50 text-amber-800 border-amber-200'
+                                : 'bg-slate-100 text-slate-600 border-slate-200'
                             }`}
                             title={item.evidence}
                           >
@@ -362,64 +373,62 @@ export const JobCard: React.FC<JobCardProps> = ({
                   </div>
                 </>
               ) : (
-                /* Legacy AI Match Fallback */
-                <>
-                  <div className="space-y-1.5">
-                    <span className="font-bold text-slate-300 uppercase tracking-wider text-[10px] block">
-                      AI Assessment Evidence &amp; Reasoning
-                    </span>
-                    <ul className="space-y-1 text-slate-300">
-                      {(match?.reasoning || ["Strong match with core skills and experience."]).map((r, i) => (
-                        <li key={i} className="flex items-start gap-1.5">
-                          <span className="text-teal-400 font-bold">•</span>
-                          <span>{r}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                </>
+                /* Legacy Match Fallback */
+                <div className="space-y-1.5">
+                  <span className="font-bold text-slate-700 uppercase tracking-wider text-[10px] block">
+                    Assessment Evidence &amp; Reasoning
+                  </span>
+                  <ul className="space-y-1 text-slate-700">
+                    {(match?.reasoning || ["Strong match with core skills and experience."]).map((r, i) => (
+                      <li key={i} className="flex items-start gap-1.5">
+                        <span className="text-[#00b074] font-bold">•</span>
+                        <span>{r}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
               )}
             </div>
           )}
         </div>
       )}
 
-      {/* Action Buttons */}
-      <div className="mt-4 flex flex-wrap items-center justify-between gap-2 border-t border-slate-800/80 pt-3">
+      {/* Action Buttons - JobEntry Styled */}
+      <div className="mt-4 flex flex-wrap items-center justify-between gap-3 border-t border-slate-100 pt-3.5">
         <div className="flex flex-wrap items-center gap-2">
           <Link
             href={`/jobs/${job.id}`}
-            className="rounded-lg border border-slate-700 bg-slate-800 px-3 py-1.5 text-xs font-semibold text-white hover:bg-slate-700 transition-colors"
+            className="rounded-lg border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-100 transition-colors shadow-2xs"
           >
-            VIEW JOB
+            VIEW DETAILS
           </Link>
 
           <button
             type="button"
             onClick={() => onAnalyze && onAnalyze(job.id)}
             disabled={isAnalyzing}
-            className="inline-flex items-center gap-1 rounded-lg border border-teal-500/40 bg-teal-500/10 px-3 py-1.5 text-xs font-semibold text-teal-300 hover:bg-teal-500/20 transition-colors disabled:opacity-50"
+            className="inline-flex items-center gap-1 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-1.5 text-xs font-semibold text-[#009a65] hover:bg-emerald-100 transition-colors disabled:opacity-50 shadow-2xs"
           >
-            <Sparkles className="h-3.5 w-3.5" />
+            <Sparkles className="h-3.5 w-3.5 text-[#00b074]" />
             {isAnalyzing ? 'ANALYZING...' : 'ANALYZE'}
           </button>
 
-          {/* V2 PREPARE APPLICATION BUTTON */}
+          {/* PREPARE APPLICATION BUTTON */}
           <Link
             href={`/jobs/${job.id}/apply`}
-            className="inline-flex items-center gap-1.5 rounded-lg border border-teal-500/60 bg-teal-950/40 px-3 py-1.5 text-xs font-bold text-teal-300 hover:bg-teal-900/50 transition-colors"
+            className="inline-flex items-center gap-1.5 rounded-lg border border-emerald-200 bg-white px-3 py-1.5 text-xs font-bold text-[#009a65] hover:bg-emerald-50 transition-colors shadow-2xs"
           >
-            <FileCheck2 className="h-3.5 w-3.5 text-teal-400" />
+            <FileCheck2 className="h-3.5 w-3.5 text-[#00b074]" />
             <span>PREPARE APPLICATION</span>
           </Link>
 
           <button
             type="button"
             onClick={() => onSave && onSave(job.id)}
-            className="inline-flex items-center gap-1 rounded-lg border border-slate-700/60 bg-slate-900 px-2.5 py-1.5 text-xs font-medium text-slate-300 hover:bg-slate-800 transition-colors"
+            className="inline-flex items-center gap-1 rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-xs font-medium text-slate-600 hover:text-[#00b074] hover:border-emerald-300 transition-colors shadow-2xs"
           >
             <Bookmark className="h-3.5 w-3.5" />
-            SAVE
+            <span>SAVE</span>
           </button>
         </div>
 
@@ -429,9 +438,9 @@ export const JobCard: React.FC<JobCardProps> = ({
             href={job.applicationUrl || job.canonicalUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center gap-1.5 rounded-lg bg-teal-600 px-4 py-1.5 text-xs font-bold text-white hover:bg-teal-500 transition-colors shadow-sm"
+            className="inline-flex items-center gap-1.5 rounded-lg bg-[#00b074] hover:bg-[#009a65] px-4 py-2 text-xs font-bold text-white transition-all shadow-sm"
           >
-            <span>OPEN APPLICATION</span>
+            <span>APPLY NOW</span>
             <ExternalLink className="h-3.5 w-3.5" />
           </a>
         </div>

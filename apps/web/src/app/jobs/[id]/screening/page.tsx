@@ -115,8 +115,8 @@ export default function ScreeningQuestionsPage() {
   if (loading) {
     return (
       <div className="space-y-6">
-        <div className="h-8 w-48 bg-slate-800 rounded animate-pulse" />
-        <div className="h-64 bg-slate-900 rounded-xl animate-pulse border border-slate-800" />
+        <div className="h-8 w-48 bg-slate-200 rounded animate-pulse" />
+        <div className="h-64 bg-white rounded-xl animate-pulse border border-slate-200 shadow-xs" />
       </div>
     );
   }
@@ -127,24 +127,24 @@ export default function ScreeningQuestionsPage() {
     <div className="space-y-6">
       {/* Toast */}
       {toastMessage && (
-        <div className="fixed bottom-6 right-6 z-50 flex items-center gap-2 rounded-lg bg-teal-600 px-4 py-3 text-sm font-semibold text-white shadow-xl animate-bounce">
+        <div className="fixed bottom-6 right-6 z-50 flex items-center gap-2 rounded-lg bg-[#00b074] px-4 py-3 text-sm font-semibold text-white shadow-xl animate-bounce">
           <ShieldCheck className="h-5 w-5" />
           <span>{toastMessage}</span>
         </div>
       )}
 
       {/* Header & Back Navigation */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-800 pb-4">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200 pb-4">
         <div className="flex items-center gap-3">
           <Link
             href={`/jobs/${id}/apply`}
-            className="inline-flex items-center gap-1.5 rounded-lg border border-slate-800 bg-slate-900 px-3 py-1.5 text-xs font-semibold text-slate-400 hover:text-white transition-colors"
+            className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-50 transition-colors shadow-2xs"
           >
             <ArrowLeft className="h-3.5 w-3.5" />
             Preparation Workspace
           </Link>
-          <span className="text-slate-600">/</span>
-          <span className="text-xs font-bold text-teal-400 uppercase tracking-wider">
+          <span className="text-slate-300">/</span>
+          <span className="text-xs font-bold text-[#009a65] uppercase tracking-wider">
             Screening Questions Assistant
           </span>
         </div>
@@ -154,7 +154,7 @@ export default function ScreeningQuestionsPage() {
             href={job?.applicationUrl || job?.canonicalUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center gap-1.5 rounded-lg bg-teal-600 hover:bg-teal-500 px-3.5 py-1.5 text-xs font-bold text-white transition-colors"
+            className="inline-flex items-center gap-1.5 rounded-lg bg-[#00b074] hover:bg-[#009a65] px-3.5 py-1.5 text-xs font-bold text-white transition-colors shadow-xs"
           >
             <span>Open Application Portal</span>
             <ExternalLink className="h-3.5 w-3.5" />
@@ -163,26 +163,26 @@ export default function ScreeningQuestionsPage() {
       </div>
 
       {/* Anti-Hallucination & Legal Disclaimer Bar */}
-      <div className="rounded-xl border border-amber-500/30 bg-amber-950/20 p-4 space-y-2">
-        <div className="flex items-center gap-2 text-amber-300 font-bold text-xs">
-          <AlertTriangle className="h-4 w-4 text-amber-400 shrink-0" />
+      <div className="rounded-xl border border-amber-200 bg-amber-50/80 p-4 space-y-2">
+        <div className="flex items-center gap-2 text-amber-800 font-bold text-xs">
+          <AlertTriangle className="h-4 w-4 text-amber-600 shrink-0" />
           <span>Human-in-the-Loop Screening Safety Policy</span>
         </div>
-        <p className="text-xs text-slate-300 leading-relaxed">
-          Questions regarding <strong>legal authorization, visa sponsorship, salary expectations, and notice periods</strong> are strictly classified as <strong className="text-amber-400">USER INPUT REQUIRED</strong>. The agent never guesses legal declarations or financial bounds on behalf of Afeef Iqbal.
+        <p className="text-xs text-amber-900 leading-relaxed">
+          Questions regarding <strong>legal authorization, visa sponsorship, salary expectations, and notice periods</strong> are strictly classified as <strong className="text-amber-800 underline">USER INPUT REQUIRED</strong>. The agent never guesses legal declarations or financial bounds on behalf of Afeef Iqbal.
         </p>
       </div>
 
       {/* Target Job Quick Info */}
-      <div className="rounded-lg border border-slate-800 bg-[#0f172a] p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs">
+      <div className="rounded-xl border border-slate-200 bg-white p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs shadow-xs">
         <div>
           <span className="text-slate-500 block uppercase tracking-wider text-[10px] font-bold">Target Position</span>
-          <span className="text-white font-bold">{job?.title}</span>
-          <span className="text-slate-400 ml-2">at {job?.company}</span>
+          <span className="text-slate-900 font-bold">{job?.title}</span>
+          <span className="text-slate-500 ml-2">at {job?.company}</span>
         </div>
-        <div className="text-slate-400">
-          Total Questions: <strong className="text-white">{questions.length}</strong> | Needs Input:{' '}
-          <strong className={userInputNeeded.length > 0 ? 'text-amber-400' : 'text-teal-400'}>
+        <div className="text-slate-500">
+          Total Questions: <strong className="text-slate-800">{questions.length}</strong> | Needs Input:{' '}
+          <strong className={userInputNeeded.length > 0 ? 'text-amber-600' : 'text-[#009a65]'}>
             {userInputNeeded.length}
           </strong>
         </div>
@@ -191,11 +191,11 @@ export default function ScreeningQuestionsPage() {
       {/* Add Custom Screening Question Form */}
       <form
         onSubmit={handleAddCustomQuestion}
-        className="rounded-xl border border-slate-800 bg-[#0f172a] p-4 space-y-3"
+        className="rounded-xl border border-slate-200 bg-white p-4 space-y-3 shadow-xs"
       >
         <div className="flex items-center justify-between">
-          <span className="text-xs font-bold text-white flex items-center gap-1.5">
-            <Plus className="h-4 w-4 text-teal-400" />
+          <span className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
+            <Plus className="h-4 w-4 text-[#00b074]" />
             Paste a Question from the Job Portal
           </span>
           <span className="text-[11px] text-slate-400">
@@ -208,12 +208,12 @@ export default function ScreeningQuestionsPage() {
             value={newQuestionText}
             onChange={(e) => setNewQuestionText(e.target.value)}
             placeholder="e.g., 'Do you require visa sponsorship to work in the European Union?' or 'Describe your Laravel experience.'"
-            className="flex-1 rounded-lg border border-slate-800 bg-slate-900 px-3 py-2 text-xs text-white placeholder-slate-500 focus:border-teal-500 focus:outline-none"
+            className="flex-1 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-xs text-slate-900 placeholder-slate-400 focus:border-[#00b074] focus:outline-none"
           />
           <button
             type="submit"
             disabled={adding || !newQuestionText.trim()}
-            className="inline-flex items-center gap-1.5 rounded-lg bg-teal-600 hover:bg-teal-500 px-4 py-2 text-xs font-bold text-white transition-colors disabled:opacity-50"
+            className="inline-flex items-center gap-1.5 rounded-lg bg-[#00b074] hover:bg-[#009a65] px-4 py-2 text-xs font-bold text-white transition-colors disabled:opacity-50 shadow-2xs"
           >
             <Sparkles className="h-3.5 w-3.5" />
             {adding ? 'Analyzing...' : 'Generate Answer'}
@@ -232,8 +232,8 @@ export default function ScreeningQuestionsPage() {
               key={q.id || idx}
               className={`rounded-xl border p-5 space-y-3 transition-all ${
                 isPendingInput
-                  ? 'border-amber-500/50 bg-amber-950/10'
-                  : 'border-slate-800 bg-[#0f172a]'
+                  ? 'border-amber-300 bg-amber-50/50 shadow-xs'
+                  : 'border-slate-200 bg-white shadow-xs'
               }`}
             >
               {/* Question Header */}
@@ -242,23 +242,23 @@ export default function ScreeningQuestionsPage() {
                   <div
                     className={`mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-xs font-bold ${
                       isPendingInput
-                        ? 'bg-amber-500/20 text-amber-400 border border-amber-500/30'
-                        : 'bg-teal-500/20 text-teal-400 border border-teal-500/30'
+                        ? 'bg-amber-100 text-amber-700 border border-amber-300'
+                        : 'bg-emerald-50 text-[#009a65] border border-emerald-200'
                     }`}
                   >
                     {idx + 1}
                   </div>
-                  <h4 className="text-sm font-bold text-white">{q.question}</h4>
+                  <h4 className="text-sm font-bold text-slate-900">{q.question}</h4>
                 </div>
 
                 <div className="flex items-center gap-2 self-start sm:self-auto">
                   {isPendingInput ? (
-                    <span className="inline-flex items-center gap-1 rounded bg-amber-500/20 px-2.5 py-1 text-[11px] font-bold text-amber-300 border border-amber-500/40">
+                    <span className="inline-flex items-center gap-1 rounded bg-amber-50 px-2.5 py-1 text-[11px] font-bold text-amber-700 border border-amber-200">
                       <AlertTriangle className="h-3.5 w-3.5" />
                       USER INPUT REQUIRED
                     </span>
                   ) : (
-                    <span className="inline-flex items-center gap-1 rounded bg-teal-500/20 px-2 py-0.5 text-[11px] font-semibold text-teal-300 border border-teal-500/30">
+                    <span className="inline-flex items-center gap-1 rounded bg-emerald-50 px-2 py-0.5 text-[11px] font-semibold text-[#009a65] border border-emerald-200">
                       <CheckCircle2 className="h-3 w-3" />
                       Ground Truth Matched
                     </span>
@@ -267,14 +267,14 @@ export default function ScreeningQuestionsPage() {
               </div>
 
               {/* Source & Confidence Badge */}
-              <div className="text-[11px] text-slate-400 flex flex-wrap items-center gap-3 pl-8">
+              <div className="text-[11px] text-slate-500 flex flex-wrap items-center gap-3 pl-8">
                 <span className="flex items-center gap-1">
-                  <ShieldCheck className="h-3.5 w-3.5 text-teal-400 shrink-0" />
-                  Source: <strong className="text-slate-300">{q.source}</strong>
+                  <ShieldCheck className="h-3.5 w-3.5 text-[#00b074] shrink-0" />
+                  Source: <strong className="text-slate-700">{q.source}</strong>
                 </span>
                 <span>•</span>
                 <span>
-                  Confidence: <strong className="text-teal-400 capitalize">{q.confidence}</strong>
+                  Confidence: <strong className="text-[#009a65] capitalize font-bold">{q.confidence}</strong>
                 </span>
               </div>
 
@@ -298,13 +298,13 @@ export default function ScreeningQuestionsPage() {
                   }
                   className={`w-full rounded-lg border p-3 text-xs leading-relaxed focus:outline-none ${
                     isPendingInput
-                      ? 'border-amber-500/40 bg-slate-900 text-amber-100 focus:border-amber-400'
-                      : 'border-slate-800 bg-slate-900 text-slate-200 focus:border-teal-500'
+                      ? 'border-amber-300 bg-white text-amber-950 focus:border-amber-500'
+                      : 'border-slate-200 bg-slate-50 text-slate-800 focus:border-[#00b074]'
                   }`}
                 />
 
                 <div className="flex flex-wrap items-center justify-between gap-2 pt-1">
-                  <span className="text-[11px] text-slate-500">
+                  <span className="text-[11px] text-slate-400">
                     Edit text to customize, then click Save or Copy.
                   </span>
 
@@ -312,10 +312,10 @@ export default function ScreeningQuestionsPage() {
                     <button
                       type="button"
                       onClick={() => handleCopyAnswer(q.id, displayAnswer)}
-                      className="inline-flex items-center gap-1.5 rounded-lg border border-slate-700 bg-slate-800 hover:bg-slate-700 px-3 py-1.5 text-xs font-semibold text-slate-200 transition-colors"
+                      className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 px-3 py-1.5 text-xs font-semibold text-slate-700 transition-colors shadow-2xs"
                     >
                       {copiedId === q.id ? (
-                        <CheckCircle2 className="h-3.5 w-3.5 text-teal-400" />
+                        <CheckCircle2 className="h-3.5 w-3.5 text-[#00b074]" />
                       ) : (
                         <Copy className="h-3.5 w-3.5 text-slate-400" />
                       )}
@@ -326,7 +326,7 @@ export default function ScreeningQuestionsPage() {
                       type="button"
                       onClick={() => handleRegenerateAnswer(q.id, q.question)}
                       disabled={saving === q.id}
-                      className="inline-flex items-center gap-1.5 rounded-lg border border-slate-700 bg-slate-800 hover:bg-slate-700 px-3 py-1.5 text-xs font-semibold text-slate-200 transition-colors disabled:opacity-50"
+                      className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 px-3 py-1.5 text-xs font-semibold text-slate-700 transition-colors disabled:opacity-50 shadow-2xs"
                     >
                       <RefreshCw className={`h-3.5 w-3.5 text-slate-400 ${saving === q.id ? 'animate-spin' : ''}`} />
                       <span>{saving === q.id ? 'Regenerating...' : 'Regenerate'}</span>
@@ -336,7 +336,7 @@ export default function ScreeningQuestionsPage() {
                       type="button"
                       onClick={() => handleUpdateAnswer(q.id, displayAnswer)}
                       disabled={saving === q.id}
-                      className="inline-flex items-center gap-1.5 rounded-lg bg-teal-600 hover:bg-teal-500 px-3 py-1.5 text-xs font-bold text-white transition-colors"
+                      className="inline-flex items-center gap-1.5 rounded-lg bg-[#00b074] hover:bg-[#009a65] px-3 py-1.5 text-xs font-bold text-white transition-colors shadow-2xs"
                     >
                       <Save className="h-3.5 w-3.5" />
                       <span>{saving === q.id ? 'Saving...' : 'Save'}</span>

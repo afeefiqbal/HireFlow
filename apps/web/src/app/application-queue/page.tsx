@@ -220,70 +220,70 @@ export default function ApplicationQueuePage() {
       targetStatus: 'SHORTLISTED' as ApplicationStatus,
       title: 'Shortlisted',
       items: shortlistedItems,
-      icon: <BookmarkCheck className="h-4 w-4 text-sky-400" />,
-      border: 'border-sky-500/30',
-      badge: 'bg-sky-500/20 text-sky-300 border border-sky-500/40',
-      activeBorder: 'border-sky-400 bg-sky-950/30',
+      icon: <BookmarkCheck className="h-4 w-4 text-sky-600" />,
+      border: 'border-slate-200/80 bg-slate-100/60',
+      badge: 'bg-sky-50 text-sky-700 border border-sky-200',
+      activeBorder: 'border-sky-400 bg-sky-50/60',
     },
     {
       id: 'PREPARING',
       targetStatus: 'PREPARING' as ApplicationStatus,
       title: 'Preparing',
       items: preparingItems,
-      icon: <FileText className="h-4 w-4 text-blue-400" />,
-      border: 'border-blue-500/30',
-      badge: 'bg-blue-500/20 text-blue-300 border border-blue-500/40',
-      activeBorder: 'border-blue-400 bg-blue-950/30',
+      icon: <FileText className="h-4 w-4 text-blue-600" />,
+      border: 'border-slate-200/80 bg-slate-100/60',
+      badge: 'bg-blue-50 text-blue-700 border border-blue-200',
+      activeBorder: 'border-blue-400 bg-blue-50/60',
     },
     {
       id: 'READY_TO_APPLY',
       targetStatus: 'READY_TO_APPLY' as ApplicationStatus,
       title: 'Ready to Apply',
       items: readyToApplyItems,
-      icon: <CheckCircle2 className="h-4 w-4 text-teal-400" />,
-      border: 'border-teal-500/30',
-      badge: 'bg-teal-500/20 text-teal-300 border border-teal-500/40',
-      activeBorder: 'border-teal-400 bg-teal-950/30',
+      icon: <CheckCircle2 className="h-4 w-4 text-[#00b074]" />,
+      border: 'border-slate-200/80 bg-slate-100/60',
+      badge: 'bg-emerald-50 text-[#009a65] border border-emerald-200',
+      activeBorder: 'border-emerald-400 bg-emerald-50/60',
     },
     {
       id: 'APPLIED',
       targetStatus: 'APPLIED' as ApplicationStatus,
       title: 'Applied',
       items: appliedItems,
-      icon: <Send className="h-4 w-4 text-emerald-400" />,
-      border: 'border-emerald-500/30',
-      badge: 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40',
-      activeBorder: 'border-emerald-400 bg-emerald-950/30',
+      icon: <Send className="h-4 w-4 text-teal-600" />,
+      border: 'border-slate-200/80 bg-slate-100/60',
+      badge: 'bg-teal-50 text-teal-700 border border-teal-200',
+      activeBorder: 'border-teal-400 bg-teal-50/60',
     },
     {
       id: 'INTERVIEW',
       targetStatus: 'INTERVIEW' as ApplicationStatus,
       title: 'Interview',
       items: interviewItems,
-      icon: <Calendar className="h-4 w-4 text-purple-400" />,
-      border: 'border-purple-500/30',
-      badge: 'bg-purple-500/20 text-purple-300 border border-purple-500/40',
-      activeBorder: 'border-purple-400 bg-purple-950/30',
+      icon: <Calendar className="h-4 w-4 text-purple-600" />,
+      border: 'border-slate-200/80 bg-slate-100/60',
+      badge: 'bg-purple-50 text-purple-700 border border-purple-200',
+      activeBorder: 'border-purple-400 bg-purple-50/60',
     },
     {
       id: 'OFFER',
       targetStatus: 'OFFER' as ApplicationStatus,
       title: 'Offer',
       items: offerItems,
-      icon: <Award className="h-4 w-4 text-amber-400" />,
-      border: 'border-amber-500/30',
-      badge: 'bg-amber-500/20 text-amber-300 border border-amber-500/40',
-      activeBorder: 'border-amber-400 bg-amber-950/30',
+      icon: <Award className="h-4 w-4 text-amber-600" />,
+      border: 'border-slate-200/80 bg-slate-100/60',
+      badge: 'bg-amber-50 text-amber-700 border border-amber-200',
+      activeBorder: 'border-amber-400 bg-amber-50/60',
     },
     {
       id: 'ARCHIVED',
       targetStatus: 'WITHDRAWN' as ApplicationStatus,
       title: 'Archived',
       items: archivedItems,
-      icon: <XCircle className="h-4 w-4 text-rose-400" />,
-      border: 'border-rose-500/30',
-      badge: 'bg-rose-500/20 text-rose-300 border border-rose-500/40',
-      activeBorder: 'border-rose-400 bg-rose-950/30',
+      icon: <XCircle className="h-4 w-4 text-rose-600" />,
+      border: 'border-slate-200/80 bg-slate-100/60',
+      badge: 'bg-rose-50 text-rose-700 border border-rose-200',
+      activeBorder: 'border-rose-400 bg-rose-50/60',
     },
   ];
 
@@ -394,12 +394,12 @@ export default function ApplicationQueuePage() {
   if (loading) {
     return (
       <div className="space-y-6">
-        <div className="h-8 w-48 bg-slate-800 rounded animate-pulse" />
+        <div className="h-8 w-48 bg-slate-200 rounded animate-pulse" />
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          <div className="h-96 bg-slate-900 rounded-xl animate-pulse border border-slate-800" />
-          <div className="h-96 bg-slate-900 rounded-xl animate-pulse border border-slate-800" />
-          <div className="h-96 bg-slate-900 rounded-xl animate-pulse border border-slate-800" />
-          <div className="h-96 bg-slate-900 rounded-xl animate-pulse border border-slate-800" />
+          <div className="h-96 bg-white rounded-xl animate-pulse border border-slate-200" />
+          <div className="h-96 bg-white rounded-xl animate-pulse border border-slate-200" />
+          <div className="h-96 bg-white rounded-xl animate-pulse border border-slate-200" />
+          <div className="h-96 bg-white rounded-xl animate-pulse border border-slate-200" />
         </div>
       </div>
     );
@@ -410,20 +410,20 @@ export default function ApplicationQueuePage() {
       {/* Toast Notification */}
       {toast && (
         <div
-          className={`fixed bottom-6 right-6 z-50 flex items-center gap-2.5 rounded-lg px-4 py-3 text-sm font-semibold shadow-2xl border transition-all ${
+          className={`fixed bottom-6 right-6 z-50 flex items-center gap-2.5 rounded-lg px-4 py-3 text-sm font-semibold shadow-xl border transition-all ${
             toast.type === 'error'
-              ? 'bg-rose-950 text-rose-200 border-rose-600/80 shadow-rose-950/50'
+              ? 'bg-rose-50 text-rose-800 border-rose-200'
               : toast.type === 'success'
-              ? 'bg-teal-950 text-teal-200 border-teal-500/80 shadow-teal-950/50'
-              : 'bg-slate-900 text-slate-200 border-slate-700 shadow-slate-950/50'
+              ? 'bg-[#00b074] text-white border-emerald-400'
+              : 'bg-white text-slate-800 border-slate-200'
           }`}
         >
           {toast.type === 'error' ? (
-            <AlertTriangle className="h-5 w-5 text-rose-400 shrink-0" />
+            <AlertTriangle className="h-5 w-5 text-rose-600 shrink-0" />
           ) : toast.type === 'success' ? (
-            <CheckCircle2 className="h-5 w-5 text-teal-400 shrink-0" />
+            <CheckCircle2 className="h-5 w-5 text-white shrink-0" />
           ) : (
-            <RefreshCw className="h-4 w-4 text-blue-400 animate-spin shrink-0" />
+            <RefreshCw className="h-4 w-4 text-emerald-600 animate-spin shrink-0" />
           )}
           <span>{toast.message}</span>
         </div>
@@ -621,13 +621,13 @@ export default function ApplicationQueuePage() {
               onDragLeave={(e) => handleDragLeave(e, col.id)}
               onDrop={(e) => handleDrop(e, col.id)}
               className={`rounded-xl border transition-all duration-150 ${
-                isOver ? col.activeBorder + ' ring-2 ring-teal-500/40' : col.border
-              } bg-[#0b1324] p-3 space-y-3 min-h-[460px] flex flex-col justify-between`}
+                isOver ? col.activeBorder + ' ring-2 ring-[#00b074]/30' : col.border
+              } p-3 space-y-3 min-h-[460px] flex flex-col justify-between`}
             >
               <div>
                 {/* Column Header */}
-                <div className="flex items-center justify-between border-b border-slate-800 pb-2 mb-3">
-                  <div className="flex items-center gap-1.5 text-xs font-bold text-white">
+                <div className="flex items-center justify-between border-b border-slate-200 pb-2.5 mb-3">
+                  <div className="flex items-center gap-1.5 text-xs font-bold text-slate-800">
                     {col.icon}
                     <span>{col.title}</span>
                   </div>
@@ -639,7 +639,7 @@ export default function ApplicationQueuePage() {
                 {/* Card Items */}
                 <div className="space-y-2.5">
                   {col.items.length === 0 ? (
-                    <div className="text-center py-10 text-[11px] text-slate-600 italic border-2 border-dashed border-slate-800/60 rounded-lg">
+                    <div className="text-center py-10 text-[11px] text-slate-400 italic border-2 border-dashed border-slate-200 bg-white/50 rounded-lg">
                       {isOver ? 'Drop card here' : 'No applications'}
                     </div>
                   ) : (
@@ -656,36 +656,36 @@ export default function ApplicationQueuePage() {
                           draggable={true}
                           onDragStart={(e) => handleDragStart(e, job, col.id)}
                           onDragEnd={handleDragEnd}
-                          className={`rounded-lg border bg-[#0f172a] p-3 space-y-2.5 shadow-sm transition-all cursor-grab active:cursor-grabbing hover:border-slate-600 ${
+                          className={`rounded-lg border bg-white p-3 space-y-2.5 shadow-2xs transition-all cursor-grab active:cursor-grabbing hover:border-[#00b074] hover:shadow-xs ${
                             isBeingDragged
-                              ? 'opacity-40 border-teal-500 scale-95'
-                              : 'border-slate-800'
+                              ? 'opacity-40 border-[#00b074] scale-95'
+                              : 'border-slate-200'
                           }`}
                         >
                           {/* Header: Priority, Drag Handle & Freshness */}
                           <div className="flex items-center justify-between gap-1">
                             <div className="flex items-center gap-1.5">
-                              <GripVertical className="h-3.5 w-3.5 text-slate-600 shrink-0" />
+                              <GripVertical className="h-3.5 w-3.5 text-slate-400 shrink-0" />
                               {priorityScore != null ? (
                                 <span
                                   className={`text-[9px] font-extrabold uppercase px-1.5 py-0.5 rounded ${
                                     priorityScore >= 80
-                                      ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30'
+                                      ? 'bg-emerald-50 text-[#009a65] border border-emerald-200'
                                       : priorityScore >= 50
-                                      ? 'bg-amber-500/20 text-amber-300 border border-amber-500/30'
-                                      : 'bg-slate-700/50 text-slate-400 border border-slate-600/30'
+                                      ? 'bg-amber-50 text-amber-700 border border-amber-200'
+                                      : 'bg-slate-100 text-slate-600 border border-slate-200'
                                   }`}
                                   title={priorityReasons.join(', ')}
                                 >
                                   Priority {priorityScore}
                                 </span>
                               ) : (
-                                <span className="text-[9px] font-bold text-slate-500">Standard</span>
+                                <span className="text-[9px] font-bold text-slate-400">Standard</span>
                               )}
                             </div>
 
                             {isFresh && (
-                              <span className="shrink-0 text-teal-400 flex items-center gap-0.5 text-[9px] font-bold" title="Fresh <24h">
+                              <span className="shrink-0 text-[#00b074] flex items-center gap-0.5 text-[9px] font-bold" title="Fresh <24h">
                                 <Flame className="h-3 w-3" />
                                 Fresh
                               </span>
@@ -694,23 +694,23 @@ export default function ApplicationQueuePage() {
 
                           {/* Title & Company */}
                           <div>
-                            <h4 className="font-bold text-white text-xs line-clamp-1">
+                            <h4 className="font-bold text-slate-900 text-xs line-clamp-1 hover:text-[#00b074] transition-colors">
                               {job.title}
                             </h4>
-                            <div className="text-[11px] text-slate-400 flex items-center gap-1 mt-0.5">
-                              <Building2 className="h-3 w-3 text-slate-500 shrink-0" />
+                            <div className="text-[11px] text-slate-500 flex items-center gap-1 mt-0.5">
+                              <Building2 className="h-3 w-3 text-slate-400 shrink-0" />
                               <span className="truncate">{job.company}</span>
                             </div>
                           </div>
 
                           {/* Location & Seniority */}
-                          <div className="flex items-center gap-2 text-[10px] text-slate-400">
+                          <div className="flex items-center gap-2 text-[10px] text-slate-500">
                             <span className="flex items-center gap-0.5 truncate">
-                              <MapPin className="h-3 w-3 text-slate-500 shrink-0" />
+                              <MapPin className="h-3 w-3 text-slate-400 shrink-0" />
                               {job.location || 'Unknown'}
                             </span>
                             {job.seniority && job.seniority !== 'UNKNOWN' && (
-                              <span className="px-1.5 py-0.5 rounded bg-slate-800 text-slate-300 border border-slate-700">
+                              <span className="px-1.5 py-0.5 rounded bg-slate-100 text-slate-600 border border-slate-200 font-medium">
                                 {job.seniority}
                               </span>
                             )}
@@ -718,8 +718,8 @@ export default function ApplicationQueuePage() {
 
                           {/* Role Family tag */}
                           {job.roleFamily && job.roleFamily !== 'UNKNOWN' && (
-                            <div className="text-[9px] font-medium text-slate-400 flex items-center gap-1">
-                              <Briefcase className="w-2.5 h-2.5 text-slate-500" />
+                            <div className="text-[9px] font-medium text-slate-500 flex items-center gap-1">
+                              <Briefcase className="w-2.5 h-2.5 text-slate-400" />
                               {job.roleFamily}
                             </div>
                           )}
@@ -732,10 +732,10 @@ export default function ApplicationQueuePage() {
                           )}
 
                           {/* Actions */}
-                          <div className="pt-2 border-t border-slate-800/80 flex items-center justify-between gap-1">
+                          <div className="pt-2 border-t border-slate-100 flex items-center justify-between gap-1">
                             <Link
                               href={`/applications/${job.application?.id || job.id}`}
-                              className="text-[11px] text-teal-400 hover:text-teal-300 font-bold flex items-center gap-1"
+                              className="text-[11px] text-[#009a65] hover:text-[#007a50] font-bold flex items-center gap-1"
                               title="Open V5 Application Workspace"
                             >
                               <span>Workspace</span>
@@ -745,7 +745,7 @@ export default function ApplicationQueuePage() {
                             <div className="flex items-center gap-2">
                               <Link
                                 href={`/jobs/${job.id}/apply`}
-                                className="text-[10px] text-slate-400 hover:text-slate-200"
+                                className="text-[10px] text-slate-500 hover:text-slate-800 font-medium"
                                 title="Copilot Preparation"
                               >
                                 Copilot
@@ -754,7 +754,7 @@ export default function ApplicationQueuePage() {
                                 href={job.applicationUrl || job.canonicalUrl}
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="text-[11px] text-slate-400 hover:text-white flex items-center gap-0.5"
+                                className="text-[11px] text-slate-400 hover:text-[#00b074] flex items-center gap-0.5"
                                 title="Open Official Employer Portal"
                               >
                                 <ExternalLink className="h-3 w-3" />
@@ -768,7 +768,7 @@ export default function ApplicationQueuePage() {
                 </div>
               </div>
 
-              <div className="text-[10px] text-slate-600 text-center pt-2">
+              <div className="text-[10px] text-slate-400 text-center pt-2">
                 Drag to transition status
               </div>
             </div>

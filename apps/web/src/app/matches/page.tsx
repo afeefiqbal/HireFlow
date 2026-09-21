@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import Link from 'next/link';
 import { api } from '@/lib/api';
 import { Job } from '@ai-job-agent/shared';
@@ -12,7 +12,7 @@ export default function MatchesPage() {
   const [loading, setLoading] = useState(true);
   const [minScore, setMinScore] = useState(80);
 
-  const fetchMatches = async () => {
+  const fetchMatches = useCallback(async () => {
     setLoading(true);
     try {
       const res = await api.getJobs({
@@ -25,11 +25,11 @@ export default function MatchesPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [minScore]);
 
   useEffect(() => {
     fetchMatches();
-  }, [minScore]);
+  }, [fetchMatches]);
 
   return (
     <div className="space-y-6">
@@ -43,7 +43,7 @@ export default function MatchesPage() {
             </span>
           </h1>
           <p className="text-xs sm:text-sm text-slate-500 mt-1">
-            Roles where technical stack, 7+ years seniority, location and visa alignment cross your Ground Truth threshold.
+
           </p>
         </div>
 

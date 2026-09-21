@@ -38,20 +38,17 @@ export default function RootLayout({
                 <p className="text-xs text-slate-400 leading-relaxed">
                   Candidate-First Autonomous Job Intelligence cockpit for senior engineers. High-signal discovery with deterministic matching.
                 </p>
-                <div className="flex items-center gap-2 text-xs text-emerald-400">
-                  <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
-                  <span>Verified 24h Pipeline Active</span>
-                </div>
+
               </div>
 
               {/* Col 2: Quick Links */}
               <div>
                 <h4 className="text-sm font-semibold text-white mb-3">Cockpit Modules</h4>
                 <ul className="space-y-2 text-xs text-slate-400">
-                  <li><a href="/jobs" className="hover:text-white transition-colors">Jobs Matrix (&lt;24h)</a></li>
-                  <li><a href="/matches" className="hover:text-white transition-colors">Ground Truth Matches</a></li>
-                  <li><a href="/application-queue" className="hover:text-white transition-colors">Application Queue</a></li>
-                  <li><a href="/interviews" className="hover:text-white transition-colors">Interview Cockpit</a></li>
+                  
+                  
+                  
+                  
                 </ul>
               </div>
 

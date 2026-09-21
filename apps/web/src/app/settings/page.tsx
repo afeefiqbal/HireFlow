@@ -21,90 +21,90 @@ export default function SettingsPage() {
   };
 
   return (
-    <div className="space-y-6 max-w-4xl">
-      <div className="border-b border-slate-800 pb-5">
-        <h1 className="text-2xl font-bold tracking-tight text-white flex items-center gap-2.5">
-          <SettingsIcon className="h-6 w-6 text-teal-400" />
+    <div className="space-y-6 max-w-4xl pb-12">
+      <div className="border-b border-slate-200 pb-5">
+        <h1 className="text-2xl font-black tracking-tight text-slate-900 flex items-center gap-2.5">
+          <SettingsIcon className="h-6 w-6 text-[#00b074]" />
           System &amp; Engine Settings
         </h1>
-        <p className="text-xs text-slate-400 mt-1">
+        <p className="text-xs sm:text-sm text-slate-500 mt-1">
           Configure discovery source adapters, AI matching thresholds, and anti-hallucination rules.
         </p>
       </div>
 
       {saved && (
-        <div className="rounded-lg bg-teal-600/20 border border-teal-500/40 p-3 text-xs font-semibold text-teal-300 flex items-center gap-2">
-          <CheckCircle2 className="h-4 w-4" />
+        <div className="rounded-xl bg-emerald-50 border border-emerald-200 p-3 text-xs font-bold text-[#009a65] flex items-center gap-2 shadow-xs">
+          <CheckCircle2 className="h-4 w-4 text-[#00b074]" />
           <span>Configuration settings saved successfully.</span>
         </div>
       )}
 
       <form onSubmit={handleSave} className="space-y-6">
         {/* Strict 24h Filter Policy */}
-        <div className="rounded-xl border border-slate-800 bg-[#0f172a] p-5 space-y-4">
-          <div className="flex items-center justify-between border-b border-slate-800/80 pb-3">
+        <div className="rounded-xl border border-slate-200 bg-white p-5 space-y-4 shadow-xs">
+          <div className="flex items-center justify-between border-b border-slate-200 pb-3">
             <div className="flex items-center gap-2">
-              <ShieldCheck className="h-5 w-5 text-teal-400" />
-              <h2 className="text-sm font-bold text-white">24-Hour Job Filter Protocol</h2>
+              <ShieldCheck className="h-5 w-5 text-[#00b074]" />
+              <h2 className="text-sm font-bold text-slate-900">24-Hour Job Filter Protocol</h2>
             </div>
-            <span className="rounded bg-teal-500/20 px-2 py-0.5 text-[10px] font-bold text-teal-300 uppercase">
+            <span className="rounded-full bg-emerald-50 px-2.5 py-0.5 text-[10px] font-bold text-[#009a65] border border-emerald-200 uppercase">
               Strict Mode Enabled
             </span>
           </div>
-          <p className="text-xs text-slate-400">
-            System enforces that only postings whose verifiable <code className="text-teal-300">posted_at</code> timestamp is within 24.0 hours are classified as FRESH. Unverifiable aggregator badges (&quot;new&quot;, &quot;today&quot;) are ignored and marked as UNKNOWN.
+          <p className="text-xs text-slate-500">
+            System enforces that only postings whose verifiable <code className="text-[#009a65] font-semibold">posted_at</code> timestamp is within 24.0 hours are classified as FRESH. Unverifiable aggregator badges (&quot;new&quot;, &quot;today&quot;) are ignored and marked as UNKNOWN.
           </p>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
             <div>
-              <label className="block font-semibold text-slate-300 mb-1">Max Fresh Age (Hours)</label>
+              <label className="block font-bold text-slate-700 mb-1">Max Fresh Age (Hours)</label>
               <input
                 type="number"
                 defaultValue={24}
                 disabled
-                className="w-full rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-slate-400 cursor-not-allowed"
+                className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-slate-500 cursor-not-allowed"
               />
-              <span className="text-[10px] text-slate-500">Fixed at 24.0 hours per core policy</span>
+              <span className="text-[10px] text-slate-400">Fixed at 24.0 hours per core policy</span>
             </div>
             <div>
-              <label className="block font-semibold text-slate-300 mb-1">Deduplication Key</label>
+              <label className="block font-bold text-slate-700 mb-1">Deduplication Key</label>
               <input
                 type="text"
                 defaultValue="company::title::location::canonical_url"
                 disabled
-                className="w-full rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-slate-400 cursor-not-allowed font-mono text-[11px]"
+                className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-slate-500 cursor-not-allowed font-mono text-[11px]"
               />
             </div>
           </div>
         </div>
 
         {/* AI Engine & Ground Truth Governance */}
-        <div className="rounded-xl border border-slate-800 bg-[#0f172a] p-5 space-y-4">
-          <div className="flex items-center justify-between border-b border-slate-800/80 pb-3">
+        <div className="rounded-xl border border-slate-200 bg-white p-5 space-y-4 shadow-xs">
+          <div className="flex items-center justify-between border-b border-slate-200 pb-3">
             <div className="flex items-center gap-2">
-              <Cpu className="h-5 w-5 text-teal-400" />
-              <h2 className="text-sm font-bold text-white">AI Engine Configuration</h2>
+              <Cpu className="h-5 w-5 text-[#00b074]" />
+              <h2 className="text-sm font-bold text-slate-900">AI Engine Configuration</h2>
             </div>
-            <span className="rounded bg-slate-800 px-2 py-0.5 text-[10px] font-medium text-slate-400">
+            <span className="rounded-full bg-slate-100 border border-slate-200 px-2.5 py-0.5 text-[10px] font-bold text-slate-600">
               Active: Deterministic Engine
             </span>
           </div>
 
-          <div className="text-xs text-slate-300 space-y-2">
+          <div className="text-xs text-slate-600 space-y-2">
             <p>
-              The system currently runs the high-fidelity <strong>Deterministic Anti-Hallucination Engine</strong>, guaranteeing 100% compliance with Afeef Iqbal&apos;s verified credentials.
+              The system currently runs the high-fidelity <strong className="text-slate-900">Deterministic Anti-Hallucination Engine</strong>, guaranteeing 100% compliance with Afeef Iqbal&apos;s verified credentials.
             </p>
-            <p className="text-slate-400">
-              Optional: You can supply an <code className="text-teal-300">OPENAI_API_KEY</code>, <code className="text-teal-300">GEMINI_API_KEY</code>, or <code className="text-teal-300">ANTHROPIC_API_KEY</code> in <code className="text-teal-300">.env</code> to activate live LLM vector reasoning with the strict prompt template in <code className="text-teal-300">prompts/system_matching.md</code>.
+            <p className="text-slate-500">
+              Optional: You can supply an <code className="text-[#009a65] font-semibold">OPENAI_API_KEY</code>, <code className="text-[#009a65] font-semibold">GEMINI_API_KEY</code>, or <code className="text-[#009a65] font-semibold">ANTHROPIC_API_KEY</code> in <code className="text-[#009a65] font-semibold">.env</code> to activate live LLM vector reasoning with the strict prompt template in <code className="text-[#009a65] font-semibold">prompts/system_matching.md</code>.
             </p>
           </div>
         </div>
 
         {/* Active Ingestion Adapters */}
-        <div className="rounded-xl border border-slate-800 bg-[#0f172a] p-5 space-y-4">
-          <div className="flex items-center justify-between border-b border-slate-800/80 pb-3">
+        <div className="rounded-xl border border-slate-200 bg-white p-5 space-y-4 shadow-xs">
+          <div className="flex items-center justify-between border-b border-slate-200 pb-3">
             <div className="flex items-center gap-2">
-              <Globe2 className="h-5 w-5 text-teal-400" />
-              <h2 className="text-sm font-bold text-white">Configured Job Source Adapters</h2>
+              <Globe2 className="h-5 w-5 text-[#00b074]" />
+              <h2 className="text-sm font-bold text-slate-900">Configured Job Source Adapters</h2>
             </div>
           </div>
 
@@ -117,13 +117,13 @@ export default function SettingsPage() {
             ].map((src) => (
               <div
                 key={src.name}
-                className="flex items-center justify-between rounded-lg border border-slate-800 bg-slate-900/60 p-3"
+                className="flex items-center justify-between rounded-xl border border-slate-200 bg-slate-50/70 p-3"
               >
                 <div>
-                  <span className="font-semibold text-white">{src.name}</span>
-                  <span className="ml-2 text-slate-500">({src.type})</span>
+                  <span className="font-bold text-slate-900">{src.name}</span>
+                  <span className="ml-2 text-slate-400">({src.type})</span>
                 </div>
-                <span className="rounded bg-emerald-500/20 px-2 py-0.5 text-[10px] font-bold text-emerald-300 border border-emerald-500/30">
+                <span className="rounded-full bg-emerald-50 px-2.5 py-0.5 text-[10px] font-bold text-[#009a65] border border-emerald-200">
                   {src.status}
                 </span>
               </div>
@@ -132,30 +132,30 @@ export default function SettingsPage() {
         </div>
 
         {/* Database & Security */}
-        <div className="rounded-xl border border-slate-800 bg-[#0f172a] p-5 space-y-3">
-          <div className="flex items-center gap-2 border-b border-slate-800/80 pb-3">
-            <Database className="h-5 w-5 text-teal-400" />
-            <h2 className="text-sm font-bold text-white">Database &amp; Deployment Topology</h2>
+        <div className="rounded-xl border border-slate-200 bg-white p-5 space-y-3 shadow-xs">
+          <div className="flex items-center gap-2 border-b border-slate-200 pb-3">
+            <Database className="h-5 w-5 text-[#00b074]" />
+            <h2 className="text-sm font-bold text-slate-900">Database &amp; Deployment Topology</h2>
           </div>
-          <div className="text-xs text-slate-300 space-y-1">
+          <div className="text-xs text-slate-600 space-y-1">
             <div>
-              Database Engine: <span className="font-semibold text-teal-400">PostgreSQL 16 (Local / VPS)</span>
+              Database Engine: <span className="font-bold text-slate-900">PostgreSQL 16 (Local / Cloudflare Hyperdrive)</span>
             </div>
             <div>
-              Frontend Target: <span className="font-semibold text-teal-400">Cloudflare Pages / Workers</span>
+              Frontend Target: <span className="font-bold text-slate-900">Cloudflare Workers / OpenNext</span>
             </div>
             <div>
-              Automation: <span className="font-semibold text-teal-400">n8n Scheduled Webhook Polling</span>
+              Automation: <span className="font-bold text-slate-900">n8n Scheduled Webhook Polling</span>
             </div>
             <div>
-              Security: <span className="font-semibold text-teal-400">Bearer Token / Private Single-User Access</span>
+              Security: <span className="font-bold text-slate-900">Bearer Token / Private Single-User Access</span>
             </div>
           </div>
         </div>
 
         <button
           type="submit"
-          className="inline-flex items-center gap-2 rounded-lg bg-teal-600 px-5 py-2.5 text-xs font-bold text-white hover:bg-teal-500 transition-colors shadow-lg shadow-teal-900/30"
+          className="inline-flex items-center gap-2 rounded-lg bg-[#00b074] px-5 py-2.5 text-xs font-bold text-white hover:bg-[#009a65] transition-colors shadow-sm"
         >
           <Save className="h-4 w-4" />
           Save Settings

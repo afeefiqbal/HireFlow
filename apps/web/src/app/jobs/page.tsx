@@ -3,6 +3,8 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { api } from '@/lib/api';
 import { Job, VisaStatus } from '@ai-job-agent/shared';
+import { Pagination } from '@/components/Pagination';
+import { DragDropArea } from '@/components/DragDropArea';
 import { JobCard } from '@/components/JobCard';
 import {
   Search,
@@ -23,6 +25,16 @@ export default function JobsPage() {
   const [discovering, setDiscovering] = useState(false);
   const [analyzingJobId, setAnalyzingJobId] = useState<string | null>(null);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
+  // Pagination state (client-side)
+  const PAGE_SIZE = 10;
+  const [currentPage, setCurrentPage] = useState(1);
+  const totalPages = Math.ceil(jobs.length / PAGE_SIZE) || 1;
+  const paginatedJobs = jobs.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
+  // Uploaded files state for generic drag‑drop area
+  const [uploadedFiles, setUploadedFiles] = useState<File[]>([]);
+  const handleFiles = (files: File[]) => {
+    setUploadedFiles(prev => [...prev, ...files]);
+  };
 
   // Filter States
   const [search, setSearch] = useState('');
@@ -199,6 +211,19 @@ export default function JobsPage() {
           </button>
         </div>
       </div>
+
+      {/* Generic Drag‑Drop Upload Area */}
+      <DragDropArea onFiles={handleFiles} />
+      {uploadedFiles.length > 0 && (
+        <div className="mt-4 rounded-xl border border-slate-200 bg-white p-4 shadow-xs">
+          <h3 className="text-sm font-bold text-slate-800 mb-2">Uploaded Files</h3>
+          <ul className="list-disc list-inside text-xs text-slate-600">
+            {uploadedFiles.map((file, idx) => (
+              <li key={idx}>{file.name}</li>
+            ))}
+          </ul>
+        </div>
+      )}
 
       {/* Filter Matrix Card - JobEntry Clean White Box */}
       <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-xs space-y-4">
@@ -434,6 +459,12 @@ export default function JobsPage() {
           </div>
         )}
       </div>
+          {/* Pagination above job list */}
+          <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPageChange={setCurrentPage}
+          />
 
       {/* Jobs Feed List */}
       <div className="space-y-4">
@@ -455,23 +486,31 @@ export default function JobsPage() {
             </p>
             <button
               onClick={resetFilters}
-              className="mt-4 rounded-lg bg-slate-900 px-4 py-2 text-xs font-bold text-white hover:bg-slate-800 transition"
+              className="mt-4 rounded-lg bg-[#00b074] hover:bg-[#009a65] px-4 py-2 text-xs font-bold text-white shadow-xs transition"
             >
               Reset Filters
             </button>
           </div>
         ) : (
-          <div className="grid grid-cols-1 gap-4">
-            {jobs.map((job) => (
-              <JobCard
-                key={job.id}
-                job={job}
-                onAnalyze={handleAnalyze}
-                onSave={handleSave}
-                isAnalyzing={analyzingJobId === job.id}
-              />
-            ))}
-          </div>
+          <>
+            <div className="grid grid-cols-1 gap-4">
+              {paginatedJobs.map((job) => (
+                <JobCard
+                  key={job.id}
+                  job={job}
+                  onAnalyze={handleAnalyze}
+                  onSave={handleSave}
+                  isAnalyzing={analyzingJobId === job.id}
+                />
+              ))}
+            </div>
+            {/* Pagination below job list */}
+            <Pagination
+              currentPage={currentPage}
+              totalPages={totalPages}
+              onPageChange={setCurrentPage}
+            />
+          </>
         )}
       </div>
     </div>

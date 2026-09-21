@@ -51,8 +51,9 @@ export default function AnalyticsDashboardPage() {
   };
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     fetchAnalytics(range);
-  }, [range]);
+  }, [range]); // fetchAnalytics is intentionally excluded — it reads range from args, not closure
 
   const handleRangeChange = (newRange: 'today' | '7d' | '30d' | '90d' | 'all' | 'custom') => {
     setRange(newRange);
@@ -95,30 +96,30 @@ export default function AnalyticsDashboardPage() {
   return (
     <div className="space-y-6 pb-12">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-800 pb-5">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200 pb-5">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-white flex items-center gap-2.5">
-            <BarChart3 className="h-6 w-6 text-teal-400" />
+          <h1 className="text-2xl font-black tracking-tight text-slate-900 flex items-center gap-2.5">
+            <BarChart3 className="h-6 w-6 text-[#00b074]" />
             Application Intelligence &amp; Analytics
-            <span className="rounded bg-teal-500/20 px-2 py-0.5 text-xs font-semibold text-teal-300 border border-teal-500/30">
+            <span className="rounded-full bg-emerald-50 px-2.5 py-0.5 text-xs font-bold text-[#009a65] border border-emerald-200">
               V5 Deterministic Engine
             </span>
           </h1>
-          <p className="text-xs text-slate-400 mt-1">
+          <p className="text-xs sm:text-sm text-slate-500 mt-1">
             Authoritative PostgreSQL-backed funnel conversion, lifecycle timings, and factual pipeline distributions. Zero LLM calculations.
           </p>
         </div>
 
         {/* Date Selector Buttons */}
-        <div className="flex flex-wrap items-center gap-1.5 bg-slate-900 border border-slate-800 p-1 rounded-lg">
+        <div className="flex flex-wrap items-center gap-1.5 bg-white border border-slate-200 p-1 rounded-lg shadow-2xs">
           {(['today', '7d', '30d', '90d', 'all'] as const).map((r) => (
             <button
               key={r}
               onClick={() => handleRangeChange(r)}
-              className={`px-2.5 py-1 text-xs font-medium rounded transition-colors ${
+              className={`px-2.5 py-1 text-xs font-bold rounded transition-colors ${
                 range === r
-                  ? 'bg-teal-600 text-white font-bold'
-                  : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800'
+                  ? 'bg-[#00b074] text-white shadow-2xs'
+                  : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
               }`}
             >
               {r === 'today' ? 'Today' : r === '7d' ? '7 Days' : r === '30d' ? '30 Days' : r === '90d' ? '90 Days' : 'All Time'}
@@ -126,10 +127,10 @@ export default function AnalyticsDashboardPage() {
           ))}
           <button
             onClick={() => handleRangeChange('custom')}
-            className={`px-2.5 py-1 text-xs font-medium rounded transition-colors ${
+            className={`px-2.5 py-1 text-xs font-bold rounded transition-colors ${
               range === 'custom'
-                ? 'bg-teal-600 text-white font-bold'
-                : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800'
+                ? 'bg-[#00b074] text-white shadow-2xs'
+                : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
             }`}
           >
             Custom
@@ -139,24 +140,24 @@ export default function AnalyticsDashboardPage() {
 
       {/* Custom Date Range Picker Bar */}
       {range === 'custom' && (
-        <div className="flex items-center gap-3 p-3 rounded-lg border border-slate-800 bg-slate-900/60 text-xs">
-          <span className="text-slate-400 font-medium">From:</span>
+        <div className="flex items-center gap-3 p-3 rounded-xl border border-slate-200 bg-white text-xs shadow-xs">
+          <span className="text-slate-600 font-medium">From:</span>
           <input
             type="date"
             value={customFrom}
             onChange={(e) => setCustomFrom(e.target.value)}
-            className="px-2 py-1 rounded bg-slate-800 border border-slate-700 text-white focus:outline-none focus:border-teal-500"
+            className="px-2 py-1 rounded-lg bg-slate-50 border border-slate-200 text-slate-800 focus:outline-none focus:border-[#00b074]"
           />
-          <span className="text-slate-400 font-medium">To:</span>
+          <span className="text-slate-600 font-medium">To:</span>
           <input
             type="date"
             value={customTo}
             onChange={(e) => setCustomTo(e.target.value)}
-            className="px-2 py-1 rounded bg-slate-800 border border-slate-700 text-white focus:outline-none focus:border-teal-500"
+            className="px-2 py-1 rounded-lg bg-slate-50 border border-slate-200 text-slate-800 focus:outline-none focus:border-[#00b074]"
           />
           <button
             onClick={handleCustomApply}
-            className="px-3 py-1 rounded bg-teal-600 text-white font-semibold hover:bg-teal-500 transition-colors"
+            className="px-3 py-1 rounded-lg bg-[#00b074] text-white font-bold hover:bg-[#009a65] transition-colors"
           >
             Apply Range
           </button>
@@ -165,62 +166,62 @@ export default function AnalyticsDashboardPage() {
 
       {/* Error state */}
       {error && (
-        <div className="rounded-lg border border-rose-500/30 bg-rose-950/20 p-4 text-xs text-rose-300 flex items-center gap-2">
-          <AlertCircle className="w-4 h-4 text-rose-400" />
+        <div className="rounded-xl border border-rose-200 bg-rose-50/70 p-4 text-xs text-rose-700 flex items-center gap-2 shadow-xs">
+          <AlertCircle className="w-4 h-4 text-rose-500" />
           <span>{error}</span>
         </div>
       )}
 
       {/* Summary KPI Cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="rounded-xl border border-slate-800 bg-[#0f172a] p-4">
-          <div className="flex items-center justify-between text-xs text-slate-400">
-            <span className="font-semibold uppercase tracking-wider text-[11px]">Total Applied</span>
-            <Send className="w-4 h-4 text-emerald-400" />
+        <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-xs">
+          <div className="flex items-center justify-between text-xs text-slate-500">
+            <span className="font-bold uppercase tracking-wider text-[11px]">Total Applied</span>
+            <Send className="w-4 h-4 text-[#00b074]" />
           </div>
-          <div className="text-3xl font-black text-white mt-2">
+          <div className="text-3xl font-black text-slate-900 mt-2">
             {funnel.applied}
           </div>
-          <div className="text-[11px] text-slate-500 mt-1">
+          <div className="text-[11px] text-slate-400 mt-1">
             Confirmed human submissions in window
           </div>
         </div>
 
-        <div className="rounded-xl border border-purple-500/30 bg-purple-950/20 p-4">
-          <div className="flex items-center justify-between text-xs text-purple-300">
-            <span className="font-semibold uppercase tracking-wider text-[11px]">Interviews</span>
-            <Calendar className="w-4 h-4 text-purple-400" />
+        <div className="rounded-xl border border-purple-200 bg-purple-50/40 p-4 shadow-xs">
+          <div className="flex items-center justify-between text-xs text-purple-700">
+            <span className="font-bold uppercase tracking-wider text-[11px]">Interviews</span>
+            <Calendar className="w-4 h-4 text-purple-600" />
           </div>
-          <div className="text-3xl font-black text-purple-200 mt-2">
+          <div className="text-3xl font-black text-purple-900 mt-2">
             {funnel.interview}
           </div>
-          <div className="text-[11px] text-purple-400/80 mt-1">
+          <div className="text-[11px] text-purple-700/80 mt-1">
             Active/completed interview stages
           </div>
         </div>
 
-        <div className="rounded-xl border border-amber-500/30 bg-amber-950/20 p-4">
-          <div className="flex items-center justify-between text-xs text-amber-300">
-            <span className="font-semibold uppercase tracking-wider text-[11px]">Offers</span>
-            <Award className="w-4 h-4 text-amber-400" />
+        <div className="rounded-xl border border-amber-200 bg-amber-50/40 p-4 shadow-xs">
+          <div className="flex items-center justify-between text-xs text-amber-700">
+            <span className="font-bold uppercase tracking-wider text-[11px]">Offers</span>
+            <Award className="w-4 h-4 text-amber-600" />
           </div>
-          <div className="text-3xl font-black text-amber-200 mt-2">
+          <div className="text-3xl font-black text-amber-900 mt-2">
             {funnel.offer}
           </div>
-          <div className="text-[11px] text-amber-400/80 mt-1">
+          <div className="text-[11px] text-amber-700/80 mt-1">
             Formal job offers received
           </div>
         </div>
 
-        <div className="rounded-xl border border-teal-500/30 bg-teal-950/20 p-4">
-          <div className="flex items-center justify-between text-xs text-teal-300">
-            <span className="font-semibold uppercase tracking-wider text-[11px]">Discovered Canonical</span>
-            <Sparkles className="w-4 h-4 text-teal-400" />
+        <div className="rounded-xl border border-emerald-200 bg-emerald-50/40 p-4 shadow-xs">
+          <div className="flex items-center justify-between text-xs text-[#009a65]">
+            <span className="font-bold uppercase tracking-wider text-[11px]">Discovered Canonical</span>
+            <Sparkles className="w-4 h-4 text-[#00b074]" />
           </div>
-          <div className="text-3xl font-black text-teal-200 mt-2">
+          <div className="text-3xl font-black text-emerald-950 mt-2">
             {funnel.discovered}
           </div>
-          <div className="text-[11px] text-teal-400/80 mt-1">
+          <div className="text-[11px] text-[#009a65]/80 mt-1">
             V4 Deduplicated canonical jobs
           </div>
         </div>
@@ -229,26 +230,26 @@ export default function AnalyticsDashboardPage() {
       {/* Funnel & Conversion Section */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         {/* Visual Lifecycle Funnel */}
-        <div className="lg:col-span-7 rounded-xl border border-slate-800 bg-[#0b1324] p-5 space-y-4">
-          <div className="flex items-center justify-between border-b border-slate-800 pb-3">
-            <div className="flex items-center gap-2 text-sm font-bold text-white">
-              <TrendingUp className="w-4 h-4 text-teal-400" />
+        <div className="lg:col-span-7 rounded-xl border border-slate-200 bg-white p-5 space-y-4 shadow-xs">
+          <div className="flex items-center justify-between border-b border-slate-200 pb-3">
+            <div className="flex items-center gap-2 text-sm font-bold text-slate-900">
+              <TrendingUp className="w-4 h-4 text-[#00b074]" />
               Application Lifecycle Funnel
             </div>
-            <span className="text-[11px] text-slate-500">
+            <span className="text-[11px] text-slate-500 font-medium">
               {range === 'all' ? 'All Time' : `Window: ${range}`}
             </span>
           </div>
 
           <div className="space-y-3 pt-1">
             {[
-              { label: 'Discovered', count: funnel.discovered, color: 'bg-slate-700', text: 'text-slate-300' },
-              { label: 'Shortlisted', count: funnel.shortlisted, color: 'bg-sky-600', text: 'text-sky-300' },
-              { label: 'Preparing', count: funnel.preparing, color: 'bg-blue-600', text: 'text-blue-300' },
-              { label: 'Ready to Apply', count: funnel.readyToApply, color: 'bg-teal-600', text: 'text-teal-300' },
-              { label: 'Applied', count: funnel.applied, color: 'bg-emerald-600', text: 'text-emerald-300' },
-              { label: 'Interview', count: funnel.interview, color: 'bg-purple-600', text: 'text-purple-300' },
-              { label: 'Offer', count: funnel.offer, color: 'bg-amber-500', text: 'text-amber-300' },
+              { label: 'Discovered', count: funnel.discovered, color: 'bg-slate-400', text: 'text-slate-700' },
+              { label: 'Shortlisted', count: funnel.shortlisted, color: 'bg-sky-500', text: 'text-sky-700' },
+              { label: 'Preparing', count: funnel.preparing, color: 'bg-blue-500', text: 'text-blue-700' },
+              { label: 'Ready to Apply', count: funnel.readyToApply, color: 'bg-[#00b074]', text: 'text-[#009a65]' },
+              { label: 'Applied', count: funnel.applied, color: 'bg-teal-600', text: 'text-teal-700' },
+              { label: 'Interview', count: funnel.interview, color: 'bg-purple-500', text: 'text-purple-700' },
+              { label: 'Offer', count: funnel.offer, color: 'bg-amber-500', text: 'text-amber-700' },
             ].map((step, idx) => {
               const maxVal = Math.max(funnel.discovered, 1);
               const pctOfDiscovered = Math.round((step.count / maxVal) * 100);
@@ -256,13 +257,13 @@ export default function AnalyticsDashboardPage() {
               return (
                 <div key={step.label} className="space-y-1">
                   <div className="flex items-center justify-between text-xs">
-                    <span className="font-semibold text-slate-300">{step.label}</span>
-                    <span className="font-bold text-white">
+                    <span className="font-semibold text-slate-700">{step.label}</span>
+                    <span className="font-bold text-slate-900">
                       {step.count}
-                      <span className="text-[10px] text-slate-500 ml-1.5">({pctOfDiscovered}%)</span>
+                      <span className="text-[10px] text-slate-400 ml-1.5">({pctOfDiscovered}%)</span>
                     </span>
                   </div>
-                  <div className="w-full bg-slate-900 rounded-full h-3 overflow-hidden border border-slate-800">
+                  <div className="w-full bg-slate-100 rounded-full h-2.5 overflow-hidden border border-slate-200">
                     <div
                       className={`h-full ${step.color} transition-all duration-500 rounded-full`}
                       style={{ width: `${Math.max(pctOfDiscovered, step.count > 0 ? 3 : 0)}%` }}
@@ -273,74 +274,74 @@ export default function AnalyticsDashboardPage() {
             })}
           </div>
 
-          <div className="text-[11px] text-slate-500 italic pt-2 border-t border-slate-800/60">
+          <div className="text-[11px] text-slate-400 italic pt-2 border-t border-slate-100">
             Note: Discovered represents deduplicated job intake. Applications begin intentionally upon shortlisting or preparing.
           </div>
         </div>
 
         {/* Factual Conversion Rates Table */}
-        <div className="lg:col-span-5 rounded-xl border border-slate-800 bg-[#0b1324] p-5 space-y-4 flex flex-col justify-between">
+        <div className="lg:col-span-5 rounded-xl border border-slate-200 bg-white p-5 space-y-4 flex flex-col justify-between shadow-xs">
           <div>
-            <div className="flex items-center justify-between border-b border-slate-800 pb-3">
-              <div className="flex items-center gap-2 text-sm font-bold text-white">
-                <FileCheck2 className="w-4 h-4 text-emerald-400" />
+            <div className="flex items-center justify-between border-b border-slate-200 pb-3">
+              <div className="flex items-center gap-2 text-sm font-bold text-slate-900">
+                <FileCheck2 className="w-4 h-4 text-[#00b074]" />
                 Factual Conversion Metrics
               </div>
-              <span className="text-[10px] font-semibold text-slate-400 bg-slate-800 px-2 py-0.5 rounded">
+              <span className="text-[10px] font-bold text-slate-600 bg-slate-100 border border-slate-200 px-2 py-0.5 rounded">
                 Zero Bias
               </span>
             </div>
 
-            <div className="space-y-4 pt-3">
+            <div className="space-y-3 pt-3">
               {/* Application Rate */}
-              <div className="rounded-lg border border-slate-800 bg-[#0f172a] p-3.5 space-y-1.5">
+              <div className="rounded-xl border border-slate-200 bg-slate-50/70 p-3.5 space-y-1.5">
                 <div className="flex items-center justify-between">
-                  <span className="text-xs font-bold text-slate-200">Application Rate</span>
-                  <span className="text-sm font-black text-emerald-300">
+                  <span className="text-xs font-bold text-slate-800">Application Rate</span>
+                  <span className="text-sm font-black text-[#009a65]">
                     {conversion.applicationRate.percentage != null
                       ? `${conversion.applicationRate.percentage}%`
                       : 'Insufficient Data'}
                   </span>
                 </div>
-                <div className="text-[11px] text-slate-400 flex items-center justify-between">
+                <div className="text-[11px] text-slate-500 flex items-center justify-between">
                   <span>Applied / Discovered</span>
-                  <span className="font-mono text-slate-300 font-semibold">
+                  <span className="font-mono text-slate-700 font-bold">
                     {conversion.applicationRate.numerator} / {conversion.applicationRate.denominator}
                   </span>
                 </div>
               </div>
 
               {/* Interview Rate */}
-              <div className="rounded-lg border border-slate-800 bg-[#0f172a] p-3.5 space-y-1.5">
+              <div className="rounded-xl border border-slate-200 bg-slate-50/70 p-3.5 space-y-1.5">
                 <div className="flex items-center justify-between">
-                  <span className="text-xs font-bold text-slate-200">Interview Rate</span>
-                  <span className="text-sm font-black text-purple-300">
+                  <span className="text-xs font-bold text-slate-800">Interview Rate</span>
+                  <span className="text-sm font-black text-purple-700">
                     {conversion.interviewRate.percentage != null
                       ? `${conversion.interviewRate.percentage}%`
                       : 'Insufficient Data'}
                   </span>
                 </div>
-                <div className="text-[11px] text-slate-400 flex items-center justify-between">
+                <div className="text-[11px] text-slate-500 flex items-center justify-between">
                   <span>Interview / Applied</span>
-                  <span className="font-mono text-slate-300 font-semibold">
+                  <span className="font-mono text-slate-700 font-bold">
                     {conversion.interviewRate.numerator} / {conversion.interviewRate.denominator}
                   </span>
                 </div>
               </div>
 
               {/* Offer Rate */}
-              <div className="rounded-lg border border-slate-800 bg-[#0f172a] p-3.5 space-y-1.5">
+              <div className="rounded-xl border border-slate-200 bg-slate-50/70 p-3.5 space-y-1.5">
                 <div className="flex items-center justify-between">
-                  <span className="text-xs font-bold text-slate-200">Offer Rate</span>
-                  <span className="text-sm font-black text-amber-300">
+                  <span className="text-xs font-bold text-slate-800">Offer Rate</span>
+                  <span className="text-sm font-black text-amber-700">
                     {conversion.offerRate.percentage != null
                       ? `${conversion.offerRate.percentage}%`
                       : 'Insufficient Data'}
                   </span>
                 </div>
-                <div className="text-[11px] text-slate-400 flex items-center justify-between">
+                <div className="text-[11px] text-slate-500 flex items-center justify-between">
                   <span>Offer / Applied</span>
-                  <span className="font-mono text-slate-300 font-semibold">
+                  <span className="font-mono text-slate-700 font-bold">
                     {conversion.offerRate.numerator} / {conversion.offerRate.denominator}
                   </span>
                 </div>
@@ -348,8 +349,8 @@ export default function AnalyticsDashboardPage() {
             </div>
           </div>
 
-          <div className="p-2.5 rounded bg-slate-900/80 border border-slate-800 text-[11px] text-slate-400 flex items-start gap-2">
-            <Info className="w-4 h-4 text-teal-400 shrink-0 mt-0.5" />
+          <div className="p-2.5 rounded-lg bg-slate-50 border border-slate-200 text-[11px] text-slate-500 flex items-start gap-2 mt-3">
+            <Info className="w-4 h-4 text-[#00b074] shrink-0 mt-0.5" />
             <span>
               Conversion percentages are calculated strictly with zero-division guardrails. No artificial 0% is reported when the denominator is zero.
             </span>
@@ -358,51 +359,51 @@ export default function AnalyticsDashboardPage() {
       </div>
 
       {/* Time-to-Stage Timing Metrics */}
-      <div className="rounded-xl border border-slate-800 bg-[#0b1324] p-5 space-y-4">
-        <div className="flex items-center justify-between border-b border-slate-800 pb-3">
-          <div className="flex items-center gap-2 text-sm font-bold text-white">
-            <Clock className="w-4 h-4 text-indigo-400" />
+      <div className="rounded-xl border border-slate-200 bg-white p-5 space-y-4 shadow-xs">
+        <div className="flex items-center justify-between border-b border-slate-200 pb-3">
+          <div className="flex items-center gap-2 text-sm font-bold text-slate-900">
+            <Clock className="w-4 h-4 text-indigo-600" />
             Lifecycle Duration Metrics (Days)
           </div>
-          <span className="text-[11px] text-slate-500">
+          <span className="text-[11px] text-slate-500 font-medium">
             Calculated from authoritative timestamp differentials
           </span>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <div className="rounded-lg border border-slate-800 bg-[#0f172a] p-4 space-y-2">
-            <div className="text-xs font-bold text-slate-300">Discovery → Apply</div>
+          <div className="rounded-xl border border-slate-200 bg-slate-50/70 p-4 space-y-2">
+            <div className="text-xs font-bold text-slate-700">Discovery → Apply</div>
             {timeMetrics.avgDaysToApply != null ? (
               <div>
-                <div className="text-2xl font-black text-white">{timeMetrics.avgDaysToApply} <span className="text-xs font-normal text-slate-400">days avg</span></div>
-                <div className="text-[11px] text-slate-400 mt-1">Median: {timeMetrics.medianDaysToApply} days</div>
+                <div className="text-2xl font-black text-slate-900">{timeMetrics.avgDaysToApply} <span className="text-xs font-normal text-slate-500">days avg</span></div>
+                <div className="text-[11px] text-slate-500 mt-1">Median: {timeMetrics.medianDaysToApply} days</div>
               </div>
             ) : (
-              <div className="text-xs text-slate-500 italic py-2">Insufficient timestamp data</div>
+              <div className="text-xs text-slate-400 italic py-2">Insufficient timestamp data</div>
             )}
           </div>
 
-          <div className="rounded-lg border border-slate-800 bg-[#0f172a] p-4 space-y-2">
-            <div className="text-xs font-bold text-slate-300">Apply → Interview</div>
+          <div className="rounded-xl border border-slate-200 bg-slate-50/70 p-4 space-y-2">
+            <div className="text-xs font-bold text-slate-700">Apply → Interview</div>
             {timeMetrics.avgDaysToInterview != null ? (
               <div>
-                <div className="text-2xl font-black text-white">{timeMetrics.avgDaysToInterview} <span className="text-xs font-normal text-slate-400">days avg</span></div>
-                <div className="text-[11px] text-slate-400 mt-1">Median: {timeMetrics.medianDaysToInterview} days</div>
+                <div className="text-2xl font-black text-slate-900">{timeMetrics.avgDaysToInterview} <span className="text-xs font-normal text-slate-500">days avg</span></div>
+                <div className="text-[11px] text-slate-500 mt-1">Median: {timeMetrics.medianDaysToInterview} days</div>
               </div>
             ) : (
-              <div className="text-xs text-slate-500 italic py-2">Insufficient timestamp data</div>
+              <div className="text-xs text-slate-400 italic py-2">Insufficient timestamp data</div>
             )}
           </div>
 
-          <div className="rounded-lg border border-slate-800 bg-[#0f172a] p-4 space-y-2">
-            <div className="text-xs font-bold text-slate-300">Interview → Offer</div>
+          <div className="rounded-xl border border-slate-200 bg-slate-50/70 p-4 space-y-2">
+            <div className="text-xs font-bold text-slate-700">Interview → Offer</div>
             {timeMetrics.avgDaysToOffer != null ? (
               <div>
-                <div className="text-2xl font-black text-white">{timeMetrics.avgDaysToOffer} <span className="text-xs font-normal text-slate-400">days avg</span></div>
-                <div className="text-[11px] text-slate-400 mt-1">Median: {timeMetrics.medianDaysToOffer} days</div>
+                <div className="text-2xl font-black text-slate-900">{timeMetrics.avgDaysToOffer} <span className="text-xs font-normal text-slate-500">days avg</span></div>
+                <div className="text-[11px] text-slate-500 mt-1">Median: {timeMetrics.medianDaysToOffer} days</div>
               </div>
             ) : (
-              <div className="text-xs text-slate-500 italic py-2">Insufficient timestamp data</div>
+              <div className="text-xs text-slate-400 italic py-2">Insufficient timestamp data</div>
             )}
           </div>
         </div>
@@ -411,145 +412,145 @@ export default function AnalyticsDashboardPage() {
       {/* Breakdown Distributions Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {/* Source Breakdown */}
-        <div className="rounded-xl border border-slate-800 bg-[#0b1324] p-4 space-y-3">
-          <div className="flex items-center gap-2 text-xs font-bold text-white border-b border-slate-800 pb-2">
-            <Building2 className="w-3.5 h-3.5 text-teal-400" />
+        <div className="rounded-xl border border-slate-200 bg-white p-4 space-y-3 shadow-xs">
+          <div className="flex items-center gap-2 text-xs font-bold text-slate-900 border-b border-slate-100 pb-2">
+            <Building2 className="w-3.5 h-3.5 text-[#00b074]" />
             Job Source Distribution
           </div>
           <div className="space-y-2">
             {(analytics?.breakdowns.source || []).map((item) => (
               <div key={item.key} className="flex items-center justify-between text-xs">
-                <span className="text-slate-300 truncate max-w-[140px]">{item.key}</span>
-                <span className="font-semibold text-white">
-                  {item.count} <span className="text-[10px] text-slate-500">({item.percentage}%)</span>
+                <span className="text-slate-600 truncate max-w-[140px] font-medium">{item.key}</span>
+                <span className="font-bold text-slate-900">
+                  {item.count} <span className="text-[10px] text-slate-400 font-normal">({item.percentage}%)</span>
                 </span>
               </div>
             ))}
             {(!analytics?.breakdowns.source || analytics.breakdowns.source.length === 0) && (
-              <div className="text-xs text-slate-500 italic py-2">No source data</div>
+              <div className="text-xs text-slate-400 italic py-2">No source data</div>
             )}
           </div>
-          <div className="text-[10px] text-slate-500 pt-2 border-t border-slate-800">
+          <div className="text-[10px] text-slate-400 pt-2 border-t border-slate-100">
             Observed canonical postings by source adapter.
           </div>
         </div>
 
         {/* Role Family Breakdown */}
-        <div className="rounded-xl border border-slate-800 bg-[#0b1324] p-4 space-y-3">
-          <div className="flex items-center gap-2 text-xs font-bold text-white border-b border-slate-800 pb-2">
-            <Briefcase className="w-3.5 h-3.5 text-sky-400" />
+        <div className="rounded-xl border border-slate-200 bg-white p-4 space-y-3 shadow-xs">
+          <div className="flex items-center gap-2 text-xs font-bold text-slate-900 border-b border-slate-100 pb-2">
+            <Briefcase className="w-3.5 h-3.5 text-sky-600" />
             Role Family Distribution
           </div>
           <div className="space-y-2">
             {(analytics?.breakdowns.roleFamily || []).map((item) => (
               <div key={item.key} className="flex items-center justify-between text-xs">
-                <span className="text-slate-300 truncate max-w-[140px]">{item.key}</span>
-                <span className="font-semibold text-white">
-                  {item.count} <span className="text-[10px] text-slate-500">({item.percentage}%)</span>
+                <span className="text-slate-600 truncate max-w-[140px] font-medium">{item.key}</span>
+                <span className="font-bold text-slate-900">
+                  {item.count} <span className="text-[10px] text-slate-400 font-normal">({item.percentage}%)</span>
                 </span>
               </div>
             ))}
             {(!analytics?.breakdowns.roleFamily || analytics.breakdowns.roleFamily.length === 0) && (
-              <div className="text-xs text-slate-500 italic py-2">No role family data</div>
+              <div className="text-xs text-slate-400 italic py-2">No role family data</div>
             )}
           </div>
-          <div className="text-[10px] text-slate-500 pt-2 border-t border-slate-800">
+          <div className="text-[10px] text-slate-400 pt-2 border-t border-slate-100">
             Normalized role taxonomies.
           </div>
         </div>
 
         {/* Technology Breakdown */}
-        <div className="rounded-xl border border-slate-800 bg-[#0b1324] p-4 space-y-3">
-          <div className="flex items-center gap-2 text-xs font-bold text-white border-b border-slate-800 pb-2">
-            <Code2 className="w-3.5 h-3.5 text-blue-400" />
+        <div className="rounded-xl border border-slate-200 bg-white p-4 space-y-3 shadow-xs">
+          <div className="flex items-center gap-2 text-xs font-bold text-slate-900 border-b border-slate-100 pb-2">
+            <Code2 className="w-3.5 h-3.5 text-blue-600" />
             Top Technologies (V4 Normalized)
           </div>
           <div className="space-y-2">
             {(analytics?.breakdowns.technology || []).slice(0, 7).map((item) => (
               <div key={item.key} className="flex items-center justify-between text-xs">
-                <span className="text-slate-300 truncate max-w-[140px]">{item.key}</span>
-                <span className="font-semibold text-white">
-                  {item.count} <span className="text-[10px] text-slate-500">({item.percentage}%)</span>
+                <span className="text-slate-600 truncate max-w-[140px] font-medium">{item.key}</span>
+                <span className="font-bold text-slate-900">
+                  {item.count} <span className="text-[10px] text-slate-400 font-normal">({item.percentage}%)</span>
                 </span>
               </div>
             ))}
             {(!analytics?.breakdowns.technology || analytics.breakdowns.technology.length === 0) && (
-              <div className="text-xs text-slate-500 italic py-2">No technology data</div>
+              <div className="text-xs text-slate-400 italic py-2">No technology data</div>
             )}
           </div>
-          <div className="text-[10px] text-slate-500 pt-2 border-t border-slate-800">
+          <div className="text-[10px] text-slate-400 pt-2 border-t border-slate-100">
             Factual counts in targeted positions.
           </div>
         </div>
 
         {/* Remote Setup Breakdown */}
-        <div className="rounded-xl border border-slate-800 bg-[#0b1324] p-4 space-y-3">
-          <div className="flex items-center gap-2 text-xs font-bold text-white border-b border-slate-800 pb-2">
-            <Globe className="w-3.5 h-3.5 text-emerald-400" />
+        <div className="rounded-xl border border-slate-200 bg-white p-4 space-y-3 shadow-xs">
+          <div className="flex items-center gap-2 text-xs font-bold text-slate-900 border-b border-slate-100 pb-2">
+            <Globe className="w-3.5 h-3.5 text-[#00b074]" />
             Workplace / Remote Distribution
           </div>
           <div className="space-y-2">
             {(analytics?.breakdowns.remote || []).map((item) => (
               <div key={item.key} className="flex items-center justify-between text-xs">
-                <span className="text-slate-300 truncate max-w-[140px]">{item.key}</span>
-                <span className="font-semibold text-white">
-                  {item.count} <span className="text-[10px] text-slate-500">({item.percentage}%)</span>
+                <span className="text-slate-600 truncate max-w-[140px] font-medium">{item.key}</span>
+                <span className="font-bold text-slate-900">
+                  {item.count} <span className="text-[10px] text-slate-400 font-normal">({item.percentage}%)</span>
                 </span>
               </div>
             ))}
             {(!analytics?.breakdowns.remote || analytics.breakdowns.remote.length === 0) && (
-              <div className="text-xs text-slate-500 italic py-2">No remote setup data</div>
+              <div className="text-xs text-slate-400 italic py-2">No remote setup data</div>
             )}
           </div>
-          <div className="text-[10px] text-slate-500 pt-2 border-t border-slate-800">
+          <div className="text-[10px] text-slate-400 pt-2 border-t border-slate-100">
             Evidence-extracted workplace policies.
           </div>
         </div>
 
         {/* Visa Policy Breakdown */}
-        <div className="rounded-xl border border-slate-800 bg-[#0b1324] p-4 space-y-3">
-          <div className="flex items-center gap-2 text-xs font-bold text-white border-b border-slate-800 pb-2">
-            <FileCheck2 className="w-3.5 h-3.5 text-amber-400" />
+        <div className="rounded-xl border border-slate-200 bg-white p-4 space-y-3 shadow-xs">
+          <div className="flex items-center gap-2 text-xs font-bold text-slate-900 border-b border-slate-100 pb-2">
+            <FileCheck2 className="w-3.5 h-3.5 text-amber-600" />
             Visa Policy Distribution
           </div>
           <div className="space-y-2">
             {(analytics?.breakdowns.visa || []).map((item) => (
               <div key={item.key} className="flex items-center justify-between text-xs">
-                <span className="text-slate-300 truncate max-w-[140px]">{item.key}</span>
-                <span className="font-semibold text-white">
-                  {item.count} <span className="text-[10px] text-slate-500">({item.percentage}%)</span>
+                <span className="text-slate-600 truncate max-w-[140px] font-medium">{item.key}</span>
+                <span className="font-bold text-slate-900">
+                  {item.count} <span className="text-[10px] text-slate-400 font-normal">({item.percentage}%)</span>
                 </span>
               </div>
             ))}
             {(!analytics?.breakdowns.visa || analytics.breakdowns.visa.length === 0) && (
-              <div className="text-xs text-slate-500 italic py-2">No visa data</div>
+              <div className="text-xs text-slate-400 italic py-2">No visa data</div>
             )}
           </div>
-          <div className="text-[10px] text-slate-500 pt-2 border-t border-slate-800">
+          <div className="text-[10px] text-slate-400 pt-2 border-t border-slate-100">
             Factual visa sponsorship policies stated.
           </div>
         </div>
 
         {/* Freshness Breakdown */}
-        <div className="rounded-xl border border-slate-800 bg-[#0b1324] p-4 space-y-3">
-          <div className="flex items-center gap-2 text-xs font-bold text-white border-b border-slate-800 pb-2">
-            <Flame className="w-3.5 h-3.5 text-rose-400" />
+        <div className="rounded-xl border border-slate-200 bg-white p-4 space-y-3 shadow-xs">
+          <div className="flex items-center gap-2 text-xs font-bold text-slate-900 border-b border-slate-100 pb-2">
+            <Flame className="w-3.5 h-3.5 text-rose-500" />
             Freshness Distribution at Discovery
           </div>
           <div className="space-y-2">
             {(analytics?.breakdowns.freshness || []).map((item) => (
               <div key={item.key} className="flex items-center justify-between text-xs">
-                <span className="text-slate-300 truncate max-w-[140px]">{item.key}</span>
-                <span className="font-semibold text-white">
-                  {item.count} <span className="text-[10px] text-slate-500">({item.percentage}%)</span>
+                <span className="text-slate-600 truncate max-w-[140px] font-medium">{item.key}</span>
+                <span className="font-bold text-slate-900">
+                  {item.count} <span className="text-[10px] text-slate-400 font-normal">({item.percentage}%)</span>
                 </span>
               </div>
             ))}
             {(!analytics?.breakdowns.freshness || analytics.breakdowns.freshness.length === 0) && (
-              <div className="text-xs text-slate-500 italic py-2">No freshness data</div>
+              <div className="text-xs text-slate-400 italic py-2">No freshness data</div>
             )}
           </div>
-          <div className="text-[10px] text-slate-500 pt-2 border-t border-slate-800">
+          <div className="text-[10px] text-slate-400 pt-2 border-t border-slate-100">
             Observed freshness buckets at discovery time.
           </div>
         </div>

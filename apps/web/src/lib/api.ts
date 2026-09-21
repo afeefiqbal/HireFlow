@@ -26,28 +26,37 @@ import {
   SandboxTestResult,
 } from '@ai-job-agent/shared';
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api';
+const API_BASE = (() => {
+  const env = process.env.NEXT_PUBLIC_API_URL?.replace(/\/+$/, ""); // strip trailing slash
+  // If no env var, fall back to relative /api (works when frontend and backend share origin)
+  if (!env) return '/api';
+  // If the env value already ends with /api, use it as-is
+  if (/\/api$/i.test(env)) return env;
+  // If it already looks like a full URL (but no /api suffix), append /api
+  if (/^https?:\/\//i.test(env)) return `${env}/api`;
+  // Otherwise treat it as a host and prepend https://
+  return `https://${env}/api`;
+})();
 
 async function fetchJson<T>(endpoint: string, options?: RequestInit): Promise<T> {
   const url = `${API_BASE}${endpoint}`;
-  try {
-    const res = await fetch(url, {
-      ...options,
-      headers: {
-        'Content-Type': 'application/json',
-        ...(options?.headers || {}),
-      },
-    });
+  const res = await fetch(url, {
+    ...options,
+    headers: { 'Content-Type': 'application/json', ...(options?.headers || {}) },
+  });
 
-    const data = await res.json();
-    if (!res.ok || !data.success) {
-      throw new Error(data.message || `Request failed with status ${res.status}`);
-    }
-    return data.data;
-  } catch (err: any) {
-    console.error(`API Error on [${endpoint}]:`, err.message);
-    throw err;
+  const text = await res.text();
+  let data: any;
+  try {
+    data = JSON.parse(text);
+  } catch {
+    throw new Error(`API returned non‑JSON for [${endpoint}]: ${text.slice(0, 200)}`);
   }
+
+  if (!res.ok || !data.success) {
+    throw new Error(data.message || `Request failed with status ${res.status}`);
+  }
+  return data.data as T;
 }
 
 export const api = {

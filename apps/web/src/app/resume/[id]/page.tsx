@@ -138,24 +138,24 @@ export default function ResumeEditorPage() {
   if (loading) {
     return (
       <div className="space-y-6">
-        <div className="h-8 w-48 bg-slate-800 rounded animate-pulse" />
-        <div className="h-96 bg-slate-900 rounded-xl animate-pulse border border-slate-800" />
+        <div className="h-8 w-48 bg-slate-200 rounded animate-pulse" />
+        <div className="h-96 bg-white rounded-xl animate-pulse border border-slate-200 shadow-xs" />
       </div>
     );
   }
 
   if (!cvData) {
     return (
-      <div className="rounded-xl border border-slate-800 bg-[#0f172a] p-12 text-center text-slate-400 space-y-4">
-        <FileText className="mx-auto h-10 w-10 text-teal-400" />
-        <h2 className="text-lg font-bold text-white">No Tailored CV Found For This Job</h2>
-        <p className="text-xs text-slate-400 max-w-md mx-auto">
+      <div className="rounded-xl border border-slate-200 bg-white p-12 text-center text-slate-500 space-y-4 shadow-xs">
+        <FileText className="mx-auto h-10 w-10 text-[#00b074]" />
+        <h2 className="text-lg font-bold text-slate-900">No Tailored CV Found For This Job</h2>
+        <p className="text-xs text-slate-500 max-w-md mx-auto">
           Generate an ATS-optimized, single-column CV matching this role strictly using Afeef's verified experience.
         </p>
         <button
           onClick={handleRegenerate}
           disabled={regenerating}
-          className="inline-flex items-center gap-2 rounded-lg bg-teal-600 px-4 py-2 text-xs font-bold text-white hover:bg-teal-500"
+          className="inline-flex items-center gap-2 rounded-lg bg-[#00b074] hover:bg-[#009a65] px-4 py-2 text-xs font-bold text-white shadow-xs"
         >
           <Sparkles className="h-4 w-4" />
           {regenerating ? 'Generating...' : 'Generate Ground-Truth CV'}
@@ -170,39 +170,39 @@ export default function ResumeEditorPage() {
     <div className="space-y-6">
       {/* Toast */}
       {toastMessage && (
-        <div className="fixed bottom-6 right-6 z-50 flex items-center gap-2 rounded-lg bg-teal-600 px-4 py-3 text-sm font-semibold text-white shadow-xl animate-bounce">
+        <div className="fixed bottom-6 right-6 z-50 flex items-center gap-2 rounded-lg bg-[#00b074] px-4 py-3 text-sm font-semibold text-white shadow-xl animate-bounce">
           <ShieldCheck className="h-5 w-5" />
           <span>{toastMessage}</span>
         </div>
       )}
 
       {/* Top Header & Actions Bar */}
-      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 border-b border-slate-800 pb-4 print:hidden">
+      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 border-b border-slate-200 pb-4 print:hidden">
         <div className="flex items-center gap-3">
           <Link
             href={`/jobs/${id}/apply`}
-            className="inline-flex items-center gap-1.5 rounded-lg border border-slate-800 bg-slate-900 px-3 py-1.5 text-xs font-semibold text-slate-400 hover:text-white transition-colors"
+            className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-50 transition-colors shadow-2xs"
           >
             <ArrowLeft className="h-3.5 w-3.5" />
             Preparation Workspace
           </Link>
-          <span className="text-slate-600">/</span>
-          <span className="text-xs font-bold text-teal-400 uppercase tracking-wider">
+          <span className="text-slate-300">/</span>
+          <span className="text-xs font-bold text-[#009a65] uppercase tracking-wider">
             Tailored ATS CV Editor
           </span>
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
           {/* ATS Score pill */}
-          <div className="flex items-center gap-1.5 rounded-lg border border-teal-500/40 bg-teal-950/30 px-3 py-1.5 text-xs font-bold text-teal-300">
-            <Award className="h-4 w-4 text-teal-400" />
+          <div className="flex items-center gap-1.5 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-1.5 text-xs font-bold text-[#009a65]">
+            <Award className="h-4 w-4 text-[#00b074]" />
             <span>ATS Keyword Coverage: {atsScore}%</span>
           </div>
 
           <button
             onClick={handleSave}
             disabled={saving}
-            className="inline-flex items-center gap-1.5 rounded-lg bg-teal-600 hover:bg-teal-500 px-3.5 py-1.5 text-xs font-bold text-white transition-colors shadow-sm"
+            className="inline-flex items-center gap-1.5 rounded-lg bg-[#00b074] hover:bg-[#009a65] px-3.5 py-1.5 text-xs font-bold text-white transition-colors shadow-2xs"
           >
             <Save className="h-3.5 w-3.5" />
             {saving ? 'Saving...' : 'Save CV'}
@@ -211,7 +211,7 @@ export default function ResumeEditorPage() {
           <button
             onClick={handleRegenerate}
             disabled={regenerating}
-            className="inline-flex items-center gap-1.5 rounded-lg border border-slate-700 bg-slate-800 hover:bg-slate-700 px-3 py-1.5 text-xs font-semibold text-slate-300 transition-colors"
+            className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 px-3 py-1.5 text-xs font-semibold text-slate-700 transition-colors shadow-2xs"
           >
             <RefreshCw className={`h-3.5 w-3.5 ${regenerating ? 'animate-spin' : ''}`} />
             Regenerate
@@ -219,7 +219,7 @@ export default function ResumeEditorPage() {
 
           <button
             onClick={() => window.print()}
-            className="inline-flex items-center gap-1.5 rounded-lg border border-slate-700 bg-slate-800 hover:bg-slate-700 px-3 py-1.5 text-xs font-semibold text-slate-300 transition-colors"
+            className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 px-3 py-1.5 text-xs font-semibold text-slate-700 transition-colors shadow-2xs"
             title="Standard Print / Save as PDF"
           >
             <Download className="h-3.5 w-3.5" />
@@ -229,43 +229,43 @@ export default function ResumeEditorPage() {
       </div>
 
       {/* Target Role & Candidate Info Bar */}
-      <div className="rounded-lg border border-slate-800 bg-[#0f172a] p-4 flex flex-col md:flex-row md:items-center justify-between gap-3 text-xs print:hidden">
+      <div className="rounded-xl border border-slate-200 bg-white p-4 flex flex-col md:flex-row md:items-center justify-between gap-3 text-xs print:hidden shadow-xs">
         <div>
           <span className="text-slate-500 block uppercase tracking-wider text-[10px] font-bold">Target Position</span>
-          <span className="text-white font-bold text-sm">{job?.title || cvData.targetRole}</span>
-          <span className="text-slate-400 ml-2">at {job?.company}</span>
+          <span className="text-slate-900 font-bold text-sm">{job?.title || cvData.targetRole}</span>
+          <span className="text-slate-500 ml-2">at {job?.company}</span>
         </div>
-        <div className="flex items-center gap-4 text-slate-400">
+        <div className="flex items-center gap-4 text-slate-500">
           <div>
-            Candidate: <strong className="text-slate-200">{cvData.fullName}</strong>
+            Candidate: <strong className="text-slate-800">{cvData.fullName}</strong>
           </div>
           <div className="hidden sm:block">|</div>
-          <div className="text-emerald-400 font-medium">✓ Verified Ground Truth</div>
+          <div className="text-[#009a65] font-semibold">✓ Verified Ground Truth</div>
         </div>
       </div>
 
       {/* View Mode Toggle (Mobile / Split) */}
-      <div className="flex items-center gap-2 border-b border-slate-800 pb-2 print:hidden">
+      <div className="flex items-center gap-2 border-b border-slate-200 pb-2 print:hidden">
         <button
           onClick={() => setActiveTab('split')}
-          className={`px-3 py-1 text-xs font-semibold rounded-md transition-colors ${
-            activeTab === 'split' ? 'bg-teal-600/20 text-teal-300 border border-teal-500/40' : 'text-slate-400 hover:text-white'
+          className={`px-3 py-1 text-xs font-semibold rounded-lg transition-colors ${
+            activeTab === 'split' ? 'bg-emerald-50 text-[#009a65] border border-emerald-200 font-bold' : 'text-slate-500 hover:text-slate-800'
           }`}
         >
           Split View
         </button>
         <button
           onClick={() => setActiveTab('edit')}
-          className={`px-3 py-1 text-xs font-semibold rounded-md transition-colors ${
-            activeTab === 'edit' ? 'bg-teal-600/20 text-teal-300 border border-teal-500/40' : 'text-slate-400 hover:text-white'
+          className={`px-3 py-1 text-xs font-semibold rounded-lg transition-colors ${
+            activeTab === 'edit' ? 'bg-emerald-50 text-[#009a65] border border-emerald-200 font-bold' : 'text-slate-500 hover:text-slate-800'
           }`}
         >
           Editor Only
         </button>
         <button
           onClick={() => setActiveTab('preview')}
-          className={`px-3 py-1 text-xs font-semibold rounded-md transition-colors ${
-            activeTab === 'preview' ? 'bg-teal-600/20 text-teal-300 border border-teal-500/40' : 'text-slate-400 hover:text-white'
+          className={`px-3 py-1 text-xs font-semibold rounded-lg transition-colors ${
+            activeTab === 'preview' ? 'bg-emerald-50 text-[#009a65] border border-emerald-200 font-bold' : 'text-slate-500 hover:text-slate-800'
           }`}
         >
           ATS Preview Only
@@ -276,10 +276,10 @@ export default function ResumeEditorPage() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Left Column: Form Editor */}
         {(activeTab === 'split' || activeTab === 'edit') && (
-          <div className="space-y-5 rounded-xl border border-slate-800 bg-[#0f172a] p-5 print:hidden">
-            <div className="flex items-center justify-between border-b border-slate-800 pb-3">
-              <h3 className="text-sm font-bold text-white flex items-center gap-2">
-                <Edit3 className="h-4 w-4 text-teal-400" />
+          <div className="space-y-5 rounded-xl border border-slate-200 bg-white p-5 print:hidden shadow-xs">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+              <h3 className="text-sm font-bold text-slate-900 flex items-center gap-2">
+                <Edit3 className="h-4 w-4 text-[#00b074]" />
                 Resume Content Fields
               </h3>
               <span className="text-[11px] text-slate-400">Live syncs with preview</span>
@@ -287,64 +287,64 @@ export default function ResumeEditorPage() {
 
             {/* Target Role & Headline */}
             <div className="space-y-1">
-              <label className="text-[11px] font-bold uppercase tracking-wider text-slate-400">Target Role Title</label>
+              <label className="text-[11px] font-bold uppercase tracking-wider text-slate-500">Target Role Title</label>
               <input
                 type="text"
                 value={cvData.targetRole}
                 onChange={(e) => setCvData({ ...cvData, targetRole: e.target.value })}
-                className="w-full rounded-lg border border-slate-800 bg-slate-900 px-3 py-2 text-xs text-white focus:border-teal-500 focus:outline-none"
+                className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-xs text-slate-900 focus:border-[#00b074] focus:outline-none"
               />
             </div>
 
             {/* Professional Summary */}
             <div className="space-y-1">
-              <label className="text-[11px] font-bold uppercase tracking-wider text-slate-400">Professional Summary</label>
+              <label className="text-[11px] font-bold uppercase tracking-wider text-slate-500">Professional Summary</label>
               <textarea
                 rows={4}
                 value={cvData.summary}
                 onChange={(e) => handleSummaryChange(e.target.value)}
-                className="w-full rounded-lg border border-slate-800 bg-slate-900 p-3 text-xs text-slate-200 leading-relaxed focus:border-teal-500 focus:outline-none"
+                className="w-full rounded-lg border border-slate-200 bg-slate-50 p-3 text-xs text-slate-800 leading-relaxed focus:border-[#00b074] focus:outline-none"
               />
             </div>
 
             {/* Primary Skills */}
             <div className="space-y-1">
-              <label className="text-[11px] font-bold uppercase tracking-wider text-slate-400">
+              <label className="text-[11px] font-bold uppercase tracking-wider text-slate-500">
                 Primary Core Skills (Comma Separated)
               </label>
               <input
                 type="text"
                 value={cvData.primarySkills.join(', ')}
                 onChange={(e) => handlePrimarySkillsChange(e.target.value)}
-                className="w-full rounded-lg border border-slate-800 bg-slate-900 px-3 py-2 text-xs text-white focus:border-teal-500 focus:outline-none"
+                className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-xs text-slate-900 focus:border-[#00b074] focus:outline-none"
               />
             </div>
 
             {/* Additional Skills */}
             <div className="space-y-1">
-              <label className="text-[11px] font-bold uppercase tracking-wider text-slate-400">
+              <label className="text-[11px] font-bold uppercase tracking-wider text-slate-500">
                 Additional / Secondary Skills (Comma Separated)
               </label>
               <input
                 type="text"
                 value={cvData.additionalSkills.join(', ')}
                 onChange={(e) => handleAdditionalSkillsChange(e.target.value)}
-                className="w-full rounded-lg border border-slate-800 bg-slate-900 px-3 py-2 text-xs text-white focus:border-teal-500 focus:outline-none"
+                className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-xs text-slate-900 focus:border-[#00b074] focus:outline-none"
               />
             </div>
 
             {/* Experience Highlights */}
             <div className="space-y-4">
-              <label className="text-[11px] font-bold uppercase tracking-wider text-slate-400">
+              <label className="text-[11px] font-bold uppercase tracking-wider text-slate-500">
                 Work Experience Bullets (Tailored Emphasis)
               </label>
               {cvData.experiences.map((exp, eIdx) => (
-                <div key={eIdx} className="rounded-lg bg-slate-900/80 border border-slate-800 p-3.5 space-y-2">
+                <div key={eIdx} className="rounded-xl bg-slate-50 border border-slate-200 p-3.5 space-y-2">
                   <div className="flex justify-between items-center text-xs">
-                    <span className="font-bold text-white">{exp.role}</span>
-                    <span className="text-slate-400 text-[11px]">{exp.period}</span>
+                    <span className="font-bold text-slate-900">{exp.role}</span>
+                    <span className="text-slate-500 text-[11px]">{exp.period}</span>
                   </div>
-                  <div className="text-[11px] text-teal-400 font-medium">
+                  <div className="text-[11px] text-[#009a65] font-semibold">
                     {exp.company}
                   </div>
 
@@ -355,7 +355,7 @@ export default function ResumeEditorPage() {
                         rows={2}
                         value={typeof bullet === 'string' ? bullet : bullet.text}
                         onChange={(e) => handleExperienceBulletChange(eIdx, bIdx, e.target.value)}
-                        className="w-full rounded border border-slate-800 bg-slate-950 p-2 text-xs text-slate-300 focus:border-teal-500 focus:outline-none"
+                        className="w-full rounded-lg border border-slate-200 bg-white p-2 text-xs text-slate-800 focus:border-[#00b074] focus:outline-none"
                       />
                     ))}
                   </div>
@@ -369,15 +369,15 @@ export default function ResumeEditorPage() {
         {(activeTab === 'split' || activeTab === 'preview') && (
           <div className="space-y-4 print:space-y-0 print:col-span-full print:m-0 print:w-[8.5in]">
             <div className="flex items-center justify-between print:hidden">
-              <span className="text-xs font-bold uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
-                <Eye className="h-4 w-4 text-teal-400" />
+              <span className="text-xs font-bold uppercase tracking-wider text-slate-600 flex items-center gap-1.5">
+                <Eye className="h-4 w-4 text-[#00b074]" />
                 Live Single-Column ATS Format
               </span>
-              <span className="text-[11px] text-slate-500">Standard ATS readable fonts &amp; layout</span>
+              <span className="text-[11px] text-slate-400">Standard ATS readable fonts &amp; layout</span>
             </div>
 
             {/* Resume Document Paper */}
-            <div className="rounded-xl border border-slate-700 bg-white text-slate-900 p-8 shadow-2xl space-y-5 font-sans print:border-none print:shadow-none print:p-0">
+            <div className="rounded-xl border border-slate-200 bg-white text-slate-900 p-8 shadow-md space-y-5 font-sans print:border-none print:shadow-none print:p-0">
               {/* Header */}
               <div className="text-center border-b border-slate-300 pb-4 space-y-1">
                 <h1 className="text-2xl font-black tracking-tight text-slate-900 uppercase">

@@ -21,7 +21,7 @@ import {
 
 const PRIMARY_NAV = [
   { href: '/', label: 'Dashboard', icon: LayoutDashboard },
-  { href: '/jobs', label: 'Jobs', icon: Briefcase },
+
   { href: '/matches', label: 'Matches', icon: Sparkles },
   { href: '/application-queue', label: 'Queue', icon: KanbanSquare },
   { href: '/interviews', label: 'Interviews', icon: Video },
@@ -77,12 +77,7 @@ export const Navigation: React.FC = () => {
             </div>
           </Link>
 
-          {/* Candidate Ground Truth Badge - Clean One-Line Chip */}
-          <div className="hidden 2xl:flex items-center gap-2 border-l border-slate-200 pl-4 text-xs text-slate-500 whitespace-nowrap shrink-0">
-            <ShieldCheck className="h-4 w-4 text-[#00b074] shrink-0" />
-            <span>Ground Truth:</span>
-            <span className="font-semibold text-slate-800">Afeef Iqbal (7+ Yrs Full-Stack)</span>
-          </div>
+
         </div>
 
         {/* Main Navigation Links */}
@@ -152,21 +147,11 @@ export const Navigation: React.FC = () => {
           </div>
         </nav>
 
-        {/* Status Indicator & Quick Action */}
-        <div className="flex items-center gap-2.5 shrink-0">
-          <div className="hidden sm:flex items-center gap-2 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs font-semibold text-[#009a65] whitespace-nowrap shrink-0">
-            <span className="h-2 w-2 rounded-full bg-[#00b074] animate-pulse" />
-            <span>24h Engine Active</span>
-          </div>
 
-          <Link
-            href="/jobs"
-            className="flex items-center gap-1.5 rounded-lg bg-[#00b074] hover:bg-[#009a65] text-white px-3.5 py-1.5 text-xs font-bold transition shadow-2xs whitespace-nowrap shrink-0"
-          >
-            <span>Browse Jobs</span>
-          </Link>
-        </div>
-      </div>
+
+
+  
+
 
       {/* Mobile nav bar with horizontal scrolling */}
       <div className="flex lg:hidden overflow-x-auto border-t border-slate-100 px-2 py-2 bg-white gap-1 scrollbar-none">
@@ -191,6 +176,7 @@ export const Navigation: React.FC = () => {
           );
         })}
       </div>
-    </header>
+    </div>
+</header>
   );
 };

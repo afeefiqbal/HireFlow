@@ -20,8 +20,20 @@ export class GroqProvider implements AIProvider {
   }
 
   private getPrompt(filename: string): string {
-    const promptPath = path.join(process.cwd(), 'prompts', filename);
-    return fs.readFileSync(promptPath, 'utf8');
+    const candidates = [
+      path.resolve(process.cwd(), 'prompts', filename),
+      path.resolve(process.cwd(), '..', 'prompts', filename),
+      path.resolve(process.cwd(), '..', '..', 'prompts', filename),
+      path.resolve(__dirname, '../../../../prompts', filename),
+      path.resolve(__dirname, '../../../prompts', filename),
+      path.resolve(__dirname, '../../prompts', filename),
+    ];
+    for (const candidate of candidates) {
+      if (fs.existsSync(candidate)) {
+        return fs.readFileSync(candidate, 'utf8');
+      }
+    }
+    throw new Error(`Prompt file "${filename}" could not be found in candidates: ${candidates.join(', ')}`);
   }
 
   private safeParseJson(content: string | undefined | null, fallback: any = {}): any {

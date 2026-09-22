@@ -22,6 +22,55 @@ import {
   Flame,
 } from 'lucide-react';
 
+function formatJobDescription(raw: string): string {
+  if (!raw) return '';
+  let text = raw;
+
+  const decodeEntities = (str: string) =>
+    str
+      .replace(/&#(\d+);/g, (_, dec) => String.fromCharCode(Number(dec)))
+      .replace(/&#x([0-9a-fA-F]+);/gi, (_, hex) => String.fromCharCode(parseInt(hex, 16)))
+      .replace(/&quot;/gi, '"')
+      .replace(/&apos;/gi, "'")
+      .replace(/&#39;/g, "'")
+      .replace(/&lt;/gi, '<')
+      .replace(/&gt;/gi, '>')
+      .replace(/&amp;/gi, '&')
+      .replace(/&nbsp;/gi, ' ')
+      .replace(/&bull;/gi, '•')
+      .replace(/&middot;/gi, '·')
+      .replace(/&mdash;/gi, '—')
+      .replace(/&ndash;/gi, '–')
+      .replace(/&reg;/gi, '®')
+      .replace(/&trade;/gi, '™')
+      .replace(/&copy;/gi, '©');
+
+  // Decode twice in case of double-escaped entities
+  text = decodeEntities(text);
+  text = decodeEntities(text);
+
+  text = text.replace(/<style[^>]*>[\s\S]*?<\/style>/gi, '');
+  text = text.replace(/<script[^>]*>[\s\S]*?<\/script>/gi, '');
+
+  text = text
+    .replace(/<br\s*\/?>/gi, '\n')
+    .replace(/<\/p>/gi, '\n\n')
+    .replace(/<\/li>/gi, '\n')
+    .replace(/<li[^>]*>/gi, '• ')
+    .replace(/<\/(h[1-6]|div|tr)>/gi, '\n\n')
+    .replace(/<hr\s*\/?>/gi, '\n---\n');
+
+  text = text.replace(/<[^>]+>/g, ' ');
+  text = decodeEntities(text);
+
+  return text
+    .split('\n')
+    .map((l) => l.replace(/[ \t]+/g, ' ').trim())
+    .join('\n')
+    .replace(/\n{3,}/g, '\n\n')
+    .trim();
+}
+
 export default function JobDetailPage() {
   const params = useParams();
   const router = useRouter();
@@ -298,7 +347,7 @@ export default function JobDetailPage() {
             Job Description
           </h2>
           <div className="text-sm leading-relaxed text-slate-700 whitespace-pre-line space-y-3">
-            {job.description}
+            {formatJobDescription(job.description)}
           </div>
         </div>
 

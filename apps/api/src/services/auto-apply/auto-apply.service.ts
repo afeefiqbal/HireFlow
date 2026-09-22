@@ -100,10 +100,35 @@ export class AutoApplyService {
       };
     }
 
+    const [config, todayCount] = await Promise.all([
+      this.getConfig(),
+      this.getTodayAutoApplyCount(),
+    ]);
+
+    return this.evaluateEligibilityWithJob(job, config, todayCount);
+  }
+
+  /**
+   * Synchronously evaluates eligibility gates for an already-loaded job object in memory.
+   */
+  static evaluateEligibilityWithJob(
+    job: any,
+    config: AutoApplyConfig,
+    todayCount: number
+  ): AutoApplyEligibilityResult {
+    if (!job) {
+      return {
+        isEligible: false,
+        reason: 'Job not found',
+        adapterType: 'MANUAL_EXTERNAL',
+        requiresUserInputCount: 0,
+      };
+    }
+
     const adapter = this.getAdapterForJob(job);
 
     // 0. Check if submission is actively in-flight
-    if (this.activeSubmissions.has(jobId)) {
+    if (this.activeSubmissions.has(job.id)) {
       return {
         isEligible: false,
         reason: 'Submission is currently in progress for this job',
@@ -123,7 +148,7 @@ export class AutoApplyService {
     }
 
     // 2. Check Match Score (Minimum 80% for auto-apply eligibility)
-    const latestMatch = job.matches[0];
+    const latestMatch = job.matches?.[0];
     const matchScore = latestMatch?.overallMatch ?? 0;
     const roleFamilyPass = (job.roleFamily as any) !== 'OTHER';
 
@@ -146,8 +171,8 @@ export class AutoApplyService {
     }
 
     // 3. Check Preparation Artifacts
-    const hasResume = job.resumeVersions.length > 0;
-    const hasCoverLetter = job.coverLetters.length > 0;
+    const hasResume = (job.resumeVersions || []).length > 0;
+    const hasCoverLetter = (job.coverLetters || []).length > 0;
 
     if (!hasResume || !hasCoverLetter) {
       return {
@@ -159,8 +184,8 @@ export class AutoApplyService {
     }
 
     // 4. Check for screening questions requiring user input
-    const pendingQuestions = job.screeningQuestions.filter(
-      (q) => q.requiresUserInput && (!q.userAnswer || q.userAnswer.trim().length === 0)
+    const pendingQuestions = (job.screeningQuestions || []).filter(
+      (q: any) => q.requiresUserInput && (!q.userAnswer || q.userAnswer.trim().length === 0)
     );
 
     if (pendingQuestions.length > 0) {
@@ -183,8 +208,6 @@ export class AutoApplyService {
     }
 
     // 6. Check daily limit
-    const config = await this.getConfig();
-    const todayCount = await this.getTodayAutoApplyCount();
     if (todayCount >= config.dailyLimit) {
       return {
         isEligible: false,

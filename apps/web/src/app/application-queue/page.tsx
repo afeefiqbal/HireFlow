@@ -609,171 +609,191 @@ export default function ApplicationQueuePage() {
         </div>
       </div>
 
-      {/* Kanban Board Columns */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-7 gap-4 items-start">
-        {visibleColumns.map((col) => {
-          const isOver = dragOverCol === col.id;
+      {/* Kanban Board Columns - Horizontal Scroll */}
+      <div className="overflow-x-auto pb-6 pt-1 -mx-4 px-4 sm:-mx-6 sm:px-6 lg:-mx-8 lg:px-8">
+        <div className={`flex gap-4 items-start ${visibleColumns.length <= 2 ? 'w-full max-w-4xl' : 'min-w-max'}`}>
+          {visibleColumns.map((col) => {
+            const isOver = dragOverCol === col.id;
+            const columnWidthClass =
+              visibleColumns.length === 1
+                ? 'w-full max-w-xl'
+                : visibleColumns.length === 2
+                ? 'flex-1 min-w-[320px] max-w-[440px]'
+                : 'w-[295px] min-w-[295px] shrink-0';
 
-          return (
-            <div
-              key={col.id}
-              onDragOver={(e) => handleDragOver(e, col.id)}
-              onDragLeave={(e) => handleDragLeave(e, col.id)}
-              onDrop={(e) => handleDrop(e, col.id)}
-              className={`rounded-xl border transition-all duration-150 ${
-                isOver ? col.activeBorder + ' ring-2 ring-[#00b074]/30' : col.border
-              } p-3 space-y-3 min-h-[460px] flex flex-col justify-between`}
-            >
-              <div>
-                {/* Column Header */}
-                <div className="flex items-center justify-between border-b border-slate-200 pb-2.5 mb-3">
-                  <div className="flex items-center gap-1.5 text-xs font-bold text-slate-800">
-                    {col.icon}
-                    <span>{col.title}</span>
-                  </div>
-                  <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${col.badge}`}>
-                    {col.items.length}
-                  </span>
-                </div>
-
-                {/* Card Items */}
-                <div className="space-y-2.5">
-                  {col.items.length === 0 ? (
-                    <div className="text-center py-10 text-[11px] text-slate-400 italic border-2 border-dashed border-slate-200 bg-white/50 rounded-lg">
-                      {isOver ? 'Drop card here' : 'No applications'}
+            return (
+              <div
+                key={col.id}
+                onDragOver={(e) => handleDragOver(e, col.id)}
+                onDragLeave={(e) => handleDragLeave(e, col.id)}
+                onDrop={(e) => handleDrop(e, col.id)}
+                className={`rounded-xl border transition-all duration-150 ${
+                  isOver ? col.activeBorder + ' ring-2 ring-[#00b074]/30 shadow-md' : col.border
+                } p-3.5 space-y-3 min-h-[500px] flex flex-col justify-between ${columnWidthClass}`}
+              >
+                <div>
+                  {/* Column Header */}
+                  <div className="flex items-center justify-between border-b border-slate-200/80 pb-2.5 mb-3">
+                    <div className="flex items-center gap-2 text-xs font-bold text-slate-800">
+                      {col.icon}
+                      <span className="truncate">{col.title}</span>
                     </div>
-                  ) : (
-                    col.items.map((job) => {
-                      const isFresh = job.ageStatus === 'FRESH';
-                      const followUpBadge = getFollowUpBadge(job.application?.nextFollowUpAt);
-                      const priorityScore = job.applicationPriority;
-                      const priorityReasons = job.priorityReasons || [];
-                      const isBeingDragged = draggedJob?.id === job.id;
+                    <span className={`rounded-full px-2 py-0.5 text-[11px] font-bold ${col.badge}`}>
+                      {col.items.length}
+                    </span>
+                  </div>
 
-                      return (
-                        <div
-                          key={job.id}
-                          draggable={true}
-                          onDragStart={(e) => handleDragStart(e, job, col.id)}
-                          onDragEnd={handleDragEnd}
-                          className={`rounded-lg border bg-white p-3 space-y-2.5 shadow-2xs transition-all cursor-grab active:cursor-grabbing hover:border-[#00b074] hover:shadow-xs ${
-                            isBeingDragged
-                              ? 'opacity-40 border-[#00b074] scale-95'
-                              : 'border-slate-200'
-                          }`}
-                        >
-                          {/* Header: Priority, Drag Handle & Freshness */}
-                          <div className="flex items-center justify-between gap-1">
-                            <div className="flex items-center gap-1.5">
-                              <GripVertical className="h-3.5 w-3.5 text-slate-400 shrink-0" />
-                              {priorityScore != null ? (
-                                <span
-                                  className={`text-[9px] font-extrabold uppercase px-1.5 py-0.5 rounded ${
-                                    priorityScore >= 80
-                                      ? 'bg-emerald-50 text-[#009a65] border border-emerald-200'
-                                      : priorityScore >= 50
-                                      ? 'bg-amber-50 text-amber-700 border border-amber-200'
-                                      : 'bg-slate-100 text-slate-600 border border-slate-200'
-                                  }`}
-                                  title={priorityReasons.join(', ')}
-                                >
-                                  Priority {priorityScore}
+                  {/* Card Items */}
+                  <div className="space-y-3">
+                    {col.items.length === 0 ? (
+                      <div className="text-center py-12 text-xs text-slate-400 italic border-2 border-dashed border-slate-200 bg-white/60 rounded-xl">
+                        {isOver ? 'Drop card here' : 'No applications in this stage'}
+                      </div>
+                    ) : (
+                      col.items.map((job) => {
+                        const isFresh = job.ageStatus === 'FRESH';
+                        const followUpBadge = getFollowUpBadge(job.application?.nextFollowUpAt);
+                        const priorityScore = job.applicationPriority;
+                        const priorityReasons = job.priorityReasons || [];
+                        const isBeingDragged = draggedJob?.id === job.id;
+                        const formattedRole = job.roleFamily && job.roleFamily !== 'UNKNOWN' && job.roleFamily !== 'OTHER'
+                          ? job.roleFamily.replace(/_/g, ' ').toLowerCase().replace(/\b\w/g, (c) => c.toUpperCase())
+                          : null;
+
+                        return (
+                          <div
+                            key={job.id}
+                            draggable={true}
+                            onDragStart={(e) => handleDragStart(e, job, col.id)}
+                            onDragEnd={handleDragEnd}
+                            className={`rounded-xl border bg-white p-3.5 space-y-2.5 shadow-xs transition-all cursor-grab active:cursor-grabbing hover:border-[#00b074] hover:shadow-md ${
+                              isBeingDragged
+                                ? 'opacity-40 border-[#00b074] scale-95'
+                                : 'border-slate-200'
+                            }`}
+                          >
+                            {/* Header: Priority, Drag Handle & Freshness */}
+                            <div className="flex items-center justify-between gap-2">
+                              <div className="flex items-center gap-1.5 min-w-0">
+                                <GripVertical className="h-3.5 w-3.5 text-slate-400 shrink-0 cursor-grab" />
+                                {priorityScore != null ? (
+                                  <span
+                                    className={`text-[10px] font-bold uppercase px-2 py-0.5 rounded-md ${
+                                      priorityScore >= 80
+                                        ? 'bg-emerald-50 text-[#009a65] border border-emerald-200'
+                                        : priorityScore >= 50
+                                        ? 'bg-amber-50 text-amber-700 border border-amber-200'
+                                        : 'bg-slate-100 text-slate-600 border border-slate-200'
+                                    }`}
+                                    title={priorityReasons.join(', ')}
+                                  >
+                                    Priority {priorityScore}
+                                  </span>
+                                ) : (
+                                  <span className="text-[10px] font-semibold text-slate-400">Standard</span>
+                                )}
+                              </div>
+
+                              {isFresh && (
+                                <span className="shrink-0 text-[#00b074] bg-emerald-50 border border-emerald-200 px-1.5 py-0.5 rounded-md flex items-center gap-1 text-[10px] font-bold" title="Fresh <24h">
+                                  <Flame className="h-3 w-3 fill-emerald-500 text-emerald-500" />
+                                  Fresh
                                 </span>
-                              ) : (
-                                <span className="text-[9px] font-bold text-slate-400">Standard</span>
                               )}
                             </div>
 
-                            {isFresh && (
-                              <span className="shrink-0 text-[#00b074] flex items-center gap-0.5 text-[9px] font-bold" title="Fresh <24h">
-                                <Flame className="h-3 w-3" />
-                                Fresh
-                              </span>
+                            {/* Title & Company */}
+                            <div className="space-y-1">
+                              <h4 className="font-bold text-slate-900 text-sm leading-snug line-clamp-2 hover:text-[#00b074] transition-colors">
+                                {job.title}
+                              </h4>
+                              <div className="flex items-center justify-between text-xs text-slate-500">
+                                <div className="flex items-center gap-1.5 font-medium text-slate-700 truncate mr-2">
+                                  <Building2 className="h-3.5 w-3.5 text-slate-400 shrink-0" />
+                                  <span className="truncate">{job.company}</span>
+                                </div>
+                                {job.location && (
+                                  <div className="flex items-center gap-1 text-[11px] text-slate-500 shrink-0">
+                                    <MapPin className="h-3 w-3 text-slate-400 shrink-0" />
+                                    <span className="truncate max-w-[110px]">{job.location}</span>
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+
+                            {/* Badges: Seniority & Role Family */}
+                            <div className="flex flex-wrap items-center gap-1.5 pt-0.5">
+                              {job.seniority && job.seniority !== 'UNKNOWN' && (
+                                <span className="px-2 py-0.5 rounded-md bg-slate-100 text-slate-700 border border-slate-200 text-[10px] font-semibold">
+                                  {job.seniority}
+                                </span>
+                              )}
+                              {formattedRole && (
+                                <span className="px-2 py-0.5 rounded-md bg-slate-50 text-slate-600 border border-slate-200 text-[10px] font-medium flex items-center gap-1">
+                                  <Briefcase className="w-2.5 h-2.5 text-slate-400" />
+                                  <span>{formattedRole}</span>
+                                </span>
+                              )}
+                              {job.isRemote && (
+                                <span className="px-2 py-0.5 rounded-md bg-teal-50 text-teal-700 border border-teal-200 text-[10px] font-bold">
+                                  Remote
+                                </span>
+                              )}
+                            </div>
+
+                            {/* Follow-up State Badge */}
+                            {followUpBadge && (
+                              <div className="pt-0.5">
+                                {followUpBadge}
+                              </div>
                             )}
-                          </div>
 
-                          {/* Title & Company */}
-                          <div>
-                            <h4 className="font-bold text-slate-900 text-xs line-clamp-1 hover:text-[#00b074] transition-colors">
-                              {job.title}
-                            </h4>
-                            <div className="text-[11px] text-slate-500 flex items-center gap-1 mt-0.5">
-                              <Building2 className="h-3 w-3 text-slate-400 shrink-0" />
-                              <span className="truncate">{job.company}</span>
-                            </div>
-                          </div>
-
-                          {/* Location & Seniority */}
-                          <div className="flex items-center gap-2 text-[10px] text-slate-500">
-                            <span className="flex items-center gap-0.5 truncate">
-                              <MapPin className="h-3 w-3 text-slate-400 shrink-0" />
-                              {job.location || 'Unknown'}
-                            </span>
-                            {job.seniority && job.seniority !== 'UNKNOWN' && (
-                              <span className="px-1.5 py-0.5 rounded bg-slate-100 text-slate-600 border border-slate-200 font-medium">
-                                {job.seniority}
-                              </span>
-                            )}
-                          </div>
-
-                          {/* Role Family tag */}
-                          {job.roleFamily && job.roleFamily !== 'UNKNOWN' && (
-                            <div className="text-[9px] font-medium text-slate-500 flex items-center gap-1">
-                              <Briefcase className="w-2.5 h-2.5 text-slate-400" />
-                              {job.roleFamily}
-                            </div>
-                          )}
-
-                          {/* Follow-up State Badge */}
-                          {followUpBadge && (
-                            <div className="pt-1">
-                              {followUpBadge}
-                            </div>
-                          )}
-
-                          {/* Actions */}
-                          <div className="pt-2 border-t border-slate-100 flex items-center justify-between gap-1">
-                            <Link
-                              href={`/applications/${job.application?.id || job.id}`}
-                              className="text-[11px] text-[#009a65] hover:text-[#007a50] font-bold flex items-center gap-1"
-                              title="Open V5 Application Workspace"
-                            >
-                              <span>Workspace</span>
-                              <ArrowRight className="h-3 w-3" />
-                            </Link>
-
-                            <div className="flex items-center gap-2">
+                            {/* Actions */}
+                            <div className="pt-2.5 border-t border-slate-100 flex items-center justify-between gap-2">
                               <Link
-                                href={`/jobs/${job.id}/apply`}
-                                className="text-[10px] text-slate-500 hover:text-slate-800 font-medium"
-                                title="Copilot Preparation"
+                                href={`/applications/${job.application?.id || job.id}`}
+                                className="inline-flex items-center gap-1 text-xs font-bold text-[#009a65] hover:text-[#007a50] transition-colors"
+                                title="Open Application Workspace"
                               >
-                                Copilot
+                                <span>Workspace</span>
+                                <ArrowRight className="h-3 w-3" />
                               </Link>
-                              <a
-                                href={job.applicationUrl || job.canonicalUrl}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="text-[11px] text-slate-400 hover:text-[#00b074] flex items-center gap-0.5"
-                                title="Open Official Employer Portal"
-                              >
-                                <ExternalLink className="h-3 w-3" />
-                              </a>
+
+                              <div className="flex items-center gap-2.5">
+                                <Link
+                                  href={`/jobs/${job.id}/apply`}
+                                  className="text-xs text-slate-500 hover:text-slate-900 font-medium transition-colors"
+                                  title="Copilot Preparation"
+                                >
+                                  Copilot
+                                </Link>
+                                {(job.applicationUrl || job.canonicalUrl) && (
+                                  <a
+                                    href={job.applicationUrl || job.canonicalUrl}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="text-slate-400 hover:text-[#00b074] transition-colors p-0.5"
+                                    title="Open Official Employer Portal"
+                                  >
+                                    <ExternalLink className="h-3.5 w-3.5" />
+                                  </a>
+                                )}
+                              </div>
                             </div>
                           </div>
-                        </div>
-                      );
-                    })
-                  )}
+                        );
+                      })
+                    )}
+                  </div>
+                </div>
+
+                <div className="text-[10px] text-slate-400 text-center pt-2">
+                  Drag to transition status
                 </div>
               </div>
-
-              <div className="text-[10px] text-slate-400 text-center pt-2">
-                Drag to transition status
-              </div>
-            </div>
-          );
-        })}
+            );
+          })}
+        </div>
       </div>
     </div>
   );

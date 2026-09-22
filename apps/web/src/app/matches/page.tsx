@@ -10,7 +10,7 @@ import { Sparkles, ArrowRight, ShieldCheck, Filter } from 'lucide-react';
 export default function MatchesPage() {
   const [jobs, setJobs] = useState<Job[]>([]);
   const [loading, setLoading] = useState(true);
-  const [minScore, setMinScore] = useState(80);
+  const [minScore, setMinScore] = useState(75);
 
   const fetchMatches = useCallback(async () => {
     setLoading(true);

@@ -8,11 +8,22 @@ const groq = process.env.GROQ_API_KEY ? new Groq({ apiKey: process.env.GROQ_API_
 // Models
 const FAST_MODEL = 'llama-3.1-8b-instant';
 const STRONG_MODEL = 'llama-3.3-70b-versatile';
-
 export class LlmService {
   private static getPrompt(filename: string): string {
-    const promptPath = path.join(process.cwd(), '..', '..', 'prompts', filename);
-    return fs.readFileSync(promptPath, 'utf8');
+    const candidates = [
+      path.resolve(process.cwd(), 'prompts', filename),
+      path.resolve(process.cwd(), '..', 'prompts', filename),
+      path.resolve(process.cwd(), '..', '..', 'prompts', filename),
+      path.resolve(__dirname, '../../../../prompts', filename),
+      path.resolve(__dirname, '../../../prompts', filename),
+      path.resolve(__dirname, '../../prompts', filename),
+    ];
+    for (const candidate of candidates) {
+      if (fs.existsSync(candidate)) {
+        return fs.readFileSync(candidate, 'utf8');
+      }
+    }
+    throw new Error(`Prompt file "${filename}" could not be found in candidates: ${candidates.join(', ')}`);
   }
 
   /**

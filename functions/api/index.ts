@@ -1359,21 +1359,101 @@ app.post("/api/applications/:id/follow-up", async (c) => {
 app.get("/api/application-queue", async (c) => {
   try {
     const res = await pool.query(`
-      SELECT q.*, j.title as job_title, j.company as job_company
-      FROM application_preparations q
-      LEFT JOIN jobs j ON q.job_id = j.id
-      ORDER BY q.created_at DESC
+      SELECT j.*, a.status as app_status, a.next_follow_up_at, a.applied_date, a.notes as app_notes,
+             m.overall_match, m.technical_match, m.experience_match, m.location_match, m.visa_compatibility,
+             m.strong_matches, m.missing_requirements, m.concerns, m.reasoning, m.recommendation,
+             (SELECT count(*) FROM resume_versions WHERE job_id = j.id) as cv_count,
+             (SELECT count(*) FROM cover_letters WHERE job_id = j.id) as cl_count,
+             (SELECT count(*) FROM screening_questions WHERE job_id = j.id AND requires_user_input = true AND (user_answer IS NULL OR user_answer = '')) as pending_screening
+      FROM jobs j
+      LEFT JOIN applications a ON j.id = a.job_id
+      LEFT JOIN job_matches m ON j.id = m.job_id
+      ORDER BY j.posted_at DESC NULLS LAST, j.discovered_at DESC NULLS LAST
+      LIMIT 100
     `);
+
+    const readyToApply: any[] = [];
+    const needsInput: any[] = [];
+    const cvReady: any[] = [];
+    const applied: any[] = [];
+    const interview: any[] = [];
+    const rejected: any[] = [];
+    const shortlisted: any[] = [];
+    const preparing: any[] = [];
+    const offer: any[] = [];
+    const archived: any[] = [];
+
+    for (const row of res.rows) {
+      const j = normalizeJob(row);
+      const appStatus = row.app_status;
+
+      if (appStatus === 'OFFER') {
+        offer.push(j);
+        continue;
+      }
+      if (appStatus === 'REJECTED' || appStatus === 'WITHDRAWN' || appStatus === 'EXPIRED') {
+        archived.push(j);
+        rejected.push(j);
+        continue;
+      }
+      if (appStatus === 'INTERVIEW') {
+        interview.push(j);
+        continue;
+      }
+      if (appStatus === 'APPLIED') {
+        applied.push(j);
+        continue;
+      }
+      if (appStatus === 'READY_TO_APPLY') {
+        readyToApply.push(j);
+        continue;
+      }
+      if (appStatus === 'PREPARING') {
+        preparing.push(j);
+        cvReady.push(j);
+        continue;
+      }
+      if (appStatus === 'SHORTLISTED' || appStatus === 'SAVED') {
+        shortlisted.push(j);
+        continue;
+      }
+      if (appStatus === 'CV_READY') {
+        preparing.push(j);
+        cvReady.push(j);
+        continue;
+      }
+
+      const hasCv = parseInt(row.cv_count || '0', 10) > 0;
+      const hasCoverLetter = parseInt(row.cl_count || '0', 10) > 0;
+      const pendingScreening = parseInt(row.pending_screening || '0', 10) > 0;
+
+      if (pendingScreening) {
+        needsInput.push(j);
+        preparing.push(j);
+      } else if (hasCv && hasCoverLetter) {
+        readyToApply.push(j);
+      } else if (hasCv) {
+        cvReady.push(j);
+        preparing.push(j);
+      } else {
+        shortlisted.push(j);
+      }
+    }
+
     return c.json({
       success: true,
-      data: res.rows.map((r) => ({
-        ...r,
-        job: {
-          id: r.job_id,
-          title: r.job_title,
-          company: r.job_company,
-        },
-      })),
+      data: {
+        readyToApply,
+        needsInput,
+        cvReady,
+        applied,
+        interview,
+        rejected,
+        shortlisted,
+        preparing,
+        offer,
+        archived,
+      },
     });
   } catch (err: any) {
     return c.json({ success: false, message: err.message }, 500);

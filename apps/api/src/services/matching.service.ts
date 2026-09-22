@@ -56,6 +56,12 @@ export class MatchingService {
     
     const overallMatch = Math.round((technicalMatch * 0.5) + (experienceMatch * 0.3) + (locationMatch * 0.2));
 
+    const missingReqs: string[] = matchAnalysis.missing_requirements || [];
+    const rawSkills: string[] = matchAnalysis.matched_skills || aiJson.required_skills || [];
+    const validStrongMatches = rawSkills.filter(
+      (s: string) => !missingReqs.some((m: string) => m.toLowerCase().trim() === s.toLowerCase().trim())
+    );
+
     const savedMatch = await prisma.jobMatch.create({
       data: {
         jobId: job.id,
@@ -64,8 +70,8 @@ export class MatchingService {
         experienceMatch,
         locationMatch,
         visaCompatibility: aiJson.visa?.sponsorship === 'OFFERED' ? 'compatible' : 'unknown',
-        strongMatches: aiJson.required_skills || [],
-        missingRequirements: matchAnalysis.missing_requirements || [],
+        strongMatches: validStrongMatches,
+        missingRequirements: missingReqs,
         concerns: matchAnalysis.concerns || [],
         reasoning: matchAnalysis.reasoning || [],
         recommendation: matchAnalysis.recommendation || 'REVIEW',

@@ -89,6 +89,8 @@ export class DiscoveryService {
       Lever: 0,
       Ashby: 0,
       'Arbeitnow (EU Tech)': 0,
+      'Remotive (Open Tech API)': 0,
+      'Jobicy (Remote API)': 0,
     };
 
     // 1. Fetch from Real Greenhouse Boards
@@ -127,6 +129,24 @@ export class DiscoveryService {
       console.warn('Arbeitnow fetch issue:', e.message);
     }
 
+    // 5. Fetch from Remotive Public Developer API
+    try {
+      const remotiveJobs = await this.fetchRemotive();
+      candidates.push(...remotiveJobs);
+      sourceStats['Remotive (Open Tech API)'] = remotiveJobs.length;
+    } catch (e: any) {
+      console.warn('Remotive fetch issue:', e.message);
+    }
+
+    // 6. Fetch from Jobicy Remote Engineering API
+    try {
+      const jobicyJobs = await this.fetchJobicy();
+      candidates.push(...jobicyJobs);
+      sourceStats['Jobicy (Remote API)'] = jobicyJobs.length;
+    } catch (e: any) {
+      console.warn('Jobicy fetch issue:', e.message);
+    }
+
     // Filter relevant to Afeef's role & target locations
     const relevantCandidates = candidates.filter((job) => this.isRelevantJob(job));
 
@@ -136,6 +156,14 @@ export class DiscoveryService {
 
     for (const item of relevantCandidates) {
       try {
+        // Liveness check: skip dead / 404 links before ingesting
+        const targetUrl = item.applicationUrl || item.canonicalUrl;
+        const isAlive = await this.isUrlAlive(targetUrl);
+        if (!isAlive) {
+          console.log(`[Discovery] Skipping unreachable/404 job posting: ${targetUrl} (${item.company} - ${item.title})`);
+          continue;
+        }
+
         const result = await JobPipelineService.processAndIngestJob({
           title: item.title,
           company: item.company,
@@ -186,10 +214,10 @@ export class DiscoveryService {
   }
 
   /**
-   * Greenhouse Public Board Collector
+   * Greenhouse Public Board Collector (Active Verified Tech Companies)
    */
   private static async fetchGreenhouse(): Promise<IngestCandidate[]> {
-    const companies = ['spryker', 'taxfix', 'deliveryhero', 'gitlab'];
+    const companies = ['gitlab', 'wikimedia', 'canonical', 'elastic', 'datadog', 'spryker'];
     const results: IngestCandidate[] = [];
 
     for (const comp of companies) {
@@ -235,10 +263,10 @@ export class DiscoveryService {
   }
 
   /**
-   * Lever Public Job Board Collector
+   * Lever Public Job Board Collector (Active Verified Boards)
    */
   private static async fetchLever(): Promise<IngestCandidate[]> {
-    const companies = ['kinsta', 'pleo', 'hotjar', 'atlan'];
+    const companies = ['kinsta', 'spotify', 'figma'];
     const results: IngestCandidate[] = [];
 
     for (const comp of companies) {
@@ -284,10 +312,10 @@ export class DiscoveryService {
   }
 
   /**
-   * Ashby Public Board Collector
+   * Ashby Public Board Collector (Active Verified Tech Companies)
    */
   private static async fetchAshby(): Promise<IngestCandidate[]> {
-    const companies = ['posthog', 'sentry', 'linear'];
+    const companies = ['supabase', 'posthog', 'sentry', 'linear'];
     const results: IngestCandidate[] = [];
 
     for (const comp of companies) {
@@ -328,6 +356,112 @@ export class DiscoveryService {
       }
     }
     return results;
+  }
+
+  /**
+   * Remotive Open Developer Job API Collector (Free & Open)
+   */
+  private static async fetchRemotive(): Promise<IngestCandidate[]> {
+    const results: IngestCandidate[] = [];
+    try {
+      const res = await fetch('https://remotive.com/api/remote-jobs?category=software-dev&limit=40', {
+        headers: { Accept: 'application/json' },
+        signal: AbortSignal.timeout(10000),
+      });
+      if (!res.ok) return results;
+      const data = (await res.json()) as any;
+      const jobs = data.jobs || [];
+
+      for (const j of jobs) {
+        const tags = Array.isArray(j.tags) ? j.tags : [];
+        results.push({
+          title: j.title,
+          company: j.company_name,
+          location: j.candidate_required_location || 'Worldwide Remote',
+          isRemote: true,
+          employmentType: j.job_type === 'full_time' ? 'Full-time' : 'Contract',
+          postedAt: j.publication_date ? new Date(j.publication_date) : null,
+          visaStatus: 'NOT_STATED',
+          techStack: this.extractTechStack(j.title + ' ' + tags.join(' ') + ' ' + (j.description || '')),
+          description: this.stripHtml(j.description || j.title),
+          requirements: tags,
+          preferredSkills: [],
+          applicationUrl: j.url,
+          canonicalUrl: j.url,
+          source: 'Remotive (Open Tech API)',
+          sourceJobId: String(j.id || ''),
+          sourceUrl: j.url,
+        });
+      }
+    } catch (err: any) {
+      console.warn('Remotive error:', err.message);
+    }
+    return results;
+  }
+
+  /**
+   * Jobicy Remote Engineering API Collector (Free & Open)
+   */
+  private static async fetchJobicy(): Promise<IngestCandidate[]> {
+    const results: IngestCandidate[] = [];
+    try {
+      const res = await fetch('https://jobicy.com/api/v2/remote-jobs?count=30&industry=engineering', {
+        headers: { Accept: 'application/json' },
+        signal: AbortSignal.timeout(10000),
+      });
+      if (!res.ok) return results;
+      const data = (await res.json()) as any;
+      const jobs = data.jobs || [];
+
+      for (const j of jobs) {
+        results.push({
+          title: j.jobTitle,
+          company: j.companyName,
+          location: j.jobGeo || 'Worldwide Remote',
+          isRemote: true,
+          employmentType: Array.isArray(j.jobType) ? j.jobType[0] : 'Full-time',
+          postedAt: j.pubDate ? new Date(j.pubDate) : null,
+          salaryMin: j.annualSalaryMin ? Number(j.annualSalaryMin) : undefined,
+          salaryMax: j.annualSalaryMax ? Number(j.annualSalaryMax) : undefined,
+          salaryCurrency: j.salaryCurrency || 'USD',
+          visaStatus: 'NOT_STATED',
+          techStack: this.extractTechStack(j.jobTitle + ' ' + (j.jobDescription || '')),
+          description: this.stripHtml(j.jobDescription || j.jobTitle),
+          requirements: Array.isArray(j.jobIndustry) ? j.jobIndustry : [],
+          preferredSkills: [],
+          applicationUrl: j.url,
+          canonicalUrl: j.url,
+          source: 'Jobicy (Remote API)',
+          sourceJobId: String(j.id || ''),
+          sourceUrl: j.url,
+        });
+      }
+    } catch (err: any) {
+      console.warn('Jobicy error:', err.message);
+    }
+    return results;
+  }
+
+  /**
+   * Checks if an external URL is reachable and not returning 404 / 410 / NXDOMAIN
+   */
+  private static async isUrlAlive(url: string): Promise<boolean> {
+    if (!url || !url.startsWith('http')) return false;
+    try {
+      const res = await fetch(url, {
+        method: 'HEAD',
+        headers: {
+          'User-Agent':
+            'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+        },
+        redirect: 'follow',
+        signal: AbortSignal.timeout(4000),
+      });
+      return res.status !== 404 && res.status !== 410;
+    } catch {
+      // Failed DNS resolution or timeout
+      return false;
+    }
   }
 
   /**
@@ -440,11 +574,56 @@ export class DiscoveryService {
   }
 
   private static stripHtml(html: string): string {
-    return html
-      .replace(/<style[^>]*>[\s\S]*?<\/style>/gi, '')
-      .replace(/<script[^>]*>[\s\S]*?<\/script>/gi, '')
-      .replace(/<[^>]+>/g, ' ')
-      .replace(/\s+/g, ' ')
+    if (!html) return '';
+    let text = html;
+
+    const decodeEntities = (str: string) =>
+      str
+        .replace(/&#(\d+);/g, (_, dec) => String.fromCharCode(Number(dec)))
+        .replace(/&#x([0-9a-fA-F]+);/gi, (_, hex) => String.fromCharCode(parseInt(hex, 16)))
+        .replace(/&quot;/gi, '"')
+        .replace(/&apos;/gi, "'")
+        .replace(/&#39;/g, "'")
+        .replace(/&lt;/gi, '<')
+        .replace(/&gt;/gi, '>')
+        .replace(/&amp;/gi, '&')
+        .replace(/&nbsp;/gi, ' ')
+        .replace(/&bull;/gi, '•')
+        .replace(/&middot;/gi, '·')
+        .replace(/&mdash;/gi, '—')
+        .replace(/&ndash;/gi, '–')
+        .replace(/&reg;/gi, '®')
+        .replace(/&trade;/gi, '™')
+        .replace(/&copy;/gi, '©');
+
+    // Decode in two passes to handle double-encoded entities like &amp;lt;
+    text = decodeEntities(text);
+    text = decodeEntities(text);
+
+    // Remove script and style elements
+    text = text.replace(/<style[^>]*>[\s\S]*?<\/style>/gi, '');
+    text = text.replace(/<script[^>]*>[\s\S]*?<\/script>/gi, '');
+
+    // Convert block elements to clean line breaks
+    text = text
+      .replace(/<br\s*\/?>/gi, '\n')
+      .replace(/<\/p>/gi, '\n\n')
+      .replace(/<\/li>/gi, '\n')
+      .replace(/<li[^>]*>/gi, '• ')
+      .replace(/<\/(h[1-6]|div|tr)>/gi, '\n\n')
+      .replace(/<hr\s*\/?>/gi, '\n---\n');
+
+    // Remove all remaining HTML tags
+    text = text.replace(/<[^>]+>/g, ' ');
+
+    // Final entity decode
+    text = decodeEntities(text);
+
+    return text
+      .split('\n')
+      .map((l) => l.replace(/[ \t]+/g, ' ').trim())
+      .join('\n')
+      .replace(/\n{3,}/g, '\n\n')
       .trim();
   }
 }

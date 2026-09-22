@@ -45,6 +45,7 @@ export default function DashboardPage() {
   const [applyingJobId, setApplyingJobId] = useState<string | null>(null);
   const [preparingJobId, setPreparingJobId] = useState<string | null>(null);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
   // Search Bar State
   const [searchKeyword, setSearchKeyword] = useState('');
@@ -53,6 +54,7 @@ export default function DashboardPage() {
 
   const loadData = async () => {
     setLoading(true);
+    setError(null);
     try {
       const data = await api.getDashboard();
       setStats(data.stats);
@@ -62,6 +64,7 @@ export default function DashboardPage() {
       }
     } catch (err: any) {
       console.error('Failed to load dashboard:', err);
+      setError(err.message || 'Failed to load dashboard data');
     } finally {
       setLoading(false);
     }
@@ -160,6 +163,22 @@ export default function DashboardPage() {
         <div className="fixed bottom-6 right-6 z-50 flex items-center gap-2 rounded-xl bg-[#00b074] px-5 py-3.5 text-sm font-bold text-white shadow-xl border border-emerald-400 animate-fadeIn">
           <ShieldCheck className="h-5 w-5" />
           <span>{toastMessage}</span>
+        </div>
+      )}
+
+      {/* Error Banner */}
+      {error && (
+        <div className="flex items-center justify-between gap-3 rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-800 shadow-xs">
+          <div className="flex items-center gap-2">
+            <AlertTriangle className="h-5 w-5 text-red-500 shrink-0" />
+            <span><strong>Connection issue:</strong> {error}</span>
+          </div>
+          <button
+            onClick={loadData}
+            className="rounded-lg bg-red-600 px-3 py-1.5 text-xs font-bold text-white hover:bg-red-700 transition"
+          >
+            Retry
+          </button>
         </div>
       )}
 
@@ -380,45 +399,45 @@ export default function DashboardPage() {
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-7">
           <MetricCard
             label="Discovered Today"
-            value={stats?.jobsDiscoveredToday ?? '—'}
+            value={loading ? '...' : (stats?.jobsDiscoveredToday ?? 0)}
             icon={Briefcase}
             variant="blue"
           />
           <MetricCard
             label="Fresh (<24h)"
-            value={stats?.freshJobs24h ?? '—'}
+            value={loading ? '...' : (stats?.freshJobs24h ?? 0)}
             subtext="Strict Time"
             icon={Flame}
             variant="amber"
           />
           <MetricCard
             label="Strong Matches"
-            value={stats?.strongMatchesCount ?? '—'}
-            subtext="Score ≥ 85%"
+            value={loading ? '...' : (stats?.strongMatchesCount ?? 0)}
+            subtext="Score ≥ 75%"
             icon={Sparkles}
             variant="emerald"
           />
           <MetricCard
             label="Ready to Apply"
-            value={stats?.applicationsReady ?? '—'}
+            value={loading ? '...' : (stats?.applicationsReady ?? 0)}
             icon={Clock}
             variant="blue"
           />
           <MetricCard
             label="Applications Sent"
-            value={stats?.applicationsSubmitted ?? '—'}
+            value={loading ? '...' : (stats?.applicationsSubmitted ?? 0)}
             icon={Send}
             variant="teal"
           />
           <MetricCard
             label="Interviews"
-            value={stats?.interviewsCount ?? '—'}
+            value={loading ? '...' : (stats?.interviewsCount ?? 0)}
             icon={Calendar}
             variant="emerald"
           />
           <MetricCard
             label="Rejections"
-            value={stats?.rejectedCount ?? '—'}
+            value={loading ? '...' : (stats?.rejectedCount ?? 0)}
             icon={XCircle}
             variant="default"
           />
@@ -446,7 +465,22 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        {qualifiedOpportunities.length === 0 ? (
+        {loading ? (
+          <div className="grid grid-cols-1 gap-4">
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="rounded-xl border border-slate-200 bg-white p-5 space-y-4 shadow-xs animate-pulse">
+                <div className="flex justify-between items-center">
+                  <div className="space-y-2">
+                    <div className="h-5 w-64 bg-slate-200 rounded"></div>
+                    <div className="h-3 w-40 bg-slate-100 rounded"></div>
+                  </div>
+                  <div className="h-8 w-28 bg-slate-200 rounded"></div>
+                </div>
+                <div className="h-4 w-full bg-slate-100 rounded"></div>
+              </div>
+            ))}
+          </div>
+        ) : qualifiedOpportunities.length === 0 ? (
           <div className="rounded-xl border border-slate-200 bg-white p-8 text-center space-y-3 shadow-xs">
             <Sparkles className="h-10 w-10 text-slate-400 mx-auto" />
             <p className="text-sm font-bold text-slate-700">No qualified opportunities surfaced yet.</p>
@@ -459,7 +493,7 @@ export default function DashboardPage() {
               className="inline-flex items-center gap-2 rounded-lg bg-[#00b074] hover:bg-[#009a65] px-4 py-2 text-xs font-bold text-white shadow-xs"
             >
               <Zap className="h-3.5 w-3.5" />
-              Run Discovery Now
+              <span>Run Discovery Now</span>
             </button>
           </div>
         ) : (
@@ -653,7 +687,17 @@ export default function DashboardPage() {
           </Link>
         </div>
 
-        {strongestMatches.length === 0 ? (
+        {loading ? (
+          <div className="grid grid-cols-1 gap-4">
+            {[1, 2].map((i) => (
+              <div key={i} className="rounded-xl border border-slate-200 bg-white p-6 shadow-xs animate-pulse space-y-3">
+                <div className="h-5 w-48 bg-slate-200 rounded"></div>
+                <div className="h-3 w-32 bg-slate-100 rounded"></div>
+                <div className="h-10 w-full bg-slate-100 rounded"></div>
+              </div>
+            ))}
+          </div>
+        ) : strongestMatches.length === 0 ? (
           <div className="rounded-xl border border-slate-200 bg-white p-8 text-center shadow-xs">
             <p className="text-sm font-medium text-slate-500">No active job matches found in this view.</p>
           </div>

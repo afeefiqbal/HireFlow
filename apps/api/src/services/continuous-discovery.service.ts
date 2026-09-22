@@ -132,16 +132,28 @@ export class ContinuousDiscoveryService {
    * Retrieves all qualified opportunities and computes their exact Opportunity Tier.
    */
   static async getQualifiedOpportunities(): Promise<QualifiedOpportunity[]> {
-    const jobs = await prisma.job.findMany({
-      include: {
-        matches: { orderBy: { createdAt: 'desc' }, take: 1 },
-        resumeVersions: { orderBy: { createdAt: 'desc' }, take: 1 },
-        coverLetters: { orderBy: { createdAt: 'desc' }, take: 1 },
-        screeningQuestions: true,
-        application: true,
-      },
-      orderBy: { discoveredAt: 'desc' },
-    });
+    const [jobs, config, todayCount] = await Promise.all([
+      prisma.job.findMany({
+        where: {
+          roleFamily: { not: 'OTHER' },
+          matches: {
+            some: {
+              overallMatch: { gte: 70 },
+            },
+          },
+        },
+        include: {
+          matches: { orderBy: { overallMatch: 'desc' }, take: 1 },
+          resumeVersions: { orderBy: { createdAt: 'desc' }, take: 1 },
+          coverLetters: { orderBy: { createdAt: 'desc' }, take: 1 },
+          screeningQuestions: true,
+          application: true,
+        },
+        orderBy: { discoveredAt: 'desc' },
+      }),
+      AutoApplyService.getConfig(),
+      AutoApplyService.getTodayAutoApplyCount(),
+    ]);
 
     const results: QualifiedOpportunity[] = [];
 
@@ -180,7 +192,7 @@ export class ContinuousDiscoveryService {
         tierReason = 'Auto-preparation threshold met (score >= 75%)';
       }
 
-      const eligibility = await AutoApplyService.evaluateEligibility(job.id);
+      const eligibility = AutoApplyService.evaluateEligibilityWithJob(job, config, todayCount);
 
       results.push({
         job: {

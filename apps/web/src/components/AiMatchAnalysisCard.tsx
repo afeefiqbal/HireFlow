@@ -55,17 +55,22 @@ export const AiMatchAnalysisCard: React.FC<AiMatchAnalysisCardProps> = ({ match 
   const locationScore = match.location_match ?? (match as any).locationMatch ?? 0;
   const visaCompat: string = match.visa_compatibility || (match as any).visaCompatibility || 'unknown';
 
-  const strongMatches: string[] = Array.isArray(match.strong_matches)
-    ? match.strong_matches
-    : Array.isArray((match as any).strongMatches)
-    ? (match as any).strongMatches
-    : [];
-
   const missingRequirements: string[] = Array.isArray(match.missing_requirements)
     ? match.missing_requirements
     : Array.isArray((match as any).missingRequirements)
     ? (match as any).missingRequirements
     : [];
+
+  const rawStrong: string[] = Array.isArray(match.strong_matches)
+    ? match.strong_matches
+    : Array.isArray((match as any).strongMatches)
+    ? (match as any).strongMatches
+    : [];
+
+  // Mutual exclusion guard: A skill cannot be both a strong match and a missing requirement
+  const strongMatches: string[] = rawStrong.filter(
+    (tech) => !missingRequirements.some((m) => m.toLowerCase().trim() === tech.toLowerCase().trim())
+  );
 
   const concerns: string[] = Array.isArray(match.concerns) ? match.concerns : [];
 

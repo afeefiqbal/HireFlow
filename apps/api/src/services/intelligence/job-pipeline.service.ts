@@ -244,7 +244,9 @@ export class JobPipelineService {
             : visaReloc.visaSponsorship === 'NOT_AVAILABLE'
             ? 'incompatible'
             : 'unknown',
-        strongMatches: techEvidence.filter((t) => t.status === 'REQUIRED').map((t) => t.technology),
+        strongMatches: matchingResult.whyThisJob.technologies
+          .filter((t) => t.status === 'DIRECT' || t.status === 'PARTIAL')
+          .map((t) => t.technology),
         missingRequirements: matchingResult.whyThisJob.technologies
           .filter((t) => t.status === 'NOT_VERIFIED')
           .map((t) => t.technology),

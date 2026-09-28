@@ -1,5 +1,5 @@
 import { JobSourceAdapter, NormalizedJobResult, RawJobPayload } from './job-source.interface';
-import { JobAgeStatus, VisaStatus } from '@ai-job-agent/shared';
+import { JobAgeStatus } from '@ai-job-agent/shared';
 
 export class GreenhouseAdapter implements JobSourceAdapter {
   sourceName = 'Greenhouse Public Board';

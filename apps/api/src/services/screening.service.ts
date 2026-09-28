@@ -1,8 +1,6 @@
-import { PrismaClient } from '@prisma/client';
+import { prisma } from '../lib/prisma';
 import { ScreeningQuestionItem } from '@ai-job-agent/shared';
 import { AiService } from '../ai/ai.service';
-
-const prisma = new PrismaClient();
 
 export class ScreeningService {
   /**

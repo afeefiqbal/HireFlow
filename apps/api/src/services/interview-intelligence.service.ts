@@ -1,4 +1,4 @@
-import { PrismaClient } from '@prisma/client';
+import { prisma } from '../lib/prisma';
 import {
   CompanyIntelligenceBrief,
   TechnologyRevisionTopic,
@@ -11,8 +11,6 @@ import {
 import { AiService } from '../ai/ai.service';
 import { CandidateContextBuilder } from '../ai/candidate-context.builder';
 import Groq from 'groq-sdk';
-
-const prisma = new PrismaClient();
 
 export class InterviewIntelligenceService {
   private static groqClient: Groq | null = null;

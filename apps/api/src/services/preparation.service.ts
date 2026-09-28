@@ -1,4 +1,4 @@
-import { PrismaClient } from '@prisma/client';
+import { prisma } from '../lib/prisma';
 import {
   ApplicationPreparationSummary,
   ApplicationQueueGroup,
@@ -8,8 +8,6 @@ import {
   AtsAnalysisResult,
   Job,
 } from '@ai-job-agent/shared';
-
-const prisma = new PrismaClient();
 
 export class PreparationService {
   /**

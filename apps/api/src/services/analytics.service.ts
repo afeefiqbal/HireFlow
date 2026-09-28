@@ -10,7 +10,9 @@
  * - Cross-tabulated source, role family, technology, remote, visa, and freshness breakdowns
  */
 
-import { PrismaClient, ApplicationStatus } from '@prisma/client';
+import { ApplicationStatus } from '@prisma/client';
+import { prisma } from '../lib/prisma';
+import { apiCache, CACHE_TAGS } from '../lib/cache';
 import {
   ApplicationAnalytics,
   FunnelCounts,
@@ -18,8 +20,6 @@ import {
   ApplicationTimeMetrics,
   BreakdownItem,
 } from '@ai-job-agent/shared';
-
-const prisma = new PrismaClient();
 
 export class AnalyticsService {
   /**
@@ -75,15 +75,17 @@ export class AnalyticsService {
     customEnd?: string | Date
   ): Promise<ApplicationAnalytics> {
     const { startDate, endDate } = this.getDateBoundaries(range, customStart, customEnd);
+    const cacheKey = `analytics_${range}_${startDate?.toISOString() || 'none'}_${endDate?.toISOString() || 'none'}`;
 
-    // 1. Fetch Discovered canonical jobs in date range
-    const jobDateFilter = startDate && endDate ? { discoveredAt: { gte: startDate, lte: endDate } } : {};
-    const discoveredCount = await prisma.job.count({
-      where: jobDateFilter,
-    });
+    return apiCache.getOrCompute(cacheKey, 30, async () => {
+      // 1. Fetch Discovered canonical jobs in date range
+      const jobDateFilter = startDate && endDate ? { discoveredAt: { gte: startDate, lte: endDate } } : {};
+      const discoveredCount = await prisma.job.count({
+        where: jobDateFilter,
+      });
 
-    // 2. Fetch all Applications with job details, notes, and events
-    const applications = await prisma.application.findMany({
+      // 2. Fetch all Applications with job details, notes, and events
+      const applications = await prisma.application.findMany({
       include: {
         job: true,
         events: { orderBy: { createdAt: 'asc' } },
@@ -195,6 +197,7 @@ export class AnalyticsService {
       timeMetrics,
       breakdowns,
     };
+    }, [CACHE_TAGS.APPLICATIONS]);
   }
 
   private static calculateConversion(numerator: number, denominator: number) {

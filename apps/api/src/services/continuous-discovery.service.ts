@@ -6,7 +6,8 @@
  * qualifying applications, and executes verified auto-apply when all gates pass.
  */
 
-import { PrismaClient } from '@prisma/client';
+import { prisma } from '../lib/prisma';
+import { apiCache, CACHE_TAGS } from '../lib/cache';
 import {
   OpportunityTier,
   QualifiedOpportunity,
@@ -16,8 +17,6 @@ import { DiscoveryService } from './discovery.service';
 import { MatchingService } from './matching.service';
 import { PreparationService } from './preparation.service';
 import { AutoApplyService } from './auto-apply/auto-apply.service';
-
-const prisma = new PrismaClient();
 
 export class ContinuousDiscoveryService {
   private static workerInterval: NodeJS.Timeout | null = null;
@@ -114,6 +113,9 @@ export class ContinuousDiscoveryService {
 
       console.log(`✅ [ContinuousDiscovery] Cycle completed. New: ${discoveryResult.newSaved}, Analyzed: ${analyzedCount}, Qualified: ${qualified.length}, Auto-Applied: ${autoAppliedCount}`);
 
+      apiCache.invalidateTag(CACHE_TAGS.OPPORTUNITIES);
+      apiCache.invalidateTag(CACHE_TAGS.DASHBOARD);
+
       return {
         scanned: discoveryResult.totalScanned,
         newJobs: discoveryResult.newSaved,
@@ -132,28 +134,29 @@ export class ContinuousDiscoveryService {
    * Retrieves all qualified opportunities and computes their exact Opportunity Tier.
    */
   static async getQualifiedOpportunities(): Promise<QualifiedOpportunity[]> {
-    const [jobs, config, todayCount] = await Promise.all([
-      prisma.job.findMany({
-        where: {
-          roleFamily: { not: 'OTHER' },
-          matches: {
-            some: {
-              overallMatch: { gte: 70 },
+    return apiCache.getOrCompute('qualified_opportunities_tier', 60, async () => {
+      const [jobs, config, todayCount] = await Promise.all([
+        prisma.job.findMany({
+          where: {
+            roleFamily: { not: 'OTHER' },
+            matches: {
+              some: {
+                overallMatch: { gte: 70 },
+              },
             },
           },
-        },
-        include: {
-          matches: { orderBy: { overallMatch: 'desc' }, take: 1 },
-          resumeVersions: { orderBy: { createdAt: 'desc' }, take: 1 },
-          coverLetters: { orderBy: { createdAt: 'desc' }, take: 1 },
-          screeningQuestions: true,
-          application: true,
-        },
-        orderBy: { discoveredAt: 'desc' },
-      }),
-      AutoApplyService.getConfig(),
-      AutoApplyService.getTodayAutoApplyCount(),
-    ]);
+          include: {
+            matches: { orderBy: { overallMatch: 'desc' }, take: 1 },
+            resumeVersions: { orderBy: { createdAt: 'desc' }, take: 1 },
+            coverLetters: { orderBy: { createdAt: 'desc' }, take: 1 },
+            screeningQuestions: true,
+            application: true,
+          },
+          orderBy: { discoveredAt: 'desc' },
+        }),
+        AutoApplyService.getConfig(),
+        AutoApplyService.getTodayAutoApplyCount(),
+      ]);
 
     const results: QualifiedOpportunity[] = [];
 
@@ -246,6 +249,7 @@ export class ContinuousDiscoveryService {
 
     // Sort by match score descending, then by tier
     return results.sort((a, b) => b.matchScore - a.matchScore);
+    }, [CACHE_TAGS.OPPORTUNITIES]);
   }
 
   /**

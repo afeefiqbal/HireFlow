@@ -1,7 +1,6 @@
 import { Request, Response } from 'express';
-import { PrismaClient } from '@prisma/client';
-
-const prisma = new PrismaClient();
+import { prisma } from '../lib/prisma';
+import { apiCache, CACHE_TAGS } from '../lib/cache';
 
 const DEFAULT_COMMON_ANSWERS = {
   visaSponsorship: 'Yes, I will require visa sponsorship (EU Blue Card / work visa for Germany & EU).',
@@ -14,34 +13,30 @@ const DEFAULT_COMMON_ANSWERS = {
 export class ProfileController {
   static async getProfile(req: Request, res: Response) {
     try {
-      const profile = await prisma.candidateProfile.findFirst({
-        include: {
-          user: true,
-          experiences: {
-            orderBy: { orderIndex: 'asc' },
+      const formatted = await apiCache.getOrCompute('candidate_profile_formatted', 300, async () => {
+        const profile = await prisma.candidateProfile.findFirst({
+          include: {
+            user: true,
+            experiences: {
+              orderBy: { orderIndex: 'asc' },
+            },
+            skills: {
+              orderBy: [{ category: 'asc' }, { name: 'asc' }],
+            },
+            projects: {
+              orderBy: { orderIndex: 'asc' },
+            },
           },
-          skills: {
-            orderBy: [{ category: 'asc' }, { name: 'asc' }],
-          },
-          projects: {
-            orderBy: { orderIndex: 'asc' },
-          },
-        },
-      });
+        });
 
-      if (!profile) {
-        return res.status(404).json({ success: false, message: 'Candidate profile not found' });
-      }
+        if (!profile) return null;
 
-      // Group skills for frontend convenience
-      const primarySkills = profile.skills.filter((s) => s.category === 'primary').map((s) => s.name);
-      const additionalSkills = profile.skills.filter((s) => s.category === 'additional').map((s) => s.name);
+        // Group skills for frontend convenience
+        const primarySkills = profile.skills.filter((s) => s.category === 'primary').map((s) => s.name);
+        const additionalSkills = profile.skills.filter((s) => s.category === 'additional').map((s) => s.name);
+        const commonAnswers = (profile.commonAnswers as any) || DEFAULT_COMMON_ANSWERS;
 
-      const commonAnswers = (profile.commonAnswers as any) || DEFAULT_COMMON_ANSWERS;
-
-      return res.json({
-        success: true,
-        data: {
+        return {
           ...profile,
           email: profile.user?.email || null,
           fullName: profile.fullName || profile.user?.fullName || 'Afeef Iqbal',
@@ -53,7 +48,16 @@ export class ProfileController {
           commonAnswers,
           primarySkills,
           additionalSkills,
-        },
+        };
+      }, [CACHE_TAGS.PROFILE]);
+
+      if (!formatted) {
+        return res.status(404).json({ success: false, message: 'Candidate profile not found' });
+      }
+
+      return res.json({
+        success: true,
+        data: formatted,
       });
     } catch (error: any) {
       console.error('Error fetching profile:', error);
@@ -82,6 +86,8 @@ export class ProfileController {
         },
       });
 
+      apiCache.invalidateTag(CACHE_TAGS.PROFILE);
+
       return res.json({
         success: true,
         data: updated,
@@ -107,6 +113,8 @@ export class ProfileController {
           commonAnswers: commonAnswers || {},
         },
       });
+
+      apiCache.invalidateTag(CACHE_TAGS.PROFILE);
 
       return res.json({
         success: true,
@@ -151,6 +159,8 @@ export class ProfileController {
       const updated = await ProfileIngestionService.syncToCandidateProfile(preview, {
         overwrite: Boolean(overwrite),
       });
+
+      apiCache.invalidateTag(CACHE_TAGS.PROFILE);
 
       return res.json({
         success: true,
@@ -199,6 +209,8 @@ export class ProfileController {
         where: { id: profile.id },
         data: { autoApplyConfig: newConfig as any },
       });
+
+      apiCache.invalidateTag(CACHE_TAGS.PROFILE);
 
       return res.json({
         success: true,

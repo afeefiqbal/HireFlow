@@ -1,8 +1,6 @@
 import { Request, Response } from 'express';
-import { PrismaClient } from '@prisma/client';
+import { prisma } from '../lib/prisma';
 import { MatchingService } from '../services/matching.service';
-
-const prisma = new PrismaClient();
 
 export class MatchesController {
   static async analyzeJob(req: Request, res: Response) {

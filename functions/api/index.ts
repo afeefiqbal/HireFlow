@@ -17,6 +17,17 @@ const pool = new Pool({
   max: 10,
 });
 
+// High-speed in-memory cache for Neon Function
+const cache = new Map<string, { data: any; expires: number }>();
+function getCached(key: string) {
+  const item = cache.get(key);
+  if (item && Date.now() < item.expires) return item.data;
+  return null;
+}
+function setCached(key: string, data: any, ttlSec = 30) {
+  cache.set(key, { data, expires: Date.now() + ttlSec * 1000 });
+}
+
 function normalizeJob(r: any) {
   if (!r) return null;
   const techStack = Array.isArray(r.tech_stack)
@@ -199,6 +210,9 @@ app.get("/api/health", (c) => c.json({ status: "healthy", service: "hireflow-api
 // ==========================================
 app.get("/api/dashboard/stats", async (c) => {
   try {
+    const cached = getCached("dashboard_stats");
+    if (cached) return c.json({ success: true, data: cached });
+
     const freshJobsRes = await pool.query("SELECT count(*) as count FROM jobs WHERE age_status = 'FRESH'");
     const totalJobsRes = await pool.query("SELECT count(*) as count FROM jobs");
     const strongMatchesRes = await pool.query("SELECT count(*) as count FROM job_matches WHERE overall_match >= 85");
@@ -217,22 +231,25 @@ app.get("/api/dashboard/stats", async (c) => {
       LIMIT 5
     `);
 
+    const data = {
+      stats: {
+        jobsDiscoveredToday: parseInt(totalJobsRes.rows[0]?.count || "0", 10),
+        freshJobs24h: parseInt(freshJobsRes.rows[0]?.count || "0", 10),
+        strongMatches: parseInt(strongMatchesRes.rows[0]?.count || "0", 10),
+        applicationsReady: parseInt(applicationsReadyRes.rows[0]?.count || "0", 10),
+        applicationsSubmitted: parseInt(applicationsSubmittedRes.rows[0]?.count || "0", 10),
+        interviewsCount: parseInt(interviewsCountRes.rows[0]?.count || "0", 10),
+        rejectedCount: parseInt(rejectedCountRes.rows[0]?.count || "0", 10),
+        totalActiveApplications: parseInt(totalActiveRes.rows[0]?.count || "0", 10),
+      },
+      strongestMatches: strongestMatchesRes.rows.map(normalizeJob),
+      qualifiedOpportunities: [],
+    };
+
+    setCached("dashboard_stats", data, 30);
     return c.json({
       success: true,
-      data: {
-        stats: {
-          jobsDiscoveredToday: parseInt(totalJobsRes.rows[0]?.count || "0", 10),
-          freshJobs24h: parseInt(freshJobsRes.rows[0]?.count || "0", 10),
-          strongMatches: parseInt(strongMatchesRes.rows[0]?.count || "0", 10),
-          applicationsReady: parseInt(applicationsReadyRes.rows[0]?.count || "0", 10),
-          applicationsSubmitted: parseInt(applicationsSubmittedRes.rows[0]?.count || "0", 10),
-          interviewsCount: parseInt(interviewsCountRes.rows[0]?.count || "0", 10),
-          rejectedCount: parseInt(rejectedCountRes.rows[0]?.count || "0", 10),
-          totalActiveApplications: parseInt(totalActiveRes.rows[0]?.count || "0", 10),
-        },
-        strongestMatches: strongestMatchesRes.rows.map(normalizeJob),
-        qualifiedOpportunities: [],
-      },
+      data,
     });
   } catch (err: any) {
     return c.json({ success: false, message: err.message }, 500);
@@ -981,6 +998,9 @@ app.get("/api/resumes/:id/ats-analysis", async (c) => {
 // ==========================================
 app.get("/api/profile", async (c) => {
   try {
+    const cached = getCached("profile");
+    if (cached) return c.json({ success: true, data: cached });
+
     const pRes = await pool.query("SELECT * FROM profiles LIMIT 1");
     if (pRes.rows.length === 0) {
       return c.json({ success: false, message: "Profile not found" }, 404);
@@ -993,35 +1013,38 @@ app.get("/api/profile", async (c) => {
     const primarySkills = skillsRes.rows.filter((s) => s.category === "primary").map((s) => s.name);
     const additionalSkills = skillsRes.rows.filter((s) => s.category === "additional").map((s) => s.name);
 
+    const profileData = {
+      id: profile.id,
+      fullName: profile.full_name || "Afeef Iqbal",
+      headline: profile.headline,
+      bio: profile.bio,
+      location: profile.location || "Alappuzha, Kerala, India",
+      phone: profile.phone,
+      linkedin: profile.linkedin || "https://linkedin.com/in/afeef-iqbal",
+      github: profile.github || "https://github.com/afeefiqbal",
+      portfolio: profile.portfolio,
+      targetRoles: profile.target_roles || ["Senior Full-Stack Engineer", "AI Solutions Engineer", "Cloud Solutions Architect"],
+      targetLocations: profile.target_locations || ["Germany", "Berlin", "Munich", "Remote (EU / Global)"],
+      remotePreference: profile.remote_preference || "REMOTE_ONLY",
+      relocationPreference: profile.relocation_preference || "GERMANY_EU",
+      commonAnswers: profile.common_answers || {
+        visaSponsorship: "Yes, I will require visa sponsorship (EU Blue Card / work visa for Germany & EU).",
+        workAuthorization: "Indian citizen. Requires visa sponsorship / EU Blue Card for legal authorization in Europe.",
+        noticePeriod: "30 days / 1 month notice period.",
+        expectedSalary: "€75,000 – €85,000 gross per year (negotiable based on location & equity).",
+        relocation: "Yes, fully prepared and eager to relocate to Germany, Netherlands, or across the EU.",
+      },
+      primarySkills,
+      additionalSkills,
+      experiences: expRes.rows,
+      skills: skillsRes.rows,
+      projects: projRes.rows,
+    };
+
+    setCached("profile", profileData, 300);
     return c.json({
       success: true,
-      data: {
-        id: profile.id,
-        fullName: profile.full_name || "Afeef Iqbal",
-        headline: profile.headline,
-        bio: profile.bio,
-        location: profile.location || "Alappuzha, Kerala, India",
-        phone: profile.phone,
-        linkedin: profile.linkedin || "https://linkedin.com/in/afeef-iqbal",
-        github: profile.github || "https://github.com/afeefiqbal",
-        portfolio: profile.portfolio,
-        targetRoles: profile.target_roles || ["Senior Full-Stack Engineer", "AI Solutions Engineer", "Cloud Solutions Architect"],
-        targetLocations: profile.target_locations || ["Germany", "Berlin", "Munich", "Remote (EU / Global)"],
-        remotePreference: profile.remote_preference || "REMOTE_ONLY",
-        relocationPreference: profile.relocation_preference || "GERMANY_EU",
-        commonAnswers: profile.common_answers || {
-          visaSponsorship: "Yes, I will require visa sponsorship (EU Blue Card / work visa for Germany & EU).",
-          workAuthorization: "Indian citizen. Requires visa sponsorship / EU Blue Card for legal authorization in Europe.",
-          noticePeriod: "30 days / 1 month notice period.",
-          expectedSalary: "€75,000 – €85,000 gross per year (negotiable based on location & equity).",
-          relocation: "Yes, fully prepared and eager to relocate to Germany, Netherlands, or across the EU.",
-        },
-        primarySkills,
-        additionalSkills,
-        experiences: expRes.rows,
-        skills: skillsRes.rows,
-        projects: projRes.rows,
-      },
+      data: profileData,
     });
   } catch (err: any) {
     return c.json({ success: false, message: err.message }, 500);

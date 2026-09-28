@@ -5,7 +5,7 @@
  * verified receipt tracking, and safe status transitions to APPLIED.
  */
 
-import { PrismaClient } from '@prisma/client';
+import { prisma } from '../../lib/prisma';
 import {
   AutoApplyEligibilityResult,
   SubmissionMechanism,
@@ -18,8 +18,6 @@ import { LeverSubmissionAdapter } from './adapters/lever-submission.adapter';
 import { GreenhouseSubmissionAdapter } from './adapters/greenhouse-submission.adapter';
 import { ManualFallbackAdapter } from './adapters/manual-fallback.adapter';
 import { ApplicationService } from '../application.service';
-
-const prisma = new PrismaClient();
 
 export class AutoApplyService {
   private static activeSubmissions = new Set<string>();

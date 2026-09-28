@@ -5,11 +5,9 @@
  * and safely updates PostgreSQL without inventing candidate facts.
  */
 
-import { PrismaClient } from '@prisma/client';
+import { prisma } from '../lib/prisma';
 import { ParsedResumePreview } from '@ai-job-agent/shared';
 import Groq from 'groq-sdk';
-
-const prisma = new PrismaClient();
 
 export class ProfileIngestionService {
   /**

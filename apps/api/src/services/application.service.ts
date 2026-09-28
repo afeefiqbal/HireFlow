@@ -12,15 +12,15 @@
  * 8. Chronological Activity Timeline (Phase 12 & 26)
  */
 
-import { PrismaClient, ApplicationStatus } from '@prisma/client';
+import { ApplicationStatus } from '@prisma/client';
+import { prisma } from '../lib/prisma';
+import { apiCache, CACHE_TAGS } from '../lib/cache';
 import {
   ApplicationDetailRecord,
   ApplicationHealthChecklist,
   ApplicationTimelineItem,
   ApplicationEventItem,
 } from '@ai-job-agent/shared';
-
-const prisma = new PrismaClient();
 
 export class ApplicationService {
   /**
@@ -62,25 +62,27 @@ export class ApplicationService {
   }
 
   static async listApplications() {
-    return prisma.application.findMany({
-      include: {
-        job: {
-          include: {
-            matches: {
-              orderBy: { createdAt: 'desc' },
-              take: 1,
+    return apiCache.getOrCompute('applications_list', 20, async () => {
+      return prisma.application.findMany({
+        include: {
+          job: {
+            include: {
+              matches: {
+                orderBy: { createdAt: 'desc' },
+                take: 1,
+              },
             },
           },
+          events: {
+            orderBy: { createdAt: 'desc' },
+          },
+          notesList: {
+            orderBy: { createdAt: 'desc' },
+          },
         },
-        events: {
-          orderBy: { createdAt: 'desc' },
-        },
-        notesList: {
-          orderBy: { createdAt: 'desc' },
-        },
-      },
-      orderBy: { lastActivityAt: 'desc' },
-    });
+        orderBy: { lastActivityAt: 'desc' },
+      });
+    }, [CACHE_TAGS.APPLICATIONS]);
   }
 
   static async getApplicationByJobId(jobId: string) {
@@ -273,6 +275,9 @@ export class ApplicationService {
       }
     }
 
+    apiCache.invalidateTag(CACHE_TAGS.APPLICATIONS);
+    apiCache.invalidateTag(CACHE_TAGS.DASHBOARD);
+
     return applicationRecord;
   }
 
@@ -311,6 +316,8 @@ export class ApplicationService {
       },
     });
 
+    apiCache.invalidateTag(CACHE_TAGS.APPLICATIONS);
+
     return note;
   }
 
@@ -344,6 +351,8 @@ export class ApplicationService {
         createdAt: now,
       },
     });
+
+    apiCache.invalidateTag(CACHE_TAGS.APPLICATIONS);
 
     return updated;
   }

@@ -1,12 +1,14 @@
 import { Request, Response } from 'express';
-import { PrismaClient, Prisma } from '@prisma/client';
+import { Prisma } from '@prisma/client';
+import { prisma } from '../lib/prisma';
+import { apiCache, CACHE_TAGS } from '../lib/cache';
 import { JobFilterService } from '../services/job-filter.service';
-
-const prisma = new PrismaClient();
 
 export class JobsController {
   static async getJobs(req: Request, res: Response) {
     try {
+      const cacheKey = 'jobs_list_' + JSON.stringify(req.query);
+      const data = await apiCache.getOrCompute(cacheKey, 20, async () => {
       const {
         search,
         freshOnly = 'false',
@@ -194,15 +196,21 @@ export class JobsController {
         application: job.application,
       }));
 
+        return {
+          jobs: formattedJobs,
+          meta: {
+            total,
+            page: pageNum,
+            limit: take,
+            totalPages: Math.ceil(total / take),
+          },
+        };
+      }, [CACHE_TAGS.JOBS]);
+
       return res.json({
         success: true,
-        data: formattedJobs,
-        meta: {
-          total,
-          page: pageNum,
-          limit: take,
-          totalPages: Math.ceil(total / take),
-        },
+        data: data.jobs,
+        meta: data.meta,
       });
     } catch (error: any) {
       console.error('Error fetching jobs:', error);

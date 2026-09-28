@@ -4,7 +4,8 @@
  * Ingest -> Normalize -> Deduplicate -> Freshness -> Role/Seniority -> Tech -> Location -> Visa -> Matching -> Persist
  */
 
-import { PrismaClient, VisaStatus, JobAgeStatus } from '@prisma/client';
+import { VisaStatus, JobAgeStatus } from '@prisma/client';
+import { prisma } from '../../lib/prisma';
 import { CandidateProfile, FactConfidence, VisaSponsorship } from '@ai-job-agent/shared';
 import { JobNormalizer } from './job-normalizer';
 import { FreshnessEngine } from './freshness-engine';
@@ -14,8 +15,6 @@ import { VisaRelocationExtractor } from './visa-relocation-extractor';
 import { LocationRemoteClassifier } from './location-remote-classifier';
 import { JobDeduplicator } from './job-deduplicator';
 import { MatchingGate } from './matching-gate';
-
-const prisma = new PrismaClient();
 
 export interface RawJobInput {
   title: string;

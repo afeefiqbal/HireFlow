@@ -1,4 +1,6 @@
-import { PrismaClient, InterviewStatus, InterviewRoundType, InterviewRoundStatus, QuestionCategory, QuestionSource, EvidenceAttribution } from '@prisma/client';
+import { InterviewStatus, InterviewRoundType, InterviewRoundStatus, QuestionCategory, QuestionSource, EvidenceAttribution } from '@prisma/client';
+import { prisma } from '../lib/prisma';
+import { apiCache, CACHE_TAGS } from '../lib/cache';
 import {
   InterviewRecord,
   InterviewRoundRecord,
@@ -8,8 +10,6 @@ import {
   InterviewDebriefRecord,
 } from '@ai-job-agent/shared';
 import { InterviewIntelligenceService } from './interview-intelligence.service';
-
-const prisma = new PrismaClient();
 
 export class InterviewService {
   /**
@@ -592,29 +592,31 @@ export class InterviewService {
    * Factual Interview Stats
    */
   static async getInterviewStats(): Promise<InterviewStatsSummary> {
-    const totalInterviews = await prisma.interview.count();
-    const activeInterviews = await prisma.interview.count({
-      where: { status: { in: ['PLANNED', 'SCHEDULED', 'IN_PROGRESS'] } },
-    });
-    const completedRounds = await prisma.interviewRound.count({
-      where: { status: 'COMPLETED' },
-    });
-    const upcomingRounds = await prisma.interviewRound.count({
-      where: { status: 'SCHEDULED' },
-    });
-    const mockSessionsPracticed = await prisma.mockInterviewSession.count();
-    const questionsRecorded = await prisma.interviewQuestion.count();
-    const debriefsCompleted = await prisma.interviewDebrief.count();
+    return apiCache.getOrCompute('interview_stats_summary', 30, async () => {
+      const totalInterviews = await prisma.interview.count();
+      const activeInterviews = await prisma.interview.count({
+        where: { status: { in: ['PLANNED', 'SCHEDULED', 'IN_PROGRESS'] } },
+      });
+      const completedRounds = await prisma.interviewRound.count({
+        where: { status: 'COMPLETED' },
+      });
+      const upcomingRounds = await prisma.interviewRound.count({
+        where: { status: 'SCHEDULED' },
+      });
+      const mockSessionsPracticed = await prisma.mockInterviewSession.count();
+      const questionsRecorded = await prisma.interviewQuestion.count();
+      const debriefsCompleted = await prisma.interviewDebrief.count();
 
-    return {
-      totalInterviews,
-      activeInterviews,
-      completedRounds,
-      upcomingRounds,
-      mockSessionsPracticed,
-      questionsRecorded,
-      debriefsCompleted,
-    };
+      return {
+        totalInterviews,
+        activeInterviews,
+        completedRounds,
+        upcomingRounds,
+        mockSessionsPracticed,
+        questionsRecorded,
+        debriefsCompleted,
+      };
+    }, [CACHE_TAGS.INTERVIEWS]);
   }
 
   // ==========================================

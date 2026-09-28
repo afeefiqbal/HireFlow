@@ -1,8 +1,7 @@
-import { PrismaClient, Job, VisaCompatibility, RecommendationType } from '@prisma/client';
+import { Job, VisaCompatibility, RecommendationType } from '@prisma/client';
+import { prisma } from '../lib/prisma';
 import { AIMatchResult } from '@ai-job-agent/shared';
 import { AiService } from '../ai/ai.service';
-
-const prisma = new PrismaClient();
 
 export class MatchingService {
   /**

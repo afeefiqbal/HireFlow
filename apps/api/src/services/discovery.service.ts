@@ -1,8 +1,7 @@
-import { PrismaClient, VisaStatus } from '@prisma/client';
+import { VisaStatus } from '@prisma/client';
+import { prisma } from '../lib/prisma';
 import { JobFilterService } from './job-filter.service';
 import { JobPipelineService } from './intelligence/job-pipeline.service';
-
-const prisma = new PrismaClient();
 
 interface IngestCandidate {
   title: string;

@@ -11,8 +11,12 @@ const app = createApp();
 
 import { AiService } from './ai/ai.service';
 import { GroqProvider } from './ai/providers/groq.provider';
+import { initPrisma } from './lib/prisma';
 
 AiService.registerProvider(new GroqProvider());
+
+// Pre-warm database connection pool
+initPrisma();
 
 const server = app.listen(PORT, () => {
   console.log(`

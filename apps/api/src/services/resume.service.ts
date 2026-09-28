@@ -1,9 +1,7 @@
-import { PrismaClient } from '@prisma/client';
+import { prisma } from '../lib/prisma';
 import { TailoredCvData } from '@ai-job-agent/shared';
 import { AtsAnalyzerService } from './ats-analyzer.service';
 import { AiService } from '../ai/ai.service';
-
-const prisma = new PrismaClient();
 
 export class ResumeService {
   /**

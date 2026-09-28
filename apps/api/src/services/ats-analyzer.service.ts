@@ -1,7 +1,5 @@
-import { PrismaClient } from '@prisma/client';
+import { prisma } from '../lib/prisma';
 import { AtsAnalysisResult, AtsSkillMatchItem, TailoredCvData } from '@ai-job-agent/shared';
-
-const prisma = new PrismaClient();
 
 export class AtsAnalyzerService {
   /**

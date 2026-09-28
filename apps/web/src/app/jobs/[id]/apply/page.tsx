@@ -368,47 +368,59 @@ export default function ApplicationPreparationPage() {
       </div>
 
       {/* Main 3 Pillars Grid: CV, Cover Letter, Screening */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-stretch">
         
         {/* Pillar 1: Tailored CV & ATS */}
-        <div className="rounded-xl border border-slate-200 bg-white p-5 flex flex-col space-y-4 shadow-xs">
-          <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-            <div className="flex items-center gap-2 text-slate-900 font-bold text-base">
-              <FileText className="h-5 w-5 text-[#00b074]" />
-              <h3>Tailored CV {latestResume?.versionName && <span className="text-xs text-slate-400 ml-2">({latestResume.versionName})</span>}</h3>
+        <div className="rounded-xl border border-slate-200 bg-white p-5 flex flex-col shadow-xs">
+          <div className="flex items-center justify-between border-b border-slate-100 pb-3 min-h-[46px]">
+            <div className="flex items-center gap-2 text-slate-900 font-bold text-base min-w-0">
+              <FileText className="h-5 w-5 text-[#00b074] shrink-0" />
+              <h3 className="shrink-0">Tailored CV</h3>
+              {latestResume?.versionName && (
+                <span className="text-[10px] font-semibold text-slate-600 bg-slate-100 border border-slate-200 rounded px-2 py-0.5 truncate max-w-[130px]" title={latestResume.versionName}>
+                  {latestResume.versionName}
+                </span>
+              )}
             </div>
             {cvGenerated && (
-              <span className="rounded bg-emerald-50 px-2 py-0.5 text-xs font-bold text-[#009a65] border border-emerald-200">
+              <span className="rounded bg-emerald-50 px-2 py-0.5 text-xs font-bold text-[#009a65] border border-emerald-200 shrink-0">
                 Ready
               </span>
             )}
           </div>
           
-          <div className="flex-1 space-y-4">
+          <div className="flex-1 flex flex-col pt-3 space-y-3">
             {latestResume ? (
-              <div className="space-y-3 text-xs">
-                <div className="flex justify-between text-slate-600">
-                  <span>Target Role:</span>
-                  <span className="text-[#009a65] font-semibold">{latestResume.targetRole}</span>
-                </div>
-                {latestAtsAnalysis && (
-                  <div className="flex justify-between text-slate-600">
-                    <span>ATS Match:</span>
-                    <span className="text-[#009a65] font-bold">{atsScore}%</span>
+              <>
+                <div className="rounded-lg bg-slate-50 border border-slate-200/80 p-2.5 flex items-center justify-between gap-3 text-xs min-h-[42px]">
+                  <div className="min-w-0 flex-1">
+                    <span className="text-slate-400 text-[10px] uppercase font-bold tracking-wider block">Target Role</span>
+                    <span className="text-[#009a65] font-bold text-xs truncate block" title={latestResume.targetRole}>
+                      {latestResume.targetRole}
+                    </span>
                   </div>
-                )}
+                  {latestAtsAnalysis && (
+                    <div className="text-right shrink-0 border-l border-slate-200 pl-3">
+                      <span className="text-slate-400 text-[10px] uppercase font-bold tracking-wider block">ATS Match</span>
+                      <span className="text-[#009a65] font-black text-xs">{atsScore}%</span>
+                    </div>
+                  )}
+                </div>
                 
                 {/* Evidence Mode Preview */}
-                <div className="pt-2">
-                  <div className="text-[11px] font-bold text-slate-500 uppercase mb-2">Evidence Mode</div>
-                  <div className="rounded-lg bg-slate-50 border border-slate-200 p-3 space-y-2 max-h-[150px] overflow-y-auto">
-                    {((latestResume.experiences || (latestResume as any).contentJson?.experiences || [])[0]?.bullets?.slice(0, 2) || []).map((bullet: any, idx: number) => (
-                       <div key={idx} className="flex gap-2 text-slate-700">
-                         <span className="shrink-0 mt-0.5">•</span>
-                         <div>
-                           <span className={typeof bullet === 'string' ? '' : 'line-clamp-2'}>{typeof bullet === 'string' ? bullet : bullet.text}</span>
+                <div className="flex-1 flex flex-col">
+                  <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1.5 flex items-center justify-between">
+                    <span>Evidence Mode</span>
+                    <span className="text-[9px] text-[#009a65] font-semibold">Ground Truth Active</span>
+                  </div>
+                  <div className="rounded-lg bg-slate-50 border border-slate-200 p-3 space-y-2 h-[190px] overflow-y-auto">
+                    {((latestResume.experiences || (latestResume as any).contentJson?.experiences || [])[0]?.bullets?.slice(0, 3) || []).map((bullet: any, idx: number) => (
+                       <div key={idx} className="flex gap-2 text-slate-700 text-xs">
+                         <span className="shrink-0 mt-0.5 text-[#00b074] font-bold">•</span>
+                         <div className="space-y-1 min-w-0">
+                           <span className={typeof bullet === 'string' ? '' : 'line-clamp-2 leading-relaxed'}>{typeof bullet === 'string' ? bullet : bullet.text}</span>
                            {bullet.evidence && (
-                             <span className={`inline-flex items-center gap-1 border rounded px-1.5 py-0.5 text-[9px] font-bold mt-1 uppercase ${
+                             <span className={`inline-flex items-center gap-1 border rounded px-1.5 py-0.5 text-[9px] font-bold uppercase ${
                                bullet.evidence.status === 'DIRECT' ? 'bg-emerald-50 text-[#009a65] border-emerald-200' :
                                bullet.evidence.status === 'PARTIAL' ? 'bg-amber-50 text-amber-700 border-amber-200' :
                                'bg-rose-50 text-rose-700 border-rose-200'
@@ -419,19 +431,19 @@ export default function ApplicationPreparationPage() {
                            )}
                          </div>
                        </div>
-                    )) || <div className="text-slate-400 italic">No bullets available</div>}
+                    )) || <div className="text-slate-400 italic text-xs">No bullets available</div>}
                   </div>
                 </div>
-              </div>
+              </>
             ) : (
-              <div className="rounded-lg bg-slate-50 border border-dashed border-slate-200 p-6 flex flex-col items-center justify-center text-center text-xs text-slate-400 h-full">
+              <div className="rounded-lg bg-slate-50 border border-dashed border-slate-200 p-6 flex flex-col items-center justify-center text-center text-xs text-slate-400 h-full min-h-[250px]">
                 <FileText className="h-6 w-6 text-slate-400 mb-2" />
                 <p>No tailored CV generated yet.</p>
               </div>
             )}
           </div>
 
-          <div className="pt-3 border-t border-slate-100 flex flex-wrap gap-2">
+          <div className="pt-3 border-t border-slate-100 flex flex-wrap gap-2 mt-auto">
             {latestResume ? (
               <>
                 <Link href={`/resume/${job.id}`} className="flex-1 inline-flex items-center justify-center gap-1.5 rounded-lg bg-white hover:bg-slate-50 px-3 py-2 text-xs font-bold text-slate-700 transition-colors border border-slate-200 shadow-2xs">
@@ -453,39 +465,47 @@ export default function ApplicationPreparationPage() {
         </div>
 
         {/* Pillar 2: Cover Letter */}
-        <div className="rounded-xl border border-slate-200 bg-white p-5 flex flex-col space-y-4 shadow-xs">
-          <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-            <div className="flex items-center gap-2 text-slate-900 font-bold text-base">
-              <Mail className="h-5 w-5 text-[#00b074]" />
+        <div className="rounded-xl border border-slate-200 bg-white p-5 flex flex-col shadow-xs">
+          <div className="flex items-center justify-between border-b border-slate-100 pb-3 min-h-[46px]">
+            <div className="flex items-center gap-2 text-slate-900 font-bold text-base min-w-0">
+              <Mail className="h-5 w-5 text-[#00b074] shrink-0" />
               <h3>Cover Letter</h3>
             </div>
             {coverLetterGenerated && (
-              <span className="rounded bg-emerald-50 px-2 py-0.5 text-xs font-bold text-[#009a65] border border-emerald-200">
+              <span className="rounded bg-emerald-50 px-2 py-0.5 text-xs font-bold text-[#009a65] border border-emerald-200 shrink-0">
                 Ready
               </span>
             )}
           </div>
           
-          <div className="flex-1 space-y-4">
+          <div className="flex-1 flex flex-col pt-3 space-y-3">
             {latestCoverLetter ? (
-              <div className="space-y-3 text-xs">
-                 <div className="rounded-lg bg-emerald-50 border border-emerald-200 p-2 flex items-center gap-2 text-[#009a65] font-semibold">
-                   <ShieldCheck className="h-4 w-4 shrink-0" />
-                   <span>Based on verified candidate evidence</span>
+              <>
+                 <div className="rounded-lg bg-emerald-50 border border-emerald-200 p-2.5 flex items-center justify-between gap-2 text-[#009a65] font-semibold text-xs min-h-[42px]">
+                   <div className="flex items-center gap-2 truncate">
+                     <ShieldCheck className="h-4 w-4 shrink-0" />
+                     <span className="truncate">Based on verified candidate evidence</span>
+                   </div>
+                   <span className="text-[10px] text-emerald-700 font-bold bg-emerald-100/70 px-1.5 py-0.5 rounded shrink-0">ATS Optimized</span>
                  </div>
-                 <div className="rounded-lg bg-slate-50 border border-slate-200 p-3 text-slate-700 italic line-clamp-6 text-[11px] whitespace-pre-wrap">
-                  {latestCoverLetter.fullText || (latestCoverLetter as any).bodyText}
-                </div>
-              </div>
+                 <div className="flex-1 flex flex-col">
+                   <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1.5">
+                     Draft Preview
+                   </div>
+                   <div className="rounded-lg bg-slate-50 border border-slate-200 p-3 text-slate-700 italic text-[11px] leading-relaxed whitespace-pre-wrap h-[190px] overflow-y-auto">
+                    {latestCoverLetter.fullText || (latestCoverLetter as any).bodyText}
+                   </div>
+                 </div>
+              </>
             ) : (
-              <div className="rounded-lg bg-slate-50 border border-dashed border-slate-200 p-6 flex flex-col items-center justify-center text-center text-xs text-slate-400 h-full">
+              <div className="rounded-lg bg-slate-50 border border-dashed border-slate-200 p-6 flex flex-col items-center justify-center text-center text-xs text-slate-400 h-full min-h-[250px]">
                 <Mail className="h-6 w-6 text-slate-400 mb-2" />
                 <p>No cover letter generated yet.</p>
               </div>
             )}
           </div>
 
-          <div className="pt-3 border-t border-slate-100 flex gap-2">
+          <div className="pt-3 border-t border-slate-100 flex gap-2 mt-auto">
             {latestCoverLetter ? (
               <>
                 <Link href={`/cover-letter/${job.id}`} className="flex-1 inline-flex items-center justify-center gap-1.5 rounded-lg bg-white hover:bg-slate-50 px-3 py-2 text-xs font-bold text-slate-700 transition-colors border border-slate-200 shadow-2xs">
@@ -510,49 +530,64 @@ export default function ApplicationPreparationPage() {
         </div>
 
         {/* Pillar 3: Screening Questions */}
-        <div className="rounded-xl border border-slate-200 bg-white p-5 flex flex-col space-y-4 shadow-xs">
-          <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-            <div className="flex items-center gap-2 text-slate-900 font-bold text-base">
-              <HelpCircle className="h-5 w-5 text-[#00b074]" />
+        <div className="rounded-xl border border-slate-200 bg-white p-5 flex flex-col shadow-xs">
+          <div className="flex items-center justify-between border-b border-slate-100 pb-3 min-h-[46px]">
+            <div className="flex items-center gap-2 text-slate-900 font-bold text-base min-w-0">
+              <HelpCircle className="h-5 w-5 text-[#00b074] shrink-0" />
               <h3>Screening Answers</h3>
             </div>
             {screeningTotalCount > 0 && (
-              <span className={`rounded px-2 py-0.5 text-xs font-bold border ${screeningInputNeeded > 0 ? 'bg-amber-50 text-amber-700 border-amber-200' : 'bg-emerald-50 text-[#009a65] border-emerald-200'}`}>
+              <span className={`rounded px-2 py-0.5 text-xs font-bold border shrink-0 ${screeningInputNeeded > 0 ? 'bg-amber-50 text-amber-700 border-amber-200' : 'bg-emerald-50 text-[#009a65] border-emerald-200'}`}>
                 {screeningInputNeeded > 0 ? `${screeningInputNeeded} Need Input` : 'Ready'}
               </span>
             )}
           </div>
           
-          <div className="flex-1 space-y-3 overflow-hidden">
+          <div className="flex-1 flex flex-col pt-3 space-y-3">
             {screeningQs.length > 0 ? (
-              <div className="space-y-3 h-full max-h-[220px] overflow-y-auto pr-1">
-                {screeningQs.slice(0, 3).map((q, idx) => (
-                  <div key={idx} className={`rounded-lg border p-3 ${q.requiresUserInput && !q.userAnswer ? 'bg-amber-50 border-amber-200' : 'bg-slate-50 border-slate-200'}`}>
-                    <div className="text-[11px] text-slate-800 font-semibold mb-1">{q.question}</div>
-                    {q.requiresUserInput && !q.userAnswer ? (
-                      <div className="flex items-center gap-1 text-[10px] font-bold text-amber-600 uppercase">
-                        <AlertTriangle className="h-3 w-3" /> USER INPUT REQUIRED
-                      </div>
-                    ) : (
-                      <>
-                        <div className="text-[10px] text-slate-600 line-clamp-2 italic">"{q.userAnswer || q.suggestedAnswer}"</div>
-                        <div className="flex items-center gap-1 mt-1">
-                          <span className="inline-flex items-center text-[#009a65] text-[9px] font-bold uppercase"><CheckCircle2 className="h-3 w-3 mr-0.5" /> Verified Evidence</span>
-                        </div>
-                      </>
-                    )}
+              <>
+                <div className="rounded-lg bg-emerald-50 border border-emerald-200 p-2.5 flex items-center justify-between text-[#009a65] font-semibold text-xs min-h-[42px]">
+                  <div className="flex items-center gap-1.5">
+                    <ShieldCheck className="h-4 w-4 shrink-0" />
+                    <span>{screeningQs.length} Verified Question Responses</span>
                   </div>
-                ))}
-              </div>
+                  <span className="text-[10px] text-emerald-700 font-bold bg-emerald-100/70 px-1.5 py-0.5 rounded shrink-0">Deterministic</span>
+                </div>
+                <div className="flex-1 flex flex-col">
+                  <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1.5 flex items-center justify-between">
+                    <span>Questions & Ground-Truth Answers</span>
+                    <span className="text-[9px] text-slate-400">Scroll to view all</span>
+                  </div>
+                  <div className="space-y-2.5 h-[190px] overflow-y-auto pr-1">
+                    {screeningQs.map((q, idx) => (
+                      <div key={idx} className={`rounded-lg border p-2.5 ${q.requiresUserInput && !q.userAnswer ? 'bg-amber-50 border-amber-200' : 'bg-slate-50 border-slate-200'}`}>
+                        <div className="text-[11px] text-slate-800 font-semibold mb-1">{q.question}</div>
+                        {q.requiresUserInput && !q.userAnswer ? (
+                          <div className="flex items-center gap-1 text-[10px] font-bold text-amber-600 uppercase">
+                            <AlertTriangle className="h-3 w-3" /> USER INPUT REQUIRED
+                          </div>
+                        ) : (
+                          <>
+                            <div className="text-[10px] text-slate-600 line-clamp-2 italic">"{q.userAnswer || q.suggestedAnswer}"</div>
+                            <div className="flex items-center gap-1 mt-1">
+                              <span className="inline-flex items-center text-[#009a65] text-[9px] font-bold uppercase"><CheckCircle2 className="h-3 w-3 mr-0.5" /> Verified Evidence</span>
+                            </div>
+                          </>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </>
             ) : (
-              <div className="rounded-lg bg-slate-50 border border-dashed border-slate-200 p-6 flex flex-col items-center justify-center text-center text-xs text-slate-400 h-full">
+              <div className="rounded-lg bg-slate-50 border border-dashed border-slate-200 p-6 flex flex-col items-center justify-center text-center text-xs text-slate-400 h-full min-h-[250px]">
                 <HelpCircle className="h-6 w-6 text-slate-400 mb-2" />
                 <p>No screening questions analyzed yet.</p>
               </div>
             )}
           </div>
 
-          <div className="pt-3 border-t border-slate-100 flex">
+          <div className="pt-3 border-t border-slate-100 flex mt-auto">
             {screeningTotalCount > 0 ? (
               <Link href={`/jobs/${job.id}/screening`} className="w-full inline-flex items-center justify-center gap-1.5 rounded-lg bg-white hover:bg-slate-50 px-3 py-2 text-xs font-bold text-slate-700 transition-colors border border-slate-200 shadow-2xs">
                 EDIT & REVIEW

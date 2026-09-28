@@ -1,29 +1,29 @@
 import { Request, Response } from 'express';
-import { PrismaClient } from '@prisma/client';
+import { prisma } from '../lib/prisma';
+import { apiCache, CACHE_TAGS } from '../lib/cache';
 import { ContinuousDiscoveryService } from '../services/continuous-discovery.service';
-
-const prisma = new PrismaClient();
 
 export class DashboardController {
   static async getStats(req: Request, res: Response) {
     try {
-      const now = new Date();
-      const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+      const data = await apiCache.getOrCompute('dashboard_stats_summary', 30, async () => {
+        const now = new Date();
+        const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate());
 
-      const [
-        jobsDiscoveredToday,
-        freshJobs24h,
-        strongMatchesCount,
-        applicationsReady,
-        applicationsSubmitted,
-        interviewsCount,
-        rejectedCount,
-        totalActiveApplications,
-        topMatches,
-        aiCallsToday,
-        aiUsages,
-        qualifiedOpportunities,
-      ] = await Promise.all([
+        const [
+          jobsDiscoveredToday,
+          freshJobs24h,
+          strongMatchesCount,
+          applicationsReady,
+          applicationsSubmitted,
+          interviewsCount,
+          rejectedCount,
+          totalActiveApplications,
+          topMatches,
+          aiCallsToday,
+          aiUsages,
+          qualifiedOpportunities,
+        ] = await Promise.all([
         // Count discovered today
         prisma.job.count({
           where: {
@@ -148,9 +148,7 @@ export class DashboardController {
 
       const tokensUsedToday = aiUsages.reduce((acc, curr) => acc + curr.inputTokens + curr.outputTokens, 0);
 
-      return res.json({
-        success: true,
-        data: {
+        return {
           stats: {
             jobsDiscoveredToday,
             freshJobs24h,
@@ -170,7 +168,12 @@ export class DashboardController {
           },
           strongestMatches,
           qualifiedOpportunities,
-        },
+        };
+      }, [CACHE_TAGS.DASHBOARD]);
+
+      return res.json({
+        success: true,
+        data,
       });
     } catch (error: any) {
       console.error('Error fetching dashboard stats:', error);

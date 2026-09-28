@@ -2,6 +2,9 @@ import type { Metadata } from 'next';
 import './globals.css';
 import { Navigation } from '@/components/Navigation';
 
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 export const metadata: Metadata = {
   title: 'AI Job Agent | Private Intelligence Dashboard for Afeef Iqbal',
   description:

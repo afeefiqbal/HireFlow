@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import Link from 'next/link';
 import './globals.css';
 import { Navigation } from '@/components/Navigation';
 
@@ -55,10 +56,31 @@ export default function RootLayout({
               <div>
                 <h4 className="text-sm font-semibold text-white mb-3">Cockpit Modules</h4>
                 <ul className="space-y-2 text-xs text-slate-400">
-                  
-                  
-                  
-                  
+                  <li>
+                    <Link href="/" className="hover:text-emerald-400 transition-colors">
+                      Live Dashboard
+                    </Link>
+                  </li>
+                  <li>
+                    <Link href="/jobs" className="hover:text-emerald-400 transition-colors">
+                      Job Directory &amp; Matches
+                    </Link>
+                  </li>
+                  <li>
+                    <Link href="/application-queue" className="hover:text-emerald-400 transition-colors">
+                      Kanban Pipeline Queue
+                    </Link>
+                  </li>
+                  <li>
+                    <Link href="/interviews" className="hover:text-emerald-400 transition-colors">
+                      Interview Copilot
+                    </Link>
+                  </li>
+                  <li>
+                    <Link href="/legal" className="text-emerald-400 font-medium hover:underline flex items-center gap-1">
+                      <span>Legal, Fair Use &amp; Takedowns</span>
+                    </Link>
+                  </li>
                 </ul>
               </div>
 
@@ -84,8 +106,27 @@ export default function RootLayout({
                     <span>Target Speed:</span>
                     <span className="text-white font-medium">&lt; 15 min from post</span>
                   </div>
+                  <div className="pt-2 border-t border-slate-700/60 flex justify-between items-center text-[11px]">
+                    <span className="text-slate-400">Employer Takedowns:</span>
+                    <a href="mailto:legal@hireflow.app" className="text-emerald-400 hover:underline">
+                      24h Response
+                    </a>
+                  </div>
                 </div>
               </div>
+            </div>
+
+            {/* Nominative Fair Use & Copyright Precaution Banner */}
+            <div className="mb-6 rounded-lg bg-slate-800/50 border border-slate-700/60 p-3.5 text-[11px] text-slate-400 leading-relaxed space-y-1">
+              <p>
+                <strong className="text-slate-200">Legal &amp; Trademark Fair Use Notice:</strong> HIREflow is an autonomous career copilot and job search indexing service. All company names, logos, trade names, and trademarks referenced on this platform remain the exclusive property of their respective trademark holders. Their presence is used solely for descriptive identification and direct referral under Nominative Fair Use principles. HIREflow does not claim affiliation with, sponsorship by, or endorsement from any listed company. All job links redirect candidates directly to the official employer recruitment portals.
+              </p>
+              <p className="text-slate-400">
+                <strong className="text-slate-300">Employer Notice:</strong> If you represent an employer and wish to update, verify, or remove a job listing from our index, email{' '}
+                <a href="mailto:legal@hireflow.app" className="text-emerald-400 hover:underline font-medium">legal@hireflow.app</a> or{' '}
+                <a href="mailto:afeefbinqbal@gmail.com" className="text-emerald-400 hover:underline font-medium">afeefbinqbal@gmail.com</a>. Removal requests are honored within 24 hours. Read our full{' '}
+                <Link href="/legal" className="text-emerald-400 hover:underline font-medium">Legal &amp; Takedown Policy</Link>.
+              </p>
             </div>
 
             <div className="flex flex-col sm:flex-row items-center justify-between text-xs text-slate-400 gap-4">
@@ -93,6 +134,10 @@ export default function RootLayout({
                 © 2026 <strong className="text-slate-200 font-semibold">HIREflow</strong>. Autonomous Career Cockpit. All rights reserved.
               </div>
               <div className="flex items-center gap-4 text-slate-400">
+                <Link href="/legal" className="hover:text-slate-200 transition-colors">
+                  Legal &amp; Fair Use
+                </Link>
+                <span>•</span>
                 <span>Privacy First</span>
                 <span>•</span>
                 <span>Deterministic ATS Guardrails</span>

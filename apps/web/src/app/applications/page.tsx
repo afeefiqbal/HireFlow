@@ -182,10 +182,10 @@ export default function ApplicationsPage() {
             return (
               <div
                 key={column.key}
-                className="w-full rounded-xl border border-slate-200/80 bg-slate-100/60 p-3.5 flex flex-col min-h-[480px] shadow-2xs"
+                className="w-full rounded-xl border border-slate-200/80 bg-slate-100/60 p-3.5 flex flex-col h-[680px] shadow-2xs"
               >
                 {/* Column Header */}
-                <div className="flex items-center justify-between border-b border-slate-200 pb-2.5 mb-3">
+                <div className="flex items-center justify-between border-b border-slate-200 pb-2.5 mb-3 shrink-0">
                   <span className="text-xs font-bold uppercase tracking-wider text-slate-800">
                     {column.label}
                   </span>
@@ -195,7 +195,7 @@ export default function ApplicationsPage() {
                 </div>
 
                 {/* Cards in this stage */}
-                <div className="space-y-3 flex-1 overflow-y-auto">
+                <div className="space-y-3 flex-1 overflow-y-auto pr-1 min-h-0 kanban-column-scroll">
                   {colApps.map((app) => (
                     <div
                       key={app.id}
@@ -255,7 +255,7 @@ export default function ApplicationsPage() {
 
           {/* Consistent width spacer for Page 2 with 3 columns */}
           {paginatedColumns.length === 3 && (
-            <div className="hidden xl:flex flex-col items-center justify-center rounded-xl border border-dashed border-slate-200/90 bg-slate-50/60 p-6 min-h-[480px] text-center text-slate-400 w-full">
+            <div className="hidden xl:flex flex-col items-center justify-center rounded-xl border border-dashed border-slate-200/90 bg-slate-50/60 p-6 h-[680px] text-center text-slate-400 w-full">
               <Layers className="h-8 w-8 text-slate-300 mb-2 stroke-[1.5]" />
               <p className="text-xs font-bold text-slate-600">Stage 2 Pipeline</p>
               <p className="text-[11px] text-slate-400 mt-1 max-w-[200px]">

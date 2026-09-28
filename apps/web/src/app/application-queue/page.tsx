@@ -719,11 +719,11 @@ export default function ApplicationQueuePage() {
                 onDrop={(e) => handleDrop(e, col.id)}
                 className={`rounded-xl border transition-all duration-150 ${
                   isOver ? col.activeBorder + ' ring-2 ring-[#00b074]/30 shadow-md' : col.border
-                } p-3.5 space-y-3 min-h-[500px] flex flex-col justify-between w-full`}
+                } p-3.5 flex flex-col justify-between h-[680px] w-full shadow-2xs`}
               >
-                <div>
+                <div className="flex flex-col flex-1 min-h-0">
                   {/* Column Header */}
-                  <div className="flex items-center justify-between border-b border-slate-200/80 pb-2.5 mb-3">
+                  <div className="flex items-center justify-between border-b border-slate-200/80 pb-2.5 mb-3 shrink-0">
                     <div className="flex items-center gap-2 text-xs font-bold text-slate-800">
                       {col.icon}
                       <span className="truncate">{col.title}</span>
@@ -733,8 +733,8 @@ export default function ApplicationQueuePage() {
                     </span>
                   </div>
 
-                  {/* Card Items */}
-                  <div className="space-y-3">
+                  {/* Card Items (Independent Column Scroll) */}
+                  <div className="flex-1 overflow-y-auto pr-1 space-y-3 min-h-0 kanban-column-scroll">
                     {col.items.length === 0 ? (
                       <div className="text-center py-12 text-xs text-slate-400 italic border-2 border-dashed border-slate-200 bg-white/60 rounded-xl">
                         {isOver ? 'Drop card here' : 'No applications in this stage'}
@@ -877,7 +877,7 @@ export default function ApplicationQueuePage() {
                   </div>
                 </div>
 
-                <div className="text-[10px] text-slate-400 text-center pt-2">
+                <div className="text-[10px] text-slate-400 text-center pt-2.5 border-t border-slate-200/60 shrink-0">
                   Drag to transition status
                 </div>
               </div>
@@ -886,7 +886,7 @@ export default function ApplicationQueuePage() {
 
           {/* Placeholder column on Page 2 if only 3 columns to lock consistent 4-column width */}
           {paginatedColumns.length === 3 && visibleColumns.length > 3 && (
-            <div className="hidden xl:flex flex-col items-center justify-center rounded-xl border border-dashed border-slate-200/90 bg-slate-50/60 p-6 min-h-[500px] text-center text-slate-400 w-full">
+            <div className="hidden xl:flex flex-col items-center justify-center rounded-xl border border-dashed border-slate-200/90 bg-slate-50/60 p-6 h-[680px] text-center text-slate-400 w-full">
               <Layers className="h-8 w-8 text-slate-300 mb-2 stroke-[1.5]" />
               <p className="text-xs font-bold text-slate-600">Stage 2 Pipeline</p>
               <p className="text-[11px] text-slate-400 mt-1 max-w-[200px]">

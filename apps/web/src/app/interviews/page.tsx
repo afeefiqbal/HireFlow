@@ -103,7 +103,7 @@ export default function InterviewsCommandCenterPage() {
   });
 
   return (
-    <div className="space-y-6 max-w-7xl mx-auto py-6">
+    <div className="space-y-6">
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 border-b border-slate-200 pb-5">
         <div>

@@ -219,7 +219,7 @@ export const JobCard: React.FC<JobCardProps> = ({
         </div>
 
         {/* AI Match Assessment Badge */}
-        <div className="flex-shrink-0">
+        <div className="w-full lg:w-[250px] shrink-0">
           <MatchScoreBadge
             match={match}
             score={match?.overall_match}

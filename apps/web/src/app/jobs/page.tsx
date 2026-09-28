@@ -31,6 +31,7 @@ export default function JobsPage() {
   const totalPages = Math.ceil(jobs.length / PAGE_SIZE) || 1;
   const paginatedJobs = jobs.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
   // Uploaded files state for generic drag‑drop area
+  const [showUpload, setShowUpload] = useState(false);
   const [uploadedFiles, setUploadedFiles] = useState<File[]>([]);
   const handleFiles = (files: File[]) => {
     setUploadedFiles(prev => [...prev, ...files]);
@@ -202,6 +203,19 @@ export default function JobsPage() {
             <span>Strict &lt;24h Filter: {freshOnly ? 'ON' : 'OFF'}</span>
           </button>
 
+          {/* Collapsible Uploader Toggle */}
+          <button
+            type="button"
+            onClick={() => setShowUpload(!showUpload)}
+            className={`inline-flex items-center gap-1.5 rounded-lg px-3 py-2 text-xs font-semibold transition-all border ${
+              showUpload || uploadedFiles.length > 0
+                ? 'bg-emerald-50 text-[#009a65] border-emerald-300'
+                : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'
+            }`}
+          >
+            <span>{showUpload ? 'Hide Uploader' : 'Import / Drop Files'}</span>
+          </button>
+
           <button
             onClick={fetchJobs}
             className="rounded-lg border border-slate-200 bg-white p-2 text-slate-600 hover:bg-slate-50 transition-colors shadow-2xs"
@@ -212,16 +226,20 @@ export default function JobsPage() {
         </div>
       </div>
 
-      {/* Generic Drag‑Drop Upload Area */}
-      <DragDropArea onFiles={handleFiles} />
-      {uploadedFiles.length > 0 && (
-        <div className="mt-4 rounded-xl border border-slate-200 bg-white p-4 shadow-xs">
-          <h3 className="text-sm font-bold text-slate-800 mb-2">Uploaded Files</h3>
-          <ul className="list-disc list-inside text-xs text-slate-600">
-            {uploadedFiles.map((file, idx) => (
-              <li key={idx}>{file.name}</li>
-            ))}
-          </ul>
+      {/* Generic Drag‑Drop Upload Area (Collapsible to eliminate empty gap) */}
+      {(showUpload || uploadedFiles.length > 0) && (
+        <div className="space-y-3">
+          <DragDropArea onFiles={handleFiles} />
+          {uploadedFiles.length > 0 && (
+            <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-xs">
+              <h3 className="text-sm font-bold text-slate-800 mb-2">Uploaded Files</h3>
+              <ul className="list-disc list-inside text-xs text-slate-600">
+                {uploadedFiles.map((file, idx) => (
+                  <li key={idx}>{file.name}</li>
+                ))}
+              </ul>
+            </div>
+          )}
         </div>
       )}
 
@@ -315,8 +333,8 @@ export default function JobsPage() {
           </div>
         </div>
 
-        {/* Detailed Filter Dropdowns */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-7 gap-3 text-xs">
+        {/* Detailed Filter Dropdowns (Balanced 4-column layout) */}
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 text-xs">
           {/* Target Role */}
           <div>
             <label className="block text-[11px] font-bold text-slate-500 mb-1">Keyword Title</label>
@@ -417,16 +435,28 @@ export default function JobsPage() {
           </div>
 
           {/* Remote Only Toggle */}
-          <div className="flex flex-col justify-end">
-            <label className="flex items-center gap-2 cursor-pointer pb-2 text-slate-700">
+          <div className="flex items-center pt-5">
+            <label className="inline-flex items-center gap-2 cursor-pointer text-slate-700 text-xs font-semibold">
               <input
                 type="checkbox"
                 checked={remoteOnly}
                 onChange={(e) => setRemoteOnly(e.target.checked)}
-                className="rounded border-slate-300 text-[#00b074] focus:ring-[#00b074]"
+                className="h-4 w-4 rounded border-slate-300 text-[#00b074] focus:ring-[#00b074]"
               />
-              <span className="font-semibold">Remote Only</span>
+              <span>Remote Only</span>
             </label>
+          </div>
+
+          {/* Reset Filters */}
+          <div className="flex items-center pt-5 justify-end">
+            <button
+              type="button"
+              onClick={resetFilters}
+              className="inline-flex items-center gap-1 text-xs font-bold text-slate-500 hover:text-slate-800 transition"
+            >
+              <X className="h-3.5 w-3.5" />
+              <span>Reset All</span>
+            </button>
           </div>
         </div>
 

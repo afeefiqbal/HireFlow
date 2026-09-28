@@ -157,7 +157,7 @@ export default function DashboardPage() {
   };
 
   return (
-    <div className="space-y-10">
+    <div className="space-y-7">
       {/* Toast Notification */}
       {toastMessage && (
         <div className="fixed bottom-6 right-6 z-50 flex items-center gap-2 rounded-xl bg-[#00b074] px-5 py-3.5 text-sm font-bold text-white shadow-xl border border-emerald-400 animate-fadeIn">
@@ -396,7 +396,7 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-7">
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-7">
           <MetricCard
             label="Discovered Today"
             value={loading ? '...' : (stats?.jobsDiscoveredToday ?? 0)}

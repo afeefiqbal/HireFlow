@@ -20,12 +20,26 @@ export const MatchScoreBadge: React.FC<MatchScoreBadgeProps> = ({
   const overallScore = match?.overall_match ?? fallbackScore;
   const recommendation = match?.recommendation ?? fallbackRecommendation;
 
-  // Before AI analysis: Show "Not Analyzed"
+  // Before AI analysis: Show structured placeholder to maintain card symmetry
   if (overallScore === null || overallScore === undefined) {
+    if (compact) {
+      return (
+        <div className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-slate-50 px-2.5 py-1 text-xs text-slate-500 font-medium">
+          <HelpCircle className="h-3.5 w-3.5 text-slate-400 shrink-0" />
+          <span>Pending Analysis</span>
+        </div>
+      );
+    }
+
     return (
-      <div className="flex items-center gap-1.5 rounded-lg border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs text-slate-500">
-        <HelpCircle className="h-3.5 w-3.5 text-slate-400" />
-        <span className="font-semibold">Not Analyzed</span>
+      <div className="w-full lg:w-[250px] rounded-xl border border-dashed border-slate-200 bg-slate-50/70 p-3.5 flex flex-col items-center justify-center text-center min-h-[96px] shadow-2xs">
+        <div className="flex items-center gap-1.5 text-slate-500 text-xs font-semibold mb-1">
+          <HelpCircle className="h-3.5 w-3.5 text-slate-400 shrink-0" />
+          <span>Pending Match Audit</span>
+        </div>
+        <span className="text-[10px] text-slate-400 font-medium">
+          Ground-truth verification ready
+        </span>
       </div>
     );
   }
@@ -33,7 +47,7 @@ export const MatchScoreBadge: React.FC<MatchScoreBadgeProps> = ({
   // Color coding
   let colorClasses = 'border-emerald-200 bg-emerald-50/70 text-emerald-800';
   let badgeClasses = 'bg-[#00b074] text-white border-transparent';
-  let ringClasses = 'text-[#00b074]';
+  let ringClasses = 'text-[#009a65]';
 
   if (overallScore < 65 || recommendation === 'SKIP') {
     colorClasses = 'border-rose-200 bg-rose-50/70 text-rose-800';
@@ -49,10 +63,10 @@ export const MatchScoreBadge: React.FC<MatchScoreBadgeProps> = ({
   if (compact) {
     return (
       <div className={`inline-flex items-center gap-1.5 rounded-lg border px-2.5 py-1 text-xs font-semibold shadow-xs ${colorClasses}`}>
-        <Sparkles className="h-3.5 w-3.5" />
+        <Sparkles className="h-3.5 w-3.5 shrink-0" />
         <span className="font-bold">{overallScore}% Match</span>
         {recommendation && (
-          <span className={`ml-1 rounded px-1.5 py-0.5 text-[9px] uppercase font-black ${badgeClasses}`}>
+          <span className={`ml-1.5 rounded px-1.5 py-0.5 text-[9px] uppercase font-bold tracking-normal ${badgeClasses}`}>
             {recommendation}
           </span>
         )}
@@ -68,11 +82,11 @@ export const MatchScoreBadge: React.FC<MatchScoreBadgeProps> = ({
       : 30;
 
   return (
-    <div className={`rounded-xl border p-3.5 shadow-xs max-w-xs text-right sm:text-left ${colorClasses}`}>
-      <div className="flex items-center justify-between gap-3 border-b border-slate-200/80 pb-2 mb-2">
-        <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500 flex items-center gap-1">
-          <Sparkles className="h-3 w-3 text-[#00b074]" />
-          Match Intelligence
+    <div className={`w-full lg:w-[250px] rounded-xl border p-3.5 shadow-xs text-left ${colorClasses}`}>
+      <div className="flex items-center justify-between gap-2 border-b border-slate-200/80 pb-2 mb-2">
+        <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500 flex items-center gap-1.5">
+          <Sparkles className="h-3 w-3 text-[#00b074] shrink-0" />
+          <span>Match Intelligence</span>
         </span>
         {recommendation && (
           <span className={`rounded px-1.5 py-0.5 text-[9px] font-black uppercase tracking-wider shadow-xs ${badgeClasses}`}>
@@ -82,7 +96,7 @@ export const MatchScoreBadge: React.FC<MatchScoreBadgeProps> = ({
       </div>
 
       <div className="flex items-baseline justify-between gap-2">
-        <div className={`text-2xl font-black tracking-tight ${ringClasses}`}>
+        <div className={`text-2xl font-black ${ringClasses}`}>
           {overallScore}%
         </div>
         <span className="text-[10px] text-slate-500 font-medium">
@@ -91,21 +105,21 @@ export const MatchScoreBadge: React.FC<MatchScoreBadgeProps> = ({
       </div>
 
       {match && (
-        <div className="mt-2.5 pt-2 border-t border-slate-200/80 grid grid-cols-2 gap-x-3 gap-y-1 text-[11px]">
+        <div className="mt-2.5 pt-2 border-t border-slate-200/80 grid grid-cols-2 gap-x-3 gap-y-1.5 text-[11px]">
           <div className="flex items-center justify-between text-slate-600">
-            <span>Technical</span>
+            <span className="text-slate-500">Technical</span>
             <span className="font-bold text-slate-900">{match.technical_match}%</span>
           </div>
           <div className="flex items-center justify-between text-slate-600">
-            <span>Experience</span>
+            <span className="text-slate-500">Experience</span>
             <span className="font-bold text-slate-900">{match.experience_match}%</span>
           </div>
           <div className="flex items-center justify-between text-slate-600">
-            <span>Location</span>
+            <span className="text-slate-500">Location</span>
             <span className="font-bold text-slate-900">{match.location_match}%</span>
           </div>
           <div className="flex items-center justify-between text-slate-600">
-            <span>Visa</span>
+            <span className="text-slate-500">Visa</span>
             <span className="font-bold text-slate-900">{visaScore}%</span>
           </div>
         </div>

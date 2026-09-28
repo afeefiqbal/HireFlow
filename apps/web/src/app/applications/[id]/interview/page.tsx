@@ -363,7 +363,7 @@ export default function InterviewCockpitPage() {
   });
 
   return (
-    <div className="space-y-6 max-w-7xl mx-auto py-6">
+    <div className="space-y-6">
       {/* Toast Notification */}
       {toastMessage && (
         <div className="fixed bottom-6 right-6 z-50 flex items-center gap-2 rounded-lg bg-[#00b074] px-4 py-3 text-sm font-semibold text-white shadow-xl animate-bounce">

@@ -30,6 +30,8 @@ import {
   Sparkles,
   GripVertical,
   BellRing,
+  ChevronLeft,
+  ChevronRight,
 } from 'lucide-react';
 
 interface ToastState {
@@ -56,6 +58,10 @@ export default function ApplicationQueuePage() {
   const [remoteFilter, setRemoteFilter] = useState('ALL');
   const [sourceFilter, setSourceFilter] = useState('ALL');
   const [onlyFollowUpsDue, setOnlyFollowUpsDue] = useState(false);
+
+  // Column Pagination (4 columns per page)
+  const [columnPage, setColumnPage] = useState(1);
+  const COLUMNS_PER_PAGE = 4;
 
   const fetchQueue = useCallback(async (isSilent = false) => {
     try {
@@ -292,6 +298,13 @@ export default function ApplicationQueuePage() {
     : columns.filter((col) => col.id === statusFilter);
 
   const totalFilteredCount = columns.reduce((acc, col) => acc + col.items.length, 0);
+
+  // Column Pagination Calculations (4 columns per page)
+  const totalColumnPages = Math.max(1, Math.ceil(visibleColumns.length / COLUMNS_PER_PAGE));
+  const effectiveColumnPage = Math.min(columnPage, totalColumnPages);
+  const startIndex = (effectiveColumnPage - 1) * COLUMNS_PER_PAGE;
+  const endIndex = Math.min(startIndex + COLUMNS_PER_PAGE, visibleColumns.length);
+  const paginatedColumns = visibleColumns.slice(startIndex, endIndex);
 
   // ==========================================
   // DRAG AND DROP HANDLERS WITH OPTIMISTIC UI
@@ -609,17 +622,94 @@ export default function ApplicationQueuePage() {
         </div>
       </div>
 
-      {/* Kanban Board Columns - Horizontal Scroll */}
-      <div className="overflow-x-auto pb-6 pt-1 -mx-4 px-4 sm:-mx-6 sm:px-6 lg:-mx-8 lg:px-8">
-        <div className={`flex gap-4 items-start ${visibleColumns.length <= 2 ? 'w-full max-w-4xl' : 'min-w-max'}`}>
-          {visibleColumns.map((col) => {
+      {/* Kanban Columns Pagination Bar */}
+      {totalColumnPages > 1 && (
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white p-3 rounded-xl border border-slate-200/90 shadow-2xs">
+          {/* Page Tabs / Navigation */}
+          <div className="flex items-center gap-2 flex-wrap">
+            <span className="text-xs font-bold text-slate-500 uppercase tracking-wider mr-1">
+              Pipeline Stage:
+            </span>
+            {Array.from({ length: totalColumnPages }, (_, i) => i + 1).map((p) => {
+              const pStart = (p - 1) * COLUMNS_PER_PAGE + 1;
+              const pEnd = Math.min(p * COLUMNS_PER_PAGE, visibleColumns.length);
+              const isActive = p === effectiveColumnPage;
+              const colNames = visibleColumns.slice(pStart - 1, pEnd).map((c) => c.title).join(', ');
+
+              return (
+                <button
+                  key={p}
+                  type="button"
+                  onClick={() => setColumnPage(p)}
+                  onDragOver={(e) => {
+                    e.preventDefault();
+                    if (draggedJob && columnPage !== p) {
+                      setColumnPage(p);
+                    }
+                  }}
+                  title={colNames}
+                  className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                    isActive
+                      ? 'bg-[#00b074] text-white shadow-xs'
+                      : 'bg-slate-100 text-slate-700 hover:bg-slate-200/80 border border-slate-200'
+                  }`}
+                >
+                  <span>Page {p}</span>
+                  <span
+                    className={`text-[10px] font-semibold px-1.5 py-0.5 rounded ${
+                      isActive ? 'bg-white/20 text-white' : 'bg-white text-slate-500 border border-slate-200'
+                    }`}
+                  >
+                    Cols {pStart}–{pEnd}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+
+          {/* Prev / Next & Column Range Details */}
+          <div className="flex items-center gap-3 self-end sm:self-auto">
+            <span className="text-xs text-slate-500 font-medium">
+              Columns <strong className="text-slate-800 font-bold">{startIndex + 1}–{endIndex}</strong> of {visibleColumns.length}
+            </span>
+            <div className="flex items-center gap-1">
+              <button
+                type="button"
+                onClick={() => setColumnPage((prev) => Math.max(1, prev - 1))}
+                disabled={effectiveColumnPage <= 1}
+                className="p-1.5 rounded-lg border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                title="Previous Columns"
+              >
+                <ChevronLeft className="h-4 w-4" />
+              </button>
+              <span className="px-2 text-xs font-bold text-slate-700">
+                {effectiveColumnPage} / {totalColumnPages}
+              </span>
+              <button
+                type="button"
+                onClick={() => setColumnPage((prev) => Math.min(totalColumnPages, prev + 1))}
+                disabled={effectiveColumnPage >= totalColumnPages}
+                className="p-1.5 rounded-lg border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                title="Next Columns"
+              >
+                <ChevronRight className="h-4 w-4" />
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Kanban Board Columns - 4 Columns Per Page Layout */}
+      <div className="pb-4 pt-1">
+        <div className={`grid gap-4 items-start w-full ${
+          visibleColumns.length === 1
+            ? 'grid-cols-1 max-w-xl mx-auto'
+            : visibleColumns.length === 2
+            ? 'grid-cols-1 md:grid-cols-2 max-w-4xl mx-auto'
+            : 'grid-cols-1 sm:grid-cols-2 xl:grid-cols-4'
+        }`}>
+          {paginatedColumns.map((col) => {
             const isOver = dragOverCol === col.id;
-            const columnWidthClass =
-              visibleColumns.length === 1
-                ? 'w-full max-w-xl'
-                : visibleColumns.length === 2
-                ? 'flex-1 min-w-[320px] max-w-[440px]'
-                : 'w-[295px] min-w-[295px] shrink-0';
 
             return (
               <div
@@ -629,7 +719,7 @@ export default function ApplicationQueuePage() {
                 onDrop={(e) => handleDrop(e, col.id)}
                 className={`rounded-xl border transition-all duration-150 ${
                   isOver ? col.activeBorder + ' ring-2 ring-[#00b074]/30 shadow-md' : col.border
-                } p-3.5 space-y-3 min-h-[500px] flex flex-col justify-between ${columnWidthClass}`}
+                } p-3.5 space-y-3 min-h-[500px] flex flex-col justify-between w-full`}
               >
                 <div>
                   {/* Column Header */}
@@ -793,8 +883,62 @@ export default function ApplicationQueuePage() {
               </div>
             );
           })}
+
+          {/* Placeholder column on Page 2 if only 3 columns to lock consistent 4-column width */}
+          {paginatedColumns.length === 3 && visibleColumns.length > 3 && (
+            <div className="hidden xl:flex flex-col items-center justify-center rounded-xl border border-dashed border-slate-200/90 bg-slate-50/60 p-6 min-h-[500px] text-center text-slate-400 w-full">
+              <Layers className="h-8 w-8 text-slate-300 mb-2 stroke-[1.5]" />
+              <p className="text-xs font-bold text-slate-600">Stage 2 Pipeline</p>
+              <p className="text-[11px] text-slate-400 mt-1 max-w-[200px]">
+                Showing final lifecycle stages (Interview, Offer, Archived).
+              </p>
+              <button
+                type="button"
+                onClick={() => setColumnPage(1)}
+                className="mt-3 inline-flex items-center gap-1 text-xs font-bold text-[#00b074] hover:text-[#009a65] transition-colors"
+              >
+                <ChevronLeft className="h-3.5 w-3.5" />
+                <span>Back to Page 1</span>
+              </button>
+            </div>
+          )}
         </div>
       </div>
+
+      {/* Bottom Pagination Footer */}
+      {totalColumnPages > 1 && (
+        <div className="flex items-center justify-between pt-4 border-t border-slate-200">
+          <p className="text-xs text-slate-500 font-medium">
+            Kanban Page <strong className="text-slate-800 font-bold">{effectiveColumnPage}</strong> of {totalColumnPages} (Showing columns {startIndex + 1}–{endIndex} of {visibleColumns.length})
+          </p>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => {
+                setColumnPage((prev) => Math.max(1, prev - 1));
+                window.scrollTo({ top: 300, behavior: 'smooth' });
+              }}
+              disabled={effectiveColumnPage <= 1}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-200 bg-white text-xs font-bold text-slate-700 hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors shadow-2xs"
+            >
+              <ChevronLeft className="h-3.5 w-3.5" />
+              <span>Previous 4 Columns</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setColumnPage((prev) => Math.min(totalColumnPages, prev + 1));
+                window.scrollTo({ top: 300, behavior: 'smooth' });
+              }}
+              disabled={effectiveColumnPage >= totalColumnPages}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-200 bg-white text-xs font-bold text-slate-700 hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors shadow-2xs"
+            >
+              <span>Next Columns</span>
+              <ChevronRight className="h-3.5 w-3.5" />
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

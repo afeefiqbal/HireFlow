@@ -1,15 +1,14 @@
 import type { Metadata } from 'next';
-import Link from 'next/link';
 import './globals.css';
-import { Navigation } from '@/components/Navigation';
+import { AppShell } from '@/components/AppShell';
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
 
 export const metadata: Metadata = {
-  title: 'AI Job Agent | Private Intelligence Dashboard for Afeef Iqbal',
+  title: 'HIREflow | Autonomous AI Career Engine for Senior Engineers',
   description:
-    'Automated fresh job discovery (<24h), anti-hallucination AI matching, and application tracking for Afeef Iqbal.',
+    'Automated fresh job discovery (<24h), anti-hallucination AI matching, and application tracking for ambitious software engineers.',
 };
 
 export default function RootLayout({
@@ -22,129 +21,16 @@ export default function RootLayout({
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+        <link
+          href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap"
+          rel="stylesheet"
+        />
       </head>
-      <body className="bg-slate-50 text-slate-900 min-h-screen flex flex-col font-sans selection:bg-emerald-100 selection:text-emerald-900 antialiased print:bg-white print:text-black" suppressHydrationWarning>
-        <div className="print:hidden">
-          <Navigation />
-        </div>
-        <main className="flex-1 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 print:p-0 print:m-0 print:max-w-none print:w-full">
-          {children}
-        </main>
-        
-        {/* JobEntry Inspired Dark Corporate Footer */}
-        <footer className="border-t border-slate-800 bg-[#1e293b] text-slate-300 py-12 mt-12 print:hidden">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8 pb-8 border-b border-slate-700/80">
-              {/* Col 1: Brand & Purpose */}
-              <div className="space-y-3">
-                <div className="flex items-center gap-2">
-                  <span className="text-xl font-black tracking-tight text-white">
-                    HIRE<span className="text-[#00b074]">flow</span>
-                  </span>
-                  <span className="bg-[#00b074]/20 border border-[#00b074]/40 text-[#00b074] text-[10px] font-bold px-1.5 py-0.5 rounded">
-                    ENGINE
-                  </span>
-                </div>
-                <p className="text-xs text-slate-400 leading-relaxed">
-                  Candidate-First Autonomous Job Intelligence cockpit for senior engineers. High-signal discovery with deterministic matching.
-                </p>
-
-              </div>
-
-              {/* Col 2: Quick Links */}
-              <div>
-                <h4 className="text-sm font-semibold text-white mb-3">Cockpit Modules</h4>
-                <ul className="space-y-2 text-xs text-slate-400">
-                  <li>
-                    <Link href="/" className="hover:text-emerald-400 transition-colors">
-                      Live Dashboard
-                    </Link>
-                  </li>
-                  <li>
-                    <Link href="/jobs" className="hover:text-emerald-400 transition-colors">
-                      Job Directory &amp; Matches
-                    </Link>
-                  </li>
-                  <li>
-                    <Link href="/application-queue" className="hover:text-emerald-400 transition-colors">
-                      Kanban Pipeline Queue
-                    </Link>
-                  </li>
-                  <li>
-                    <Link href="/interviews" className="hover:text-emerald-400 transition-colors">
-                      Interview Copilot
-                    </Link>
-                  </li>
-                  <li>
-                    <Link href="/legal" className="text-emerald-400 font-medium hover:underline flex items-center gap-1">
-                      <span>Legal, Fair Use &amp; Takedowns</span>
-                    </Link>
-                  </li>
-                </ul>
-              </div>
-
-              {/* Col 3: Candidate Intelligence */}
-              <div>
-                <h4 className="text-sm font-semibold text-white mb-3">Ground Truth Profile</h4>
-                <div className="space-y-1.5 text-xs text-slate-400">
-                  <p className="text-slate-200 font-medium">Afeef Iqbal</p>
-                  <p>7+ Yrs Full Stack · Laravel, Node.js, React</p>
-                  <p className="text-[11px] text-slate-400">Strict ATS Match · Anti-Hallucination</p>
-                </div>
-              </div>
-
-              {/* Col 4: Engine Status */}
-              <div>
-                <h4 className="text-sm font-semibold text-white mb-3">System Verification</h4>
-                <div className="rounded-lg bg-slate-800/80 border border-slate-700 p-3 space-y-2 text-xs">
-                  <div className="flex justify-between text-slate-400">
-                    <span>ATS Ingestion:</span>
-                    <span className="text-emerald-400 font-medium">Greenhouse · Ashby · Lever</span>
-                  </div>
-                  <div className="flex justify-between text-slate-400">
-                    <span>Target Speed:</span>
-                    <span className="text-white font-medium">&lt; 15 min from post</span>
-                  </div>
-                  <div className="pt-2 border-t border-slate-700/60 flex justify-between items-center text-[11px]">
-                    <span className="text-slate-400">Employer Takedowns:</span>
-                    <a href="mailto:legal@hireflow.app" className="text-emerald-400 hover:underline">
-                      24h Response
-                    </a>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Nominative Fair Use & Copyright Precaution Banner */}
-            <div className="mb-6 rounded-lg bg-slate-800/50 border border-slate-700/60 p-3.5 text-[11px] text-slate-400 leading-relaxed space-y-1">
-              <p>
-                <strong className="text-slate-200">Legal &amp; Trademark Fair Use Notice:</strong> HIREflow is an autonomous career copilot and job search indexing service. All company names, logos, trade names, and trademarks referenced on this platform remain the exclusive property of their respective trademark holders. Their presence is used solely for descriptive identification and direct referral under Nominative Fair Use principles. HIREflow does not claim affiliation with, sponsorship by, or endorsement from any listed company. All job links redirect candidates directly to the official employer recruitment portals.
-              </p>
-              <p className="text-slate-400">
-                <strong className="text-slate-300">Employer Notice:</strong> If you represent an employer and wish to update, verify, or remove a job listing from our index, email{' '}
-                <a href="mailto:legal@hireflow.app" className="text-emerald-400 hover:underline font-medium">legal@hireflow.app</a> or{' '}
-                <a href="mailto:afeefbinqbal@gmail.com" className="text-emerald-400 hover:underline font-medium">afeefbinqbal@gmail.com</a>. Removal requests are honored within 24 hours. Read our full{' '}
-                <Link href="/legal" className="text-emerald-400 hover:underline font-medium">Legal &amp; Takedown Policy</Link>.
-              </p>
-            </div>
-
-            <div className="flex flex-col sm:flex-row items-center justify-between text-xs text-slate-400 gap-4">
-              <div>
-                © 2026 <strong className="text-slate-200 font-semibold">HIREflow</strong>. Autonomous Career Cockpit. All rights reserved.
-              </div>
-              <div className="flex items-center gap-4 text-slate-400">
-                <Link href="/legal" className="hover:text-slate-200 transition-colors">
-                  Legal &amp; Fair Use
-                </Link>
-                <span>•</span>
-                <span>Privacy First</span>
-                <span>•</span>
-                <span>Deterministic ATS Guardrails</span>
-              </div>
-            </div>
-          </div>
-        </footer>
+      <body
+        className="min-h-screen bg-slate-50 text-slate-900 font-sans antialiased selection:bg-emerald-100 selection:text-emerald-900"
+        suppressHydrationWarning
+      >
+        <AppShell>{children}</AppShell>
       </body>
     </html>
   );

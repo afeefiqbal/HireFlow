@@ -60,7 +60,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const loginWithEmail = async (email: string, password: string): Promise<{ success: boolean; error?: string }> => {
     setIsLoading(true);
     try {
-      // Simulate network authentication
       await new Promise((res) => setTimeout(res, 600));
 
       if (!email || !password) {
@@ -71,12 +70,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         return { success: false, error: 'Password must be at least 6 characters' };
       }
 
-      // Candidate default profile name extraction
-      const derivedName = email.split('@')[0].replace(/[._]/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
+      const cleanEmail = email.trim().toLowerCase();
+      const derivedName = cleanEmail.split('@')[0].replace(/[._]/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
       const authUser: AuthUser = {
         id: 'usr_' + Math.random().toString(36).substring(2, 9),
         name: derivedName,
-        email,
+        email: cleanEmail,
         role: 'Candidate / Engineer',
         avatar: `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(derivedName)}&backgroundColor=00b074,0ea5e9,6366f1`,
         provider: 'email',
@@ -136,9 +135,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       await new Promise((res) => setTimeout(res, 600));
 
-      // Use provided Google account or default to a realistic candidate Google profile
-      const googleName = customData?.name || 'Google Candidate';
       const googleEmail = customData?.email || 'candidate@gmail.com';
+      const googleName = customData?.name || googleEmail.split('@')[0].replace(/[._]/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
 
       const authUser: AuthUser = {
         id: 'g_usr_' + Math.random().toString(36).substring(2, 9),

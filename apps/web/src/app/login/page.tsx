@@ -14,7 +14,6 @@ import {
   ArrowRight,
   ShieldCheck,
   CheckCircle2,
-  Sparkles,
   Loader2,
   AlertCircle,
 } from 'lucide-react';
@@ -29,6 +28,8 @@ export default function LoginPage() {
   const [rememberMe, setRememberMe] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Forgot Password Modal State
   const [showForgotModal, setShowForgotModal] = useState(false);
   const [forgotEmail, setForgotEmail] = useState('');
   const [forgotSuccess, setForgotSuccess] = useState(false);
@@ -50,12 +51,6 @@ export default function LoginPage() {
     } finally {
       setIsSubmitting(false);
     }
-  };
-
-  const handleQuickFill = (demoEmail: string) => {
-    setEmail(demoEmail);
-    setPassword('password123');
-    setError(null);
   };
 
   const handleForgotSubmit = (e: React.FormEvent) => {
@@ -96,34 +91,6 @@ export default function LoginPage() {
 
       <div className="sm:mx-auto sm:w-full sm:max-w-md">
         <div className="bg-white/95 backdrop-blur-md py-8 px-6 shadow-xl shadow-slate-200/50 sm:rounded-3xl sm:px-10 border border-slate-200/80">
-          {/* Quick Demo Candidate Pills */}
-          <div className="mb-6 p-3 bg-emerald-50/60 rounded-2xl border border-emerald-100">
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-[11px] font-bold uppercase tracking-wider text-emerald-800 flex items-center gap-1">
-                <Sparkles className="w-3 h-3 text-emerald-600" /> Demo Candidate Access
-              </span>
-              <span className="text-[10px] text-emerald-600 font-medium">Click to fill</span>
-            </div>
-            <div className="flex gap-2">
-              <button
-                type="button"
-                onClick={() => handleQuickFill('afeef.iqbal@candidate.io')}
-                className="flex-1 py-1.5 px-2 bg-white hover:bg-emerald-100/50 border border-emerald-200 rounded-lg text-xs font-medium text-emerald-900 text-left transition-colors shadow-2xs"
-              >
-                <div className="font-bold truncate">Afeef Iqbal</div>
-                <div className="text-[10px] text-slate-500 truncate">Senior Full-Stack</div>
-              </button>
-              <button
-                type="button"
-                onClick={() => handleQuickFill('alex.morgan@candidate.io')}
-                className="flex-1 py-1.5 px-2 bg-white hover:bg-emerald-100/50 border border-emerald-200 rounded-lg text-xs font-medium text-emerald-900 text-left transition-colors shadow-2xs"
-              >
-                <div className="font-bold truncate">Alex Morgan</div>
-                <div className="text-[10px] text-slate-500 truncate">Frontend Engineer</div>
-              </button>
-            </div>
-          </div>
-
           {/* Primary Google Auth Section */}
           <div className="space-y-3">
             <GoogleAuthButton mode="signin" />

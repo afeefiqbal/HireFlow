@@ -76,13 +76,6 @@ export default function RegisterPage() {
     }
   };
 
-  const handlePreFillCandidate = () => {
-    setName('Afeef Iqbal');
-    setEmail('afeef.iqbal@candidate.io');
-    setRole('Senior Full-Stack Developer');
-    setPassword('SecurePass2026!');
-    setError(null);
-  };
 
   return (
     <div className="min-h-screen bg-linear-to-b from-slate-50 via-white to-slate-100 flex flex-col justify-center py-12 px-4 sm:px-6 lg:px-8 relative overflow-hidden">
@@ -116,20 +109,6 @@ export default function RegisterPage() {
 
       <div className="sm:mx-auto sm:w-full sm:max-w-md">
         <div className="bg-white/95 backdrop-blur-md py-8 px-6 shadow-xl shadow-slate-200/50 sm:rounded-3xl sm:px-10 border border-slate-200/80">
-          {/* Quick Pre-fill Banner */}
-          <div className="mb-6 p-3 bg-emerald-50/60 rounded-2xl border border-emerald-100 flex items-center justify-between">
-            <div className="flex items-center gap-2 text-xs font-semibold text-emerald-900">
-              <Sparkles className="w-4 h-4 text-emerald-600" />
-              <span>Testing as candidate?</span>
-            </div>
-            <button
-              type="button"
-              onClick={handlePreFillCandidate}
-              className="text-xs font-bold text-emerald-700 bg-white hover:bg-emerald-100 px-2.5 py-1 rounded-lg border border-emerald-200 transition-colors shadow-2xs"
-            >
-              Fill Afeef Iqbal
-            </button>
-          </div>
 
           {/* Primary Google Auth Section */}
           <div className="space-y-3">

@@ -145,90 +145,70 @@ export const GoogleAuthButton: React.FC<GoogleAuthButtonProps> = ({
               </button>
             </div>
 
-            {/* Quick Profiles */}
+            {/* Google Account Authentication Dialog */}
             <div className="p-6 space-y-4">
-              <p className="text-xs font-semibold uppercase tracking-wider text-slate-400">
-                Choose a candidate account
-              </p>
-
-              <div className="space-y-2">
-                <button
-                  type="button"
-                  onClick={() =>
-                    handleSelectAccount('Afeef Iqbal', 'afeef.iqbal@gmail.com')
-                  }
-                  className="w-full flex items-center justify-between p-3 rounded-xl border border-slate-200 hover:border-emerald-500 hover:bg-emerald-50/40 text-left transition-all group"
-                >
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-full bg-emerald-100 border border-emerald-300 text-emerald-800 font-bold flex items-center justify-center text-sm shadow-xs">
-                      AI
-                    </div>
-                    <div>
-                      <div className="text-sm font-bold text-slate-900 group-hover:text-emerald-700">
-                        Afeef Iqbal
-                      </div>
-                      <div className="text-xs text-slate-500">afeef.iqbal@gmail.com</div>
-                    </div>
-                  </div>
-                  <span className="text-xs font-semibold text-emerald-600 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-full">
-                    Primary
-                  </span>
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() =>
-                    handleSelectAccount('Alex Candidate', 'alex.developer@gmail.com')
-                  }
-                  className="w-full flex items-center justify-between p-3 rounded-xl border border-slate-200 hover:border-blue-500 hover:bg-blue-50/40 text-left transition-all group"
-                >
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-full bg-blue-100 border border-blue-300 text-blue-800 font-bold flex items-center justify-center text-sm shadow-xs">
-                      AC
-                    </div>
-                    <div>
-                      <div className="text-sm font-bold text-slate-900 group-hover:text-blue-700">
-                        Alex Candidate
-                      </div>
-                      <div className="text-xs text-slate-500">alex.developer@gmail.com</div>
-                    </div>
-                  </div>
-                  <span className="text-xs font-medium text-slate-500">Demo User</span>
-                </button>
-              </div>
-
-              {/* Or enter custom Google Account */}
-              <div className="pt-2 border-t border-slate-100">
-                <p className="text-xs text-slate-500 mb-2">Or enter another Google email:</p>
-                <div className="flex gap-2">
+              <form
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  if (!customGoogleEmail.includes('@')) return;
+                  handleSelectAccount(
+                    customGoogleName.trim() ||
+                      customGoogleEmail.split('@')[0].replace(/[._]/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase()),
+                    customGoogleEmail.trim().toLowerCase()
+                  );
+                }}
+                className="space-y-4"
+              >
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+                    Google Account Email
+                  </label>
                   <input
                     type="email"
+                    required
+                    autoFocus
                     value={customGoogleEmail}
                     onChange={(e) => setCustomGoogleEmail(e.target.value)}
-                    placeholder="you@gmail.com"
-                    className="flex-1 px-3 py-2 text-xs border border-slate-200 rounded-lg focus:outline-hidden focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500"
+                    placeholder="candidate@gmail.com"
+                    className="w-full px-3.5 py-2.5 text-sm border border-slate-200 rounded-xl bg-slate-50/50 focus:bg-white focus:outline-hidden focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 text-slate-900 placeholder:text-slate-400 transition-all"
                   />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+                    Full Name <span className="text-slate-400 font-normal">(Optional)</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={customGoogleName}
+                    onChange={(e) => setCustomGoogleName(e.target.value)}
+                    placeholder="Your Google Profile Name"
+                    className="w-full px-3.5 py-2.5 text-sm border border-slate-200 rounded-xl bg-slate-50/50 focus:bg-white focus:outline-hidden focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 text-slate-900 placeholder:text-slate-400 transition-all"
+                  />
+                </div>
+
+                <div className="flex gap-2 pt-2">
                   <button
                     type="button"
-                    disabled={!customGoogleEmail.includes('@')}
-                    onClick={() =>
-                      handleSelectAccount(
-                        customGoogleName ||
-                          customGoogleEmail.split('@')[0].replace(/[._]/g, ' '),
-                        customGoogleEmail
-                      )
-                    }
-                    className="px-3 py-2 bg-[#00b074] hover:bg-[#009a65] text-white text-xs font-semibold rounded-lg disabled:opacity-50 transition-colors shadow-xs"
+                    onClick={() => setShowPickerModal(false)}
+                    className="flex-1 py-2.5 px-4 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold rounded-xl transition-colors"
                   >
-                    Continue
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={!customGoogleEmail.includes('@') || submitting}
+                    className="flex-1 py-2.5 px-4 bg-[#00b074] hover:bg-[#009a65] text-white text-xs font-bold rounded-xl disabled:opacity-50 transition-colors shadow-xs"
+                  >
+                    {submitting ? 'Connecting...' : 'Authorize with Google'}
                   </button>
                 </div>
-              </div>
+              </form>
 
               <div className="bg-slate-50 rounded-xl p-3 border border-slate-200/80 text-[11px] text-slate-500 flex items-start gap-2">
                 <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
                 <span>
-                  HireFlow uses Google OAuth 2.0 with minimal permissions (Profile &amp; Email) to authenticate candidates securely.
+                  HireFlow uses Google OAuth 2.0 with minimal scopes (Profile &amp; Email) to authenticate candidates securely.
                 </span>
               </div>
             </div>
